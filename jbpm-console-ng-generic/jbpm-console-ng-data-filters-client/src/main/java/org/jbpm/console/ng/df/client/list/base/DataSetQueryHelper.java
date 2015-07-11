@@ -19,7 +19,6 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.Timer;
 import org.dashbuilder.common.client.StringUtils;
 import org.dashbuilder.dataset.DataSet;
-import org.dashbuilder.dataset.client.DataSetClientServiceError;
 import org.dashbuilder.dataset.client.DataSetReadyCallback;
 import org.dashbuilder.dataset.sort.SortOrder;
 
@@ -29,6 +28,7 @@ import org.jbpm.console.ng.df.client.filter.dataset.DataSetHandlerImpl;
 
 import javax.enterprise.context.Dependent;
 import java.util.Date;
+import org.dashbuilder.common.client.error.ClientRuntimeError;
 
 
 @Dependent
@@ -94,7 +94,7 @@ public class DataSetQueryHelper<T> {
                         }
 
                         @Override
-                        public boolean onError(DataSetClientServiceError error) {
+                        public boolean onError(ClientRuntimeError error) {
                             callback.onError(error);
                             return false;
                         }

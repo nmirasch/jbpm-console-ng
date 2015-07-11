@@ -22,7 +22,6 @@ import com.google.gwt.view.client.AsyncDataProvider;
 import com.google.gwt.view.client.HasData;
 import com.google.gwt.view.client.Range;
 import org.dashbuilder.dataset.DataSet;
-import org.dashbuilder.dataset.client.DataSetClientServiceError;
 import org.dashbuilder.dataset.client.DataSetReadyCallback;
 import org.dashbuilder.dataset.sort.SortOrder;
 
@@ -51,6 +50,7 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import org.dashbuilder.common.client.error.ClientRuntimeError;
 
 
 @Dependent
@@ -66,8 +66,6 @@ public class DataSetTasksListGridPresenter extends AbstractScreenListPresenter<T
 
     private Constants constants = GWT.create(Constants.class);
 
-    @Inject
-    private Caller<TaskQueryService> taskQueryService;
 
     @Inject
     private Caller<TaskLifeCycleService> taskOperationsService;
@@ -138,10 +136,7 @@ public class DataSetTasksListGridPresenter extends AbstractScreenListPresenter<T
                                                 dataSetQueryHelper.getColumnLongValue( dataSet, DataSetTasksListGridViewImpl.COLUMN_PROCESSSESSIONID, i ),
                                                 dataSetQueryHelper.getColumnLongValue( dataSet, DataSetTasksListGridViewImpl.COLUMN_PROCESSINSTANCEID, i ),
                                                 dataSetQueryHelper.getColumnStringValue( dataSet, DataSetTasksListGridViewImpl.COLUMN_DEPLOYMENTID, i ),
-                                                dataSetQueryHelper.getColumnLongValue( dataSet, DataSetTasksListGridViewImpl.COLUMN_PARENTID, i ) ,
-                                                dataSetQueryHelper.getColumnStringValue( dataSet, DataSetTasksListGridViewImpl.COLUMN_POTENTIALOWNERS, i ),
-                                                dataSetQueryHelper.getColumnStringValue( dataSet, DataSetTasksListGridViewImpl.COLUMN_BUSINESSADMINISTRATORS, i ))
-                                );
+                                                dataSetQueryHelper.getColumnLongValue( dataSet, DataSetTasksListGridViewImpl.COLUMN_PARENTID, i ) ));
 
                             }
                             PageResponse<TaskSummary> taskSummaryPageResponse = new PageResponse<TaskSummary>();
@@ -167,8 +162,9 @@ public class DataSetTasksListGridPresenter extends AbstractScreenListPresenter<T
                     }
 
                     @Override
-                    public boolean onError( DataSetClientServiceError error ) {
+                    public boolean onError( ClientRuntimeError error ) {
                         view.hideBusyIndicator();
+                        error.getThrowable().printStackTrace();
                         errorPopup.showMessage( "DataSet with UUID [  jbpmHumanTasks ] error: " + error.getThrowable() );
                         GWT.log( "DataSet with UUID [  jbpmHumanTasks ] error: ", error.getThrowable() );
                         return false;

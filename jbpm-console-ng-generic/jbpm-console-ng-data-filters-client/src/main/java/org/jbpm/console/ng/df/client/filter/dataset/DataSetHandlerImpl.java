@@ -16,7 +16,6 @@
 package org.jbpm.console.ng.df.client.filter.dataset;
 
 import org.dashbuilder.dataset.*;
-import org.dashbuilder.dataset.client.DataSetClientServiceError;
 import org.dashbuilder.dataset.client.DataSetClientServices;
 import org.dashbuilder.dataset.client.DataSetReadyCallback;
 import org.dashbuilder.dataset.engine.group.IntervalBuilder;
@@ -28,6 +27,7 @@ import org.dashbuilder.dataset.sort.SortOrder;
 import org.jbpm.console.ng.df.client.i18n.FiltersConstants;
 
 import java.util.*;
+import org.dashbuilder.common.client.error.ClientRuntimeError;
 
 public class DataSetHandlerImpl implements DataSetHandler {
 
@@ -172,7 +172,7 @@ public class DataSetHandlerImpl implements DataSetHandler {
             }
 
             @Override
-            public boolean onError( final DataSetClientServiceError error ) {
+            public boolean onError( final ClientRuntimeError error ) {
                 return callback.onError( error );
             }
         } );
