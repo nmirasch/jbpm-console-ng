@@ -777,6 +777,20 @@
       <groupId>org.dashbuilder</groupId>
       <artifactId>dashbuilder-displayer-api</artifactId>
     </dependency>
+   
+
+    <dependency>
+      <groupId>org.dashbuilder</groupId>
+      <artifactId>dashbuilder-dataset-editor</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    
+    
+    <dependency>
+      <groupId>org.dashbuilder</groupId>
+      <artifactId>dashbuilder-displayer-client</artifactId>
+      <scope>provided</scope>
+    </dependency>
 
     <dependency>
       <groupId>org.dashbuilder</groupId>
@@ -988,12 +1002,16 @@
 
 
             <!-- Dashbuilder -->
-            <!--compileSourcesArtifact>org.dashbuilder:dashbuilder-widgets</compileSourcesArtifact-->
+            
             <compileSourcesArtifact>org.dashbuilder:dashbuilder-common-client</compileSourcesArtifact>
             <compileSourcesArtifact>org.dashbuilder:dashbuilder-dataset-api</compileSourcesArtifact>
             <compileSourcesArtifact>org.dashbuilder:dashbuilder-dataset-shared</compileSourcesArtifact>
             <compileSourcesArtifact>org.dashbuilder:dashbuilder-dataset-client</compileSourcesArtifact>
             <compileSourcesArtifact>org.dashbuilder:dashbuilder-displayer-api</compileSourcesArtifact>
+            <!-- these dependencies are not required by the BPM SIde only by the DataSet Editor -->
+            <compileSourcesArtifact>org.dashbuilder:dashbuilder-dataset-editor</compileSourcesArtifact>
+            <compileSourcesArtifact>org.dashbuilder:dashbuilder-widgets</compileSourcesArtifact>
+            <compileSourcesArtifact>org.dashbuilder:dashbuilder-displayer-client</compileSourcesArtifact>
 
 
 

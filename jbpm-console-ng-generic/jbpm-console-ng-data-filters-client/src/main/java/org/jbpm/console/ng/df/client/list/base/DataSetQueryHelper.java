@@ -29,6 +29,7 @@ import org.jbpm.console.ng.df.client.filter.dataset.DataSetHandlerImpl;
 
 import javax.enterprise.context.Dependent;
 import java.util.Date;
+import org.dashbuilder.common.client.error.ClientRuntimeError;
 
 
 @Dependent
