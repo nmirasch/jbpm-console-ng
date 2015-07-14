@@ -96,7 +96,7 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
     public static final String COLUMN_STATUS = "status";
     public static final String COLUMN_TASKID = "taskId";
     public static final String COLUMN_WORKITEMID = "workItemId";
-    public static final String COLUMN_ORGANIZATIONAL_ENTITY = "oe.id";
+    public static final String COLUMN_ORGANIZATIONAL_ENTITY = "oeid";
     
 
     private static Binder uiBinder = GWT.create(Binder.class);
@@ -643,7 +643,7 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
         builder.filter( COLUMN_STATUS, equalsTo( COLUMN_STATUS, names )  );
         
         Set<Group> groups = identity.getGroups();
-
+        
         
         builder.filter( COLUMN_ACTUALOWNER, equalsTo("") );
         List<ColumnFilter> condList = new  ArrayList<ColumnFilter>();
@@ -653,7 +653,6 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
         }
         builder.filter( COLUMN_ORGANIZATIONAL_ENTITY, OR(condList) );
         builder.group(COLUMN_TASKID);
-        builder.group(COLUMN_ORGANIZATIONAL_ENTITY);
         
         builder.setColumn( COLUMN_ACTIVATIONTIME, "Activation Time", "MMM dd E, yyyy" );
         builder.setColumn( COLUMN_ACTUALOWNER, constants.Actual_Owner());
@@ -671,7 +670,6 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
         builder.setColumn( COLUMN_STATUS, constants.Status() );
         builder.setColumn( COLUMN_TASKID, constants.Id() );
         builder.setColumn( COLUMN_WORKITEMID, "WorkItemId" );
-        builder.setColumn( COLUMN_ORGANIZATIONAL_ENTITY, "OE.ID" );
 
         builder.filterOn( true, true, true);
         builder.tableOrderEnabled(true);
