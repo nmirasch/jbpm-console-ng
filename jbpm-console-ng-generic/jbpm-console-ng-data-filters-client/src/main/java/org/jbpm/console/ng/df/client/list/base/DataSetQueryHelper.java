@@ -179,22 +179,14 @@ public class DataSetQueryHelper<T> {
         this.autoRefreshSeconds = autoRefreshSeconds;
     }
 
-    public Long getColumnLongValue (DataSet currentDataSet, String columnId, int index){
-        try{
-            return (Long)currentDataSet.getColumnById( columnId ).getValues().get( index );
-        } catch ( Exception e ){
-
-        }
-        return null;
+    public Long getColumnLongValue(DataSet currentDataSet, String columnId, int index){
+        Object value = currentDataSet.getColumnById( columnId ).getValues().get(index);
+        return value != null ? Long.parseLong(value.toString()) : null;
     }
 
     public String getColumnStringValue(DataSet currentDataSet, String columnId, int index){
-        try{
-            return (String)currentDataSet.getColumnById( columnId ).getValues().get( index );
-        } catch ( Exception e ){
-
-        }
-        return null;
+        Object value = currentDataSet.getColumnById( columnId ).getValues().get(index);
+        return value != null ? value.toString() : null;
     }
 
     public Date getColumnDateValue(DataSet currentDataSet,String columnId, int index){
@@ -207,11 +199,7 @@ public class DataSetQueryHelper<T> {
     }
 
     public int getColumnIntValue(DataSet currentDataSet,String columnId, int index){
-        try{
-            return ((Integer)currentDataSet.getColumnById( columnId ).getValues().get( index) ).intValue();
-        } catch ( Exception e ){
-
-        }
-        return -1;
+        Object value = currentDataSet.getColumnById( columnId ).getValues().get(index);
+        return value != null ? Integer.parseInt(value.toString()) : -1;
     }
 }
