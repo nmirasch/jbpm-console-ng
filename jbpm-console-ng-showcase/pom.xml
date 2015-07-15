@@ -688,6 +688,11 @@
 
     <!-- Dashboard -->
     <dependency>
+        <groupId>org.dashbuilder</groupId>
+        <artifactId>dashbuilder-renderer-default</artifactId>
+        <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.jbpm</groupId>
       <artifactId>jbpm-console-ng-dashboard-client</artifactId>
       <scope>provided</scope>
@@ -771,6 +776,7 @@
     <dependency>
       <groupId>org.dashbuilder</groupId>
       <artifactId>dashbuilder-widgets</artifactId>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -1012,6 +1018,7 @@
             <compileSourcesArtifact>org.dashbuilder:dashbuilder-dataset-editor</compileSourcesArtifact>
             <compileSourcesArtifact>org.dashbuilder:dashbuilder-widgets</compileSourcesArtifact>
             <compileSourcesArtifact>org.dashbuilder:dashbuilder-displayer-client</compileSourcesArtifact>
+            <compileSourcesArtifact>org.dashbuilder:dashbuilder-renderer-default</compileSourcesArtifact>
 
 
 

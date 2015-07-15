@@ -82,6 +82,7 @@
   <inherits name="org.dashbuilder.DataSetEditor"/>
   <inherits name="org.dashbuilder.CommonWidgets"/>
   <inherits name="org.dashbuilder.DisplayerClient"/>
+  <inherits name="org.dashbuilder.DatasetAPI"/>
 
   <!-- Specify the application specific style sheet. -->
   <stylesheet src='css/uberfire-showcase.css'/>
