@@ -134,12 +134,12 @@ public class DashbuilderBootstrap {
                         .dbSQL("select t.activationtime, t.actualowner, t.createdby, "
                                 + "t.createdon, t.deploymentid, t.description, t.duedate, "
                                 + "t.name, t.parentid, t.priority, t.processid, t.processinstanceid, "
-                                + "t.processsessionid, t.status, t.taskid, t.workitemid, oe.id oeid"
+                                + "t.processsessionid, t.status, t.taskid, t.workitemid, oe.id oeid "
                                 + "from AuditTaskImpl t, "
                                 + "peopleassignments_bas bas, "
                                 + "organizationalentity oe "
-                                + "where t.id = bas.task_id and po.entity_id = oe.id", false)
-                        .date( DataSetTasksListGridViewImpl.COLUMN_ACTIVATIONTIME )
+                                + "where t.id = bas.task_id and bas.entity_id = oe.id", false)
+                         .date( DataSetTasksListGridViewImpl.COLUMN_ACTIVATIONTIME )
                         .label( DataSetTasksListGridViewImpl.COLUMN_ACTUALOWNER )
                         .label( DataSetTasksListGridViewImpl.COLUMN_CREATEDBY )
                         .date( DataSetTasksListGridViewImpl.COLUMN_CREATEDON )

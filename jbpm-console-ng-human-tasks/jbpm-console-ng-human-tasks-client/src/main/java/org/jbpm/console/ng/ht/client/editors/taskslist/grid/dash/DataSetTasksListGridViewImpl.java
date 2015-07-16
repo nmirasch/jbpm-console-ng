@@ -65,6 +65,7 @@ import org.dashbuilder.dataset.filter.FilterFactory;
 import static org.dashbuilder.dataset.filter.FilterFactory.*;
 import static org.dashbuilder.dataset.sort.SortOrder.DESCENDING;
 import org.jboss.errai.security.shared.api.Group;
+import static org.jbpm.console.ng.ht.util.TaskRoleDefinition.TASK_ROLE_ADMINISTRATOR;
 import static org.jbpm.console.ng.ht.util.TaskRoleDefinition.TASK_ROLE_POTENTIALOWNER;
 
 @Dependent
@@ -79,6 +80,7 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
     public static String DATASET_TASK_LIST_PREFIX = "DataSetTaskListGrid" ;
     public static String HUMAN_TASKS_DATASET ="jbpmHumanTasks";
     public static String HUMAN_TASKS_WITH_USERS_DATASET ="jbpmHumanTasksWithUser";
+    public static String HUMAN_TASKS_WITH_ADMINS_DATASET ="jbpmHumanTasksWithAdmin";
 
     public static final String COLUMN_ACTIVATIONTIME = "activationTime";
     public static final String COLUMN_ACTUALOWNER = "actualOwner";
@@ -596,6 +598,7 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
         }
     }
 
+    @Override
     public void initDefaultFilters(GridGlobalPreferences preferences ,Button createTabButton){
 
         List<String> states;
@@ -618,8 +621,8 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
         initGenericTabFilter( preferences, DATASET_TASK_LIST_PREFIX+"_3", Constants.INSTANCE.All(), "Filter " + Constants.INSTANCE.All(), states,TASK_ROLE_POTENTIALOWNER );
 
 //        //Filter status Admin
-//        states= TaskUtils.getStatusByType( TaskUtils.TaskType.ADMIN );
-//        initAdminTabFilter( preferences, DATASET_TASK_LIST_PREFIX+"_4", Constants.INSTANCE.Task_Admin(), "Filter " + Constants.INSTANCE.Task_Admin(), states, TASK_ROLE_ADMINISTRATOR );
+        states= TaskUtils.getStatusByType( TaskUtils.TaskType.ADMIN );
+        initAdminTabFilter( preferences, DATASET_TASK_LIST_PREFIX+"_4", Constants.INSTANCE.Task_Admin(), "Filter " + Constants.INSTANCE.Task_Admin(), states, TASK_ROLE_ADMINISTRATOR );
 
         filterPagedTable.addAddTableButton( createTabButton );
 
@@ -707,7 +710,7 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
         FilterSettingsBuilderHelper builder = FilterSettingsBuilderHelper.init();
         builder.initBuilder();
 
-        builder.dataset("jbpmHumanTasks");
+        builder.dataset(HUMAN_TASKS_WITH_ADMINS_DATASET);
         List<Comparable> names = new ArrayList<Comparable>();
 
         for(String s : states){
@@ -718,21 +721,23 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
         Set<Group> groups = identity.getGroups();
         
 
-        List<Comparable> gs = new ArrayList<Comparable>();
+        List<ColumnFilter> condList = new  ArrayList<ColumnFilter>();
         for(Group g : groups){
-            gs.add(g.getName());
+            condList.add( FilterFactory.equalsTo(g.getName()));
+        
         }
-        gs.add(identity.getIdentifier());
+        condList.add( FilterFactory.equalsTo(identity.getIdentifier()));
         
+        builder.filter( COLUMN_ORGANIZATIONAL_ENTITY, OR(condList) );
         
-
+        builder.group(COLUMN_TASKID);
+        
         builder.setColumn( COLUMN_ACTIVATIONTIME, "Activation Time", "MMM dd E, yyyy" );
         builder.setColumn( COLUMN_ACTUALOWNER, constants.Actual_Owner());
         builder.setColumn( COLUMN_CREATEDBY,"CreatedBy" );
         builder.setColumn( COLUMN_CREATEDON , "Created on", "MMM dd E, yyyy" );
         builder.setColumn( COLUMN_DEPLOYMENTID, "DeploymentId" );
         builder.setColumn( COLUMN_DESCRIPTION, constants.Description() );
-
         builder.setColumn( COLUMN_DUEDATE, "Due Date", "MMM dd E, yyyy" );
         builder.setColumn( COLUMN_NAME, constants.Task() );
         builder.setColumn( COLUMN_PARENTID,  "ParentId");
