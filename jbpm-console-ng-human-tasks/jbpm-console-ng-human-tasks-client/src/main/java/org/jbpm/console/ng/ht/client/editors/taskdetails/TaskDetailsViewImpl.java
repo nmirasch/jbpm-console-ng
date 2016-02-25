@@ -182,11 +182,6 @@ public class TaskDetailsViewImpl extends Composite implements TaskDetailsPresent
     // }
 
     @Override
-    public String[] getPriorities() {
-        return priorities;
-    }
-
-    @Override
     public TextBox getTaskStatusText() {
         return taskStatusText;
     }

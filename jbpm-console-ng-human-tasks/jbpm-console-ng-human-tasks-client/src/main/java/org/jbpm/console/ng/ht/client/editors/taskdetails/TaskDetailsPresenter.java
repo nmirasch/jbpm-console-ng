@@ -71,10 +71,9 @@ public class TaskDetailsPresenter {
         // ListBox getSubTaskStrategyListBox();
         // Commented out until we add the posibility of adding sub tasks
         // public String[] getSubTaskStrategies();
-        public String[] getPriorities();
 
         TextBox getTaskStatusText();
-        
+
         Button getUpdateTaskButton();
     }
 
@@ -151,25 +150,11 @@ public class TaskDetailsPresenter {
             @Override
             public void callback( TaskSummary details ) {
                 if ( details == null ) {
-                    view.getTaskDescriptionTextArea().setEnabled( false );
-                    view.getDueDate().setEnabled( false );
-                    view.getUserText().setEnabled( false );
-                    view.getTaskStatusText().setEnabled( false );
-                    view.getDueDateTime().setEnabled(false);
-                    view.getTaskPriorityListBox().setEnabled(false);
-                    view.getUpdateTaskButton().setEnabled(false);
+                    setReadOnlyTaskDetail();
                     return;
                 }
                 if ( details.getStatus().equals( "Completed" ) ) {
-
-                    view.getTaskDescriptionTextArea().setEnabled( false );
-                    view.getDueDate().setEnabled( false );
-                    view.getUserText().setEnabled( false );
-                    view.getTaskStatusText().setEnabled( false );
-                    view.getDueDateTime().setEnabled(false);
-                    view.getTaskPriorityListBox().setEnabled(false);
-                    view.getUpdateTaskButton().setEnabled(false);
-
+                    setReadOnlyTaskDetail();
                 }
 
                 view.getTaskDescriptionTextArea().setText( details.getDescription() );
@@ -188,13 +173,7 @@ public class TaskDetailsPresenter {
                 // }
                 // i++;
                 // }
-                i = 0;
-                for ( String priority : view.getPriorities() ) {
-                    if ( details.getPriority() == i ) {
-                        view.getTaskPriorityListBox().setValue( String.valueOf( i ) );
-                    }
-                    i++;
-                }
+                view.getTaskPriorityListBox().setValue( String.valueOf( details.getPriority() ) );
             }
         }, new ErrorCallback<Message>() {
             @Override
@@ -204,6 +183,16 @@ public class TaskDetailsPresenter {
                 return true;
             }
         } ).getItem( new TaskKey( currentTaskId ) );
+    }
+
+    public void setReadOnlyTaskDetail(){
+        view.getTaskDescriptionTextArea().setEnabled( false );
+        view.getDueDate().setEnabled( false );
+        view.getUserText().setEnabled( false );
+        view.getTaskStatusText().setEnabled( false );
+        view.getDueDateTime().setEnabled( false );
+        view.getTaskPriorityListBox().setEnabled( false );
+        view.getUpdateTaskButton().setVisible( false );
     }
 
     public void onTaskSelectionEvent( @Observes final TaskSelectionEvent event ) {

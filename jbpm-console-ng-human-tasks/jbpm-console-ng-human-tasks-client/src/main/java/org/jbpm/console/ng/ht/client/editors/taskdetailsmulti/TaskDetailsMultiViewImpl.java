@@ -42,11 +42,13 @@ public class TaskDetailsMultiViewImpl extends Composite
 
     private static Binder uiBinder = GWT.create( Binder.class );
 
-    @UiField
-    NavTabs navTabs;
+    private Constants constants = GWT.create( Constants.class );
 
     @UiField
-    TabContent tabContent;
+    NavTabs navTabs = GWT.create(NavTabs.class);
+
+    @UiField
+    TabContent tabContent = GWT.create(TabContent.class);
 
     private TaskDetailsMultiPresenter presenter;
 
@@ -80,25 +82,27 @@ public class TaskDetailsMultiViewImpl extends Composite
 
     private void initTabs() {
         {
-            genericFormDisplayPane = new TabPane() {{
-                add( presenter.getGenericFormView() );
-            }};
-            genericFormDisplayTab = new TabListItem( Constants.INSTANCE.Work() ) {{
-                setDataTargetWidget( genericFormDisplayPane );
-                addStyleName( "uf-dropdown-tab-list-item" );
-            }};
+            genericFormDisplayPane = GWT.create( TabPane.class );
+            genericFormDisplayPane.add( presenter.getGenericFormView() );
+
+            genericFormDisplayTab = GWT.create( TabListItem.class );
+            genericFormDisplayTab.setText( constants.Work() );
+            genericFormDisplayTab.setDataTargetWidget( genericFormDisplayPane );
+            genericFormDisplayTab.addStyleName( "uf-dropdown-tab-list-item" );
+
             navTabs.add( genericFormDisplayTab );
             tabContent.add( genericFormDisplayPane );
         }
 
         {
-            taskDetailsPane = new TabPane() {{
-                add( presenter.getTaskDetailsView() );
-            }};
-            taskDetailsTab = new TabListItem( Constants.INSTANCE.Details() ) {{
-                setDataTargetWidget( taskDetailsPane );
-                addStyleName( "uf-dropdown-tab-list-item" );
-            }};
+            taskDetailsPane = GWT.create( TabPane.class );
+            taskDetailsPane.add( presenter.getTaskDetailsView() );
+
+            taskDetailsTab = GWT.create( TabListItem.class );
+            taskDetailsTab.setText( constants.Details() );
+            taskDetailsTab.setDataTargetWidget( taskDetailsPane );
+            taskDetailsTab.addStyleName( "uf-dropdown-tab-list-item" );
+
             navTabs.add( taskDetailsTab );
             tabContent.add( taskDetailsPane );
             taskDetailsTab.addShowHandler( new TabShowHandler() {
@@ -110,13 +114,14 @@ public class TaskDetailsMultiViewImpl extends Composite
         }
 
         {
-            processContextPane = new TabPane() {{
-                add( presenter.getProcessContextView() );
-            }};
-            processContextTab = new TabListItem( Constants.INSTANCE.Process_Context() ) {{
-                setDataTargetWidget( processContextPane );
-                addStyleName( "uf-dropdown-tab-list-item" );
-            }};
+            processContextPane = GWT.create( TabPane.class );
+            processContextPane.add( presenter.getProcessContextView() );
+
+            processContextTab = GWT.create( TabListItem.class );
+            processContextTab.setText( constants.Process_Context() );
+            processContextTab.setDataTargetWidget( processContextPane );
+            processContextTab.addStyleName( "uf-dropdown-tab-list-item" );
+
             navTabs.add( processContextTab );
             tabContent.add( processContextPane );
             processContextTab.addShowHandler( new TabShowHandler() {
@@ -128,13 +133,14 @@ public class TaskDetailsMultiViewImpl extends Composite
         }
 
         {
-            taskAssignmentsPane = new TabPane() {{
-                add( presenter.getTaskAssignmentsView() );
-            }};
-            taskAssignmentsTab = new TabListItem( Constants.INSTANCE.Assignments() ) {{
-                setDataTargetWidget( taskAssignmentsPane );
-                addStyleName( "uf-dropdown-tab-list-item" );
-            }};
+            taskAssignmentsPane = GWT.create( TabPane.class );
+            taskAssignmentsPane.add( presenter.getTaskAssignmentsView() );
+
+            taskAssignmentsTab = GWT.create( TabListItem.class );
+            taskAssignmentsTab.setText( constants.Assignments() );
+            taskAssignmentsTab.setDataTargetWidget( taskAssignmentsPane );
+            taskAssignmentsTab.addStyleName( "uf-dropdown-tab-list-item" );
+
             navTabs.add( taskAssignmentsTab );
             tabContent.add( taskAssignmentsPane );
             taskAssignmentsTab.addShowHandler( new TabShowHandler() {
@@ -146,13 +152,14 @@ public class TaskDetailsMultiViewImpl extends Composite
         }
 
         {
-            taskCommentsPane = new TabPane() {{
-                add( presenter.getTaskCommentsView() );
-            }};
-            taskCommentsTab = new TabListItem( Constants.INSTANCE.Comments() ) {{
-                setDataTargetWidget( taskCommentsPane );
-                addStyleName( "uf-dropdown-tab-list-item" );
-            }};
+            taskCommentsPane = GWT.create( TabPane.class );
+            taskCommentsPane.add( presenter.getTaskCommentsView() );
+
+            taskCommentsTab = GWT.create( TabListItem.class );
+            taskCommentsTab.setText(constants.Comments());
+            taskCommentsTab.setDataTargetWidget( taskCommentsPane );
+            taskCommentsTab.addStyleName( "uf-dropdown-tab-list-item" );
+
             navTabs.add( taskCommentsTab );
             tabContent.add( taskCommentsPane );
             taskCommentsTab.addShowHandler( new TabShowHandler() {
@@ -164,13 +171,14 @@ public class TaskDetailsMultiViewImpl extends Composite
         }
 
         {
-            taskAdminPane = new TabPane() {{
-                add( presenter.getTaskAdminView() );
-            }};
-            taskAdminTab = new TabListItem( Constants.INSTANCE.Task_Admin() ) {{
-                setDataTargetWidget( taskAdminPane );
-                addStyleName( "uf-dropdown-tab-list-item" );
-            }};
+            taskAdminPane = GWT.create( TabPane.class );
+            taskAdminPane.add( presenter.getTaskAdminView() );
+
+            taskAdminTab =  GWT.create( TabListItem.class );
+            taskAdminTab.setText(constants.Task_Admin());
+            taskAdminTab.setDataTargetWidget( taskAdminPane );
+            taskAdminTab.addStyleName( "uf-dropdown-tab-list-item" );
+
             navTabs.add( taskAdminTab );
             tabContent.add( taskAdminPane );
             taskAdminTab.addShowHandler( new TabShowHandler() {
@@ -182,13 +190,14 @@ public class TaskDetailsMultiViewImpl extends Composite
         }
 
         {
-            taskLogsPane = new TabPane() {{
-                add( presenter.getTaskLogsView() );
-            }};
-            taskLogsTab = new TabListItem( Constants.INSTANCE.Logs() ) {{
-                setDataTargetWidget( taskLogsPane );
-                addStyleName( "uf-dropdown-tab-list-item" );
-            }};
+            taskLogsPane = GWT.create( TabPane.class );
+            taskLogsPane.add( presenter.getTaskLogsView() );
+
+            taskLogsTab = GWT.create( TabListItem.class );
+            taskLogsTab.setText(constants.Logs());
+            taskLogsTab.setDataTargetWidget( taskLogsPane );
+            taskLogsTab.addStyleName( "uf-dropdown-tab-list-item" );
+
             navTabs.add( taskLogsTab );
             tabContent.add( taskLogsPane );
             taskLogsTab.addShowHandler( new TabShowHandler() {
@@ -225,9 +234,15 @@ public class TaskDetailsMultiViewImpl extends Composite
         for ( Widget active : tabContent ) {
             active.setVisible( false );
         }
+        taskDetailsPane.setVisible(true);
+        taskDetailsTab.setVisible(true);
+        presenter.disableTaskDetailsEdition();
+
         taskLogsPane.setVisible( true );
         taskLogsTab.setVisible( true );
-        taskLogsTab.showTab();
+        taskDetailsTab.showTab();
     }
+
+
 
 }
