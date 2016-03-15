@@ -19,14 +19,17 @@ import java.util.Collections;
 import javax.enterprise.event.Event;
 
 import com.google.common.collect.Sets;
+import org.jbpm.console.ng.bd.model.ProcessInstanceKey;
 import org.jbpm.console.ng.bd.service.DataServiceEntryPoint;
 import org.jbpm.console.ng.ht.client.editors.taskprocesscontext.TaskProcessContextPresenter.TaskProcessContextView;
 import org.jbpm.console.ng.ht.model.TaskKey;
 import org.jbpm.console.ng.ht.model.TaskSummary;
 import org.jbpm.console.ng.ht.model.events.TaskSelectionEvent;
 import org.jbpm.console.ng.ht.service.TaskQueryService;
-import org.jbpm.console.ng.pr.model.ProcessInstanceSummary;
+import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
+import org.jbpm.console.ng.ht.service.integration.RemoteTaskService;
 import org.jbpm.console.ng.pr.model.events.ProcessInstancesWithDetailsRequestEvent;
+import org.jbpm.console.ng.pr.service.integration.RemoteRuntimeDataService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,7 +57,7 @@ public class TaskProcessContextPresenterTest {
     TaskSummary taskWithProcess = new TaskSummary(TASK_ID_WITH_PROC, "task with process", null, null, 0, null, null, null, null, null, "TEST_PROCESS_ID"/*ProcessID*/, -1, 123L /*Proc inst Id*/, null, -1);
 
     @Mock
-    DataServiceEntryPoint dataServiceEntryPoint;
+    RemoteRuntimeDataService dataServiceEntryPoint;
 
     @Mock
     Event<ProcessInstancesWithDetailsRequestEvent> procNavigationMock;
@@ -71,15 +74,15 @@ public class TaskProcessContextPresenterTest {
     @Before
     public void before() {
         //Task query service mock
-        TaskQueryService tqs = mock(TaskQueryService.class);
-        when(tqs.getItem(new TaskKey(TASK_ID_NO_PROCESS))).thenReturn(taskNoProcess);
-        when(tqs.getItem(new TaskKey(TASK_ID_WITH_PROC))).thenReturn(taskWithProcess);
-        when(tqs.getItem(new TaskKey(TASK_ID_NULL_DETAILS))).thenReturn(null);
-        CallerMock<TaskQueryService> taskQueryServiceMock
-                = new CallerMock<TaskQueryService>(tqs);
+        RemoteTaskService tqs = mock(RemoteTaskService.class);
+        when(tqs.getTask(null, null, TASK_ID_NO_PROCESS)).thenReturn(taskNoProcess);
+        when(tqs.getTask(null, null, TASK_ID_WITH_PROC)).thenReturn(taskWithProcess);
+        when(tqs.getTask(null, null, TASK_ID_NULL_DETAILS)).thenReturn(null);
+        CallerMock<RemoteTaskService> taskQueryServiceMock
+                = new CallerMock<RemoteTaskService>(tqs);
 
         // DataService caller mock
-        CallerMock<DataServiceEntryPoint> dataServiceCallerMock = new CallerMock<DataServiceEntryPoint>(dataServiceEntryPoint);
+        CallerMock<RemoteRuntimeDataService> dataServiceCallerMock = new CallerMock<RemoteRuntimeDataService>(dataServiceEntryPoint);
 
         presenter = new TaskProcessContextPresenter(
                 viewMock,
@@ -125,7 +128,7 @@ public class TaskProcessContextPresenterTest {
         summary.setProcessId("processId");
         summary.setProcessName("processName");
         summary.setState(1);
-        when(dataServiceEntryPoint.getProcessInstanceById(-1)).thenReturn(summary);
+        when(dataServiceEntryPoint.getProcessInstance("", new ProcessInstanceKey(-1l))).thenReturn(summary);
 
         presenter.goToProcessInstanceDetails();
 

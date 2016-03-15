@@ -235,6 +235,8 @@ public class ShowcaseEntryPoint {
 
         result.add( MenuFactory.newSimpleItem( constants.Deployments() ).perspective( "Deployments" ).endMenu().build().getItems().get( 0 ) );
 
+        result.add( MenuFactory.newSimpleItem( constants.Server_Management() ).place( new DefaultPlaceRequest( "ServerManagementPerspective" ) ).endMenu().build().getItems().get( 0 ) );
+
         result.add( MenuFactory.newSimpleItem( constants.Jobs() ).perspective( "Jobs" ).endMenu().build().getItems().get( 0 ) );
 
         result.add( MenuFactory.newSimpleItem( constants.Asset_Management() ).perspective( "Asset Management" ).endMenu().build().getItems().get( 0 ) );

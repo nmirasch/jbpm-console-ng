@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.jbpm.console.ng.pr.backend.server;
+package org.jbpm.console.ng.bd.backend.server;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import org.jbpm.console.ng.pr.model.NodeInstanceSummary;
+import org.jbpm.console.ng.bd.model.NodeInstanceSummary;
 import org.jbpm.services.api.model.NodeInstanceDesc;
 
 public class NodeInstanceHelper {

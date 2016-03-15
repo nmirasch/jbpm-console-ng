@@ -18,7 +18,8 @@ package org.jbpm.console.ng.pr.backend.server;
 
 import java.util.Date;
 
-import org.jbpm.console.ng.pr.model.NodeInstanceSummary;
+import org.jbpm.console.ng.bd.backend.server.NodeInstanceHelper;
+import org.jbpm.console.ng.bd.model.NodeInstanceSummary;
 import org.jbpm.kie.services.impl.model.NodeInstanceDesc;
 import org.junit.Test;
 import org.junit.runner.RunWith;

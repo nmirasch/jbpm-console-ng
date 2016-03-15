@@ -45,15 +45,6 @@
       <groupId>org.jbpm</groupId>
       <artifactId>jbpm-console-ng-generic-api</artifactId>
     </dependency>
-
-    <dependency>
-      <groupId>org.jbpm</groupId>
-      <artifactId>jbpm-console-ng-human-tasks-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.jbpm</groupId>
-      <artifactId>jbpm-console-ng-process-runtime-api</artifactId>
-    </dependency>
     
     <dependency>
       <groupId>org.jbpm</groupId>

@@ -331,7 +331,7 @@ public class TaskDashboard extends AbstractDashboard implements IsWidget {
 
         openTaskDetailsScreen();
 
-        taskSelectionEvent.fire(new TaskSelectionEvent(taskId, taskName, false, true));
+        taskSelectionEvent.fire(new TaskSelectionEvent(null, null, taskId, taskName, false, true));
     }
 
     public void showDashboard() {

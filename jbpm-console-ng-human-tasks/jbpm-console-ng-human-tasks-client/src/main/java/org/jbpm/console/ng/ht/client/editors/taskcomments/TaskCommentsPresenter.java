@@ -33,6 +33,7 @@ import org.jbpm.console.ng.ht.model.CommentSummary;
 import org.jbpm.console.ng.ht.model.events.TaskRefreshedEvent;
 import org.jbpm.console.ng.ht.model.events.TaskSelectionEvent;
 import org.jbpm.console.ng.ht.service.TaskCommentsService;
+import org.jbpm.console.ng.ht.service.integration.RemoteTaskService;
 import org.uberfire.client.mvp.UberView;
 import org.uberfire.ext.widgets.common.client.callbacks.DefaultErrorCallback;
 
@@ -50,13 +51,15 @@ public class TaskCommentsPresenter {
 
     private Constants constants = Constants.INSTANCE;
     private final TaskCommentsView view;
-    private final Caller<TaskCommentsService> taskCommentsServices;
+    private final Caller<RemoteTaskService> taskCommentsServices;
     private final User identity;
     private final ListDataProvider<CommentSummary> dataProvider = new ListDataProvider<CommentSummary>();
     private long currentTaskId = 0;
+    private String serverTemplateId;
+    private String containerId;
 
     @Inject
-    public TaskCommentsPresenter(TaskCommentsView view, Caller<TaskCommentsService> taskCommentsServices, User identity) {
+    public TaskCommentsPresenter(TaskCommentsView view, Caller<RemoteTaskService> taskCommentsServices, User identity) {
         this.view = view;
         this.taskCommentsServices = taskCommentsServices;
         this.identity = identity;
@@ -86,7 +89,7 @@ public class TaskCommentsPresenter {
                     }
                 },
                 new DefaultErrorCallback()
-        ).getAllCommentsByTaskId(currentTaskId);
+        ).getTaskComments(serverTemplateId, containerId, currentTaskId);
     }
 
     public void addTaskComment(final String text) {
@@ -99,29 +102,29 @@ public class TaskCommentsPresenter {
 
     private void addTaskComment(final String text, final Date addedOn) {
         taskCommentsServices.call(
-                new RemoteCallback<Long>() {
+                new RemoteCallback<Void>() {
                     @Override
-                    public void callback(Long response) {
+                    public void callback(Void response) {
                         refreshComments();
                         view.clearCommentInput();
                     }
                 },
                 new DefaultErrorCallback()
-        ).addComment(currentTaskId, text, identity.getIdentifier(), addedOn);
+        ).addTaskComment(serverTemplateId, containerId, currentTaskId, text, addedOn);
     }
 
     public void removeTaskComment(long commentId) {
         taskCommentsServices.call(
-                new RemoteCallback<Long>() {
+                new RemoteCallback<Void>() {
                     @Override
-                    public void callback(Long response) {
+                    public void callback(Void response) {
                         refreshComments();
                         view.clearCommentInput();
                         view.displayNotification(constants.CommentDeleted());
                     }
                 },
                 new DefaultErrorCallback()
-        ).deleteComment(currentTaskId, commentId);
+        ).deleteTaskComment(serverTemplateId, containerId, currentTaskId, commentId);
     }
 
     public void addDataDisplay(final HasData<CommentSummary> display) {
@@ -130,6 +133,8 @@ public class TaskCommentsPresenter {
 
     public void onTaskSelectionEvent(@Observes final TaskSelectionEvent event) {
         currentTaskId = event.getTaskId();
+        serverTemplateId = event.getServerTemplateId();
+        containerId = event.getContainerId();
         refreshComments();
     }
 

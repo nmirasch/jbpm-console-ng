@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uberfire.commons.services.cdi.Startup;
 
-import static org.jbpm.console.ng.pr.model.ProcessInstanceDataSetConstants.*;
+import static org.jbpm.console.ng.bd.model.ProcessInstanceDataSetConstants.*;
 
 @Startup
 @ApplicationScoped

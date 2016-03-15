@@ -47,6 +47,7 @@ import org.jbpm.console.ng.ht.model.TaskSummary;
 import org.jbpm.console.ng.ht.model.events.TaskRefreshedEvent;
 import org.jbpm.console.ng.ht.service.TaskLifeCycleService;
 import org.jbpm.console.ng.ht.service.TaskOperationsService;
+import org.jbpm.console.ng.ht.service.integration.RemoteTaskService;
 import org.uberfire.client.workbench.widgets.common.ErrorPopupPresenter;
 import org.uberfire.mvp.Command;
 
@@ -61,6 +62,7 @@ public abstract class AbstractHumanTaskFormDisplayer implements HumanTaskFormDis
     protected String formContent;
     protected String opener;
     protected String taskName;
+    protected String serverTemplateId;
     protected String deploymentId;
 
     final protected FormPanel container = new FormPanel();
@@ -79,10 +81,7 @@ public abstract class AbstractHumanTaskFormDisplayer implements HumanTaskFormDis
     protected ErrorPopupPresenter errorPopup;
 
     @Inject
-    protected Caller<TaskLifeCycleService> taskServices;
-
-    @Inject
-    protected Caller<TaskOperationsService> taskOperationServices;
+    protected Caller<RemoteTaskService> taskService;
 
     @Inject
     protected Event<TaskRefreshedEvent> taskRefreshed;
@@ -112,7 +111,9 @@ public abstract class AbstractHumanTaskFormDisplayer implements HumanTaskFormDis
 
     @Override
     public void init(FormDisplayerConfig<TaskKey> config, Command onCloseCommand, Command onRefreshCommand, FormContentResizeListener resizeListener) {
+        this.serverTemplateId = config.getKey().getServerTemplateId();
         this.taskId = config.getKey().getTaskId();
+        this.deploymentId = config.getKey().getDeploymentId();
         this.formContent = config.getFormContent();
         this.opener = config.getFormOpener();
         this.resizeListener = resizeListener;
@@ -125,7 +126,7 @@ public abstract class AbstractHumanTaskFormDisplayer implements HumanTaskFormDis
         if (formContent == null || formContent.length() == 0) {
             return;
         }
-        taskOperationServices.call(new RemoteCallback<TaskSummary>() {
+        taskService.call(new RemoteCallback<TaskSummary>() {
             @Override
             public void callback(final TaskSummary task) {
                 if (task == null) {
@@ -209,33 +210,33 @@ public abstract class AbstractHumanTaskFormDisplayer implements HumanTaskFormDis
                 }
                 initDisplayer();
             }
-        }, getUnexpectedErrorCallback()).getTaskDetails(taskId);
+        }, getUnexpectedErrorCallback()).getTask(serverTemplateId, deploymentId, taskId);
     }
 
     @Override
     public void complete(Map<String, Object> params) {
-        taskServices.call(getCompleteTaskRemoteCallback(), getUnexpectedErrorCallback())
-                .complete(taskId, identity.getIdentifier(), params);
+        taskService.call(getCompleteTaskRemoteCallback(), getUnexpectedErrorCallback())
+                .completeTask(serverTemplateId, deploymentId, taskId, params);
     }
 
     @Override
     public void claim() {
-        taskServices.call(getClaimTaskCallback(), getUnexpectedErrorCallback()).claim(taskId, identity.getIdentifier(), deploymentId);
+        taskService.call(getClaimTaskCallback(), getUnexpectedErrorCallback()).claimTask(serverTemplateId, deploymentId, taskId);
     }
 
     @Override
     public void release() {
-        taskServices.call(getReleaseTaskRemoteCallback(), getUnexpectedErrorCallback()).release(taskId, identity.getIdentifier());
+        taskService.call(getReleaseTaskRemoteCallback(), getUnexpectedErrorCallback()).releaseTask(serverTemplateId, deploymentId, taskId);
     }
 
     @Override
     public void saveState(Map<String, Object> state) {
-        taskOperationServices.call(getSaveTaskStateCallback(), getUnexpectedErrorCallback()).saveContent(taskId, state);
+        taskService.call(getSaveTaskStateCallback(), getUnexpectedErrorCallback()).saveTaskContent(serverTemplateId, deploymentId, taskId, state);
     }
 
     @Override
     public void start() {
-        taskServices.call(getStartTaskRemoteCallback(), getUnexpectedErrorCallback()).start(taskId, identity.getIdentifier());
+        taskService.call(getStartTaskRemoteCallback(), getUnexpectedErrorCallback()).startTask(serverTemplateId, deploymentId, taskId);
     }
 
     @Override
@@ -252,7 +253,7 @@ public abstract class AbstractHumanTaskFormDisplayer implements HumanTaskFormDis
         return new RemoteCallback<Void>() {
             @Override
             public void callback(Void nothing) {
-                taskRefreshed.fire(new TaskRefreshedEvent(taskId));
+                taskRefreshed.fire(new TaskRefreshedEvent(serverTemplateId, deploymentId, taskId));
                 jsniHelper.notifySuccessMessage(opener, constants.TaskStarted(taskId));
                 refresh();
             }
@@ -263,7 +264,7 @@ public abstract class AbstractHumanTaskFormDisplayer implements HumanTaskFormDis
         return new RemoteCallback<Void>() {
             @Override
             public void callback(Void nothing) {
-                taskRefreshed.fire(new TaskRefreshedEvent(taskId));
+                taskRefreshed.fire(new TaskRefreshedEvent(serverTemplateId, deploymentId, taskId));
                 jsniHelper.notifySuccessMessage(opener, constants.TaskClaimed(taskId));
                 refresh();
             }
@@ -274,7 +275,7 @@ public abstract class AbstractHumanTaskFormDisplayer implements HumanTaskFormDis
         return new RemoteCallback<Long>() {
             @Override
             public void callback(Long contentId) {
-                taskRefreshed.fire(new TaskRefreshedEvent(taskId));
+                taskRefreshed.fire(new TaskRefreshedEvent(serverTemplateId, deploymentId, taskId));
                 jsniHelper.notifySuccessMessage(opener, constants.TaskSaved(taskId));
                 refresh();
             }
@@ -285,7 +286,7 @@ public abstract class AbstractHumanTaskFormDisplayer implements HumanTaskFormDis
         return new RemoteCallback<Void>() {
             @Override
             public void callback(Void nothing) {
-                taskRefreshed.fire(new TaskRefreshedEvent(taskId));
+                taskRefreshed.fire(new TaskRefreshedEvent(serverTemplateId, deploymentId, taskId));
                 jsniHelper.notifySuccessMessage(opener, constants.TaskReleased(taskId));
                 refresh();
             }
@@ -296,13 +297,13 @@ public abstract class AbstractHumanTaskFormDisplayer implements HumanTaskFormDis
         return new RemoteCallback<Void>() {
             @Override
             public void callback(Void nothing) {
-                taskOperationServices.call(new RemoteCallback<Boolean>() {
-                    @Override
-                    public void callback(Boolean response) {
-                        close();
-                    }
-                }, getUnexpectedErrorCallback()).existInDatabase(taskId);
-                taskRefreshed.fire(new TaskRefreshedEvent(taskId));
+//                taskService.call(new RemoteCallback<Boolean>() {
+//                    @Override
+//                    public void callback(Boolean response) {
+//                        close();
+//                    }
+//                }, getUnexpectedErrorCallback()).existInDatabase(taskId);
+                taskRefreshed.fire(new TaskRefreshedEvent(serverTemplateId, deploymentId, taskId));
                 jsniHelper.notifySuccessMessage(opener, constants.TaskCompleted(taskId));
 
 
@@ -353,6 +354,7 @@ public abstract class AbstractHumanTaskFormDisplayer implements HumanTaskFormDis
         opener = null;
         taskName = null;
         deploymentId = null;
+        serverTemplateId = null;
 
         buttonsContainer.clear();
         formContainer.clear();

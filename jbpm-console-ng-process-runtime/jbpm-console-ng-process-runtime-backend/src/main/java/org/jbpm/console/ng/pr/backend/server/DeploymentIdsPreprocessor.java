@@ -26,7 +26,7 @@ import org.jbpm.kie.services.impl.security.DeploymentRolesManager;
 import org.kie.internal.identity.IdentityProvider;
 
 import static org.dashbuilder.dataset.filter.FilterFactory.*;
-import static org.jbpm.console.ng.pr.model.ProcessInstanceDataSetConstants.*;
+import static org.jbpm.console.ng.bd.model.ProcessInstanceDataSetConstants.*;
 
 /**
  * Ensure any Process Instances data set lookup call is constrained

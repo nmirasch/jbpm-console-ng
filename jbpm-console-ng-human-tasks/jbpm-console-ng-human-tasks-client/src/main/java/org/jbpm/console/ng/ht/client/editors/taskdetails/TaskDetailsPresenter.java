@@ -15,9 +15,7 @@
  */
 package org.jbpm.console.ng.ht.client.editors.taskdetails;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Event;
@@ -27,16 +25,13 @@ import javax.inject.Inject;
 import com.google.gwt.user.client.ui.IsWidget;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
-import org.jbpm.console.ng.bd.service.DataServiceEntryPoint;
 import org.jbpm.console.ng.gc.client.util.UTCDateBox;
 import org.jbpm.console.ng.ht.client.i18n.Constants;
-import org.jbpm.console.ng.ht.model.TaskKey;
 import org.jbpm.console.ng.ht.model.TaskSummary;
 import org.jbpm.console.ng.ht.model.events.TaskCalendarEvent;
 import org.jbpm.console.ng.ht.model.events.TaskRefreshedEvent;
 import org.jbpm.console.ng.ht.model.events.TaskSelectionEvent;
-import org.jbpm.console.ng.ht.service.TaskOperationsService;
-import org.jbpm.console.ng.ht.service.TaskQueryService;
+import org.jbpm.console.ng.ht.service.integration.RemoteTaskService;
 import org.jbpm.console.ng.pr.model.events.ProcessInstancesWithDetailsRequestEvent;
 import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.ext.widgets.common.client.callbacks.DefaultErrorCallback;
@@ -86,13 +81,8 @@ public class TaskDetailsPresenter {
     private Event<ProcessInstancesWithDetailsRequestEvent> processInstanceSelected;
 
     @Inject
-    private Caller<TaskQueryService> taskQueryService;
+    private Caller<RemoteTaskService> taskService;
 
-    @Inject
-    private Caller<TaskOperationsService> taskOperationsService;
-
-    @Inject
-    private Caller<DataServiceEntryPoint> dataServices;
 
     @Inject
     private Event<TaskRefreshedEvent> taskRefreshed;
@@ -104,6 +94,8 @@ public class TaskDetailsPresenter {
     private Event<NotificationEvent> notification;
 
     private long currentTaskId = 0;
+    private String currentServerTemplateId;
+    private String currentContainerId;
 
     @PostConstruct
     public void init() {
@@ -120,48 +112,44 @@ public class TaskDetailsPresenter {
             final int priority) {
 
         if (currentTaskId > 0) {
-            List<String> descriptions = new ArrayList<String>();
-            descriptions.add(taskDescription);
 
-            taskOperationsService.call(
-                    new RemoteCallback<Void>() {
-                        @Override
-                        public void callback(Void nothing) {
-                            view.displayNotification(constants.TaskDetailsUpdatedForTaskId(currentTaskId));
-                            taskRefreshed.fire(new TaskRefreshedEvent(currentTaskId));
-                            taskCalendarEvent.fire(new TaskCalendarEvent(currentTaskId));
-                        }
-                    },
-                    new DefaultErrorCallback()
-            ).updateTask(currentTaskId, priority, descriptions, dueDate);
+            taskService.call(new RemoteCallback<Void>() {
+                @Override
+                public void callback( Void nothing ) {
+                    view.displayNotification(constants.TaskDetailsUpdatedForTaskId(currentTaskId));
+                    taskRefreshed.fire( new TaskRefreshedEvent( currentTaskId ) );
+                    taskCalendarEvent.fire( new TaskCalendarEvent( currentTaskId ) );
+                }
+            }, new DefaultErrorCallback())
+                    .updateTask(currentServerTemplateId, currentContainerId, currentTaskId, priority, taskDescription, dueDate);
+
         }
     }
 
     public void refreshTask() {
-        taskQueryService.call(
-                new RemoteCallback<TaskSummary>() {
-                    @Override
-                    public void callback(TaskSummary details) {
-                        if (details == null) {
-                            setReadOnlyTaskDetail();
-                            return;
-                        }
-                        if (details.getStatus().equals("Completed")) {
-                            setReadOnlyTaskDetail();
-                        }
-                        view.setTaskDescription(details.getDescription());
-                        final Long date = UTCDateBox.date2utc(details.getExpirationTime());
-                        if (date != null) {
-                            view.setDueDate(date);
-                            view.setDueDateTime(date);
-                        }
-                        view.setUser(details.getActualOwner());
-                        view.setTaskStatus(details.getStatus());
-                        view.setTaskPriority(String.valueOf(details.getPriority()));
-                    }
-                },
-                new DefaultErrorCallback()
-        ).getItem(new TaskKey(currentTaskId));
+
+
+        taskService.call(new RemoteCallback<TaskSummary>() {
+            @Override
+            public void callback(TaskSummary details) {
+                if (details == null) {
+                    setReadOnlyTaskDetail();
+                    return;
+                }
+                if (details.getStatus().equals("Completed")) {
+                    setReadOnlyTaskDetail();
+                }
+                view.setTaskDescription(details.getDescription());
+                final Long date = UTCDateBox.date2utc(details.getExpirationTime());
+                if (date != null) {
+                    view.setDueDate(date);
+                    view.setDueDateTime(date);
+                }
+                view.setUser(details.getActualOwner());
+                view.setTaskStatus(details.getStatus());
+                view.setTaskPriority(String.valueOf(details.getPriority()));
+            }
+        }, new DefaultErrorCallback()).getTask(currentServerTemplateId, currentContainerId, currentTaskId);
     }
 
     public void setReadOnlyTaskDetail() {
@@ -174,6 +162,8 @@ public class TaskDetailsPresenter {
 
     public void onTaskSelectionEvent(@Observes final TaskSelectionEvent event) {
         this.currentTaskId = event.getTaskId();
+        this.currentServerTemplateId = event.getServerTemplateId();
+        this.currentContainerId = event.getContainerId();
         refreshTask();
     }
 

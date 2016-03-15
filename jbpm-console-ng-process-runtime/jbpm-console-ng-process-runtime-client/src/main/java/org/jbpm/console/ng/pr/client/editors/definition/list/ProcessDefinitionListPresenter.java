@@ -15,12 +15,20 @@
  */
 package org.jbpm.console.ng.pr.client.editors.definition.list;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import javax.enterprise.context.Dependent;
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.view.client.Range;
+import org.gwtbootstrap3.client.ui.AnchorListItem;
+import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.bus.client.api.messaging.Message;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.ErrorCallback;
@@ -32,9 +40,14 @@ import org.jbpm.console.ng.pr.client.i18n.Constants;
 import org.jbpm.console.ng.pr.forms.client.display.providers.StartProcessFormDisplayProviderImpl;
 import org.jbpm.console.ng.pr.forms.client.display.views.PopupFormDisplayerView;
 import org.jbpm.console.ng.pr.forms.display.process.api.ProcessDisplayerConfig;
-import org.jbpm.console.ng.pr.model.ProcessDefinitionKey;
-import org.jbpm.console.ng.pr.model.ProcessSummary;
+import org.jbpm.console.ng.bd.model.ProcessDefinitionKey;
+import org.jbpm.console.ng.bd.model.ProcessSummary;
 import org.jbpm.console.ng.pr.service.ProcessDefinitionService;
+import org.jbpm.console.ng.pr.service.integration.RemoteRuntimeDataService;
+import org.kie.server.controller.api.model.events.ServerTemplateDeleted;
+import org.kie.server.controller.api.model.events.ServerTemplateUpdated;
+import org.kie.server.controller.api.model.spec.ServerTemplate;
+import org.kie.workbench.common.screens.server.management.service.SpecManagementService;
 import org.uberfire.client.annotations.WorkbenchMenu;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
@@ -58,7 +71,13 @@ public class ProcessDefinitionListPresenter extends AbstractScreenListPresenter<
 
 
     public interface ProcessDefinitionListView extends ListView<ProcessSummary, ProcessDefinitionListPresenter> {
+        String getSelectedServer();
 
+        void setSelectedServer(String selected);
+
+        void addServerTemplate(AnchorListItem serverTemplateNavLink);
+
+        void removeServerTemplate(String serverTemplateId);
     }
 
     @Inject
@@ -66,6 +85,11 @@ public class ProcessDefinitionListPresenter extends AbstractScreenListPresenter<
 
     @Inject
     private Caller<ProcessDefinitionService> processDefinitionService;
+
+    @Inject
+    private Caller<SpecManagementService> specManagementService;
+    @Inject
+    private Caller<RemoteRuntimeDataService> remoteRuntimeDataService;
 
     private Constants constants = GWT.create( Constants.class );
 
@@ -87,7 +111,7 @@ public class ProcessDefinitionListPresenter extends AbstractScreenListPresenter<
                                  final String deploymentId,
                                  final String processDefName ) {
 
-        ProcessDisplayerConfig config = new ProcessDisplayerConfig(new ProcessDefinitionKey(deploymentId, processDefId), processDefName);
+        ProcessDisplayerConfig config = new ProcessDisplayerConfig(new ProcessDefinitionKey(view.getSelectedServer(), deploymentId, processDefId), processDefName);
 
         formDisplayPopUp.setTitle(processDefName);
 
@@ -126,9 +150,22 @@ public class ProcessDefinitionListPresenter extends AbstractScreenListPresenter<
         currentFilter.setIsAscending((columnSortList.size() > 0) ? columnSortList.get(0)
                 .isAscending() : true);
 
-        processDefinitionService.call( new RemoteCallback<PageResponse<ProcessSummary>>() {
+        remoteRuntimeDataService.call( new RemoteCallback<List<ProcessSummary>>() {
             @Override
-            public void callback( PageResponse<ProcessSummary> response ) {
+            public void callback( List<ProcessSummary> processDefsSums ) {
+
+                PageResponse<ProcessSummary> response = new PageResponse<ProcessSummary>();
+
+                response.setStartRowIndex(currentFilter.getOffset());
+                response.setTotalRowSize(processDefsSums.size());
+                response.setPageRowList(processDefsSums);
+                response.setTotalRowSizeExact( processDefsSums.isEmpty() );
+                if ( processDefsSums.size() < visibleRange.getLength() ) {
+                    response.setLastPage( true );
+                } else {
+                    response.setLastPage( false );
+                }
+
                 updateDataOnCallback(response);
             }
         }, new ErrorCallback<Message>() {
@@ -140,7 +177,7 @@ public class ProcessDefinitionListPresenter extends AbstractScreenListPresenter<
                 GWT.log( throwable.toString() );
                 return true;
             }
-        } ).getData(currentFilter);
+        } ).getProcesses(view.getSelectedServer(), currentFilter.getOffset() / currentFilter.getCount(), currentFilter.getCount());
     }
 
     @WorkbenchMenu
@@ -149,6 +186,51 @@ public class ProcessDefinitionListPresenter extends AbstractScreenListPresenter<
                 .newTopLevelCustomMenu(new RefreshMenuBuilder(this))
                 .endMenu()
                 .build();
+    }
+
+    public void loadServerTemplates() {
+        specManagementService.call( new RemoteCallback<Collection<ServerTemplate>>() {
+            @Override
+            public void callback( final Collection<ServerTemplate> serverTemplates ) {
+
+                for (ServerTemplate serverTemplate : serverTemplates) {
+                    if (serverTemplate.getServerInstanceKeys() != null && !serverTemplate.getServerInstanceKeys().isEmpty()) {
+                        AnchorListItem serverTemplateNavLink = new AnchorListItem(serverTemplate.getId());
+                        serverTemplateNavLink.setIcon(IconType.BAN);
+                        serverTemplateNavLink.setIconFixedWidth(true);
+                        serverTemplateNavLink.addClickHandler(new SelectServerTemplateClickHandler(serverTemplate.getId()));
+
+                        view.addServerTemplate(serverTemplateNavLink);
+                    }
+                }
+            }
+        } ).listServerTemplates();
+    }
+
+    private class SelectServerTemplateClickHandler implements ClickHandler {
+
+        private String selected;
+
+        public SelectServerTemplateClickHandler(String selected) {
+            this.selected = selected;
+        }
+
+        @Override
+        public void onClick( ClickEvent event ) {
+            view.setSelectedServer(selected);
+            refreshGrid();
+        }
+    }
+
+    public void onServerTemplateDeleted(@Observes ServerTemplateDeleted serverTemplateDeleted) {
+        view.removeServerTemplate(serverTemplateDeleted.getServerTemplateId());
+    }
+
+    public void onServerTemplateUpdated(@Observes ServerTemplateUpdated serverTemplateUpdated) {
+        ServerTemplate serverTemplate = serverTemplateUpdated.getServerTemplate();
+        if (serverTemplate.getServerInstanceKeys() == null || serverTemplate.getServerInstanceKeys().isEmpty()) {
+            view.removeServerTemplate(serverTemplate.getId());
+        }
     }
 
 }

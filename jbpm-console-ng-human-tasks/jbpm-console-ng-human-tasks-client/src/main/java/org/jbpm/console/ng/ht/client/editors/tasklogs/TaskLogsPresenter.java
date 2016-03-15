@@ -16,6 +16,7 @@
 package org.jbpm.console.ng.ht.client.editors.tasklogs;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
@@ -33,9 +34,8 @@ import org.jbpm.console.ng.ht.client.i18n.Constants;
 import org.jbpm.console.ng.ht.model.TaskEventSummary;
 import org.jbpm.console.ng.ht.model.events.TaskRefreshedEvent;
 import org.jbpm.console.ng.ht.model.events.TaskSelectionEvent;
-import org.jbpm.console.ng.ht.service.TaskAuditService;
+import org.jbpm.console.ng.ht.service.integration.RemoteTaskService;
 import org.uberfire.ext.widgets.common.client.callbacks.DefaultErrorCallback;
-import org.uberfire.paging.PageResponse;
 
 @Dependent
 public class TaskLogsPresenter {
@@ -52,14 +52,16 @@ public class TaskLogsPresenter {
 
     private TaskLogsView view;
 
-    private Caller<TaskAuditService> taskAuditService;
+    private Caller<RemoteTaskService> taskAuditService;
 
     private long currentTaskId = 0;
+    private String serverTemplateId;
+    private String containerId;
 
     private Constants constants = Constants.INSTANCE;
 
     @Inject
-    public TaskLogsPresenter( final TaskLogsView view, final Caller<TaskAuditService> taskAuditService ) {
+    public TaskLogsPresenter( final TaskLogsView view, final Caller<RemoteTaskService> taskAuditService ) {
         this.view = view;
         this.taskAuditService = taskAuditService;
     }
@@ -75,32 +77,33 @@ public class TaskLogsPresenter {
 
     public void refreshLogs() {
         Map<String, Object> params = new HashMap<String, Object>();
-        params.put("taskId", currentTaskId);
-        QueryFilter filter = new PortableQueryFilter(0, 0, false, "", "", false, "", params);
-        taskAuditService.call(
-                new RemoteCallback<PageResponse<TaskEventSummary>>() {
-                    @Override
-                    public void callback(PageResponse<TaskEventSummary> events) {
-                        SafeHtmlBuilder safeHtmlBuilder = new SafeHtmlBuilder();
-                        for (TaskEventSummary tes : events.getPageRowList()) {
-                            String summaryStr = summaryToString(tes);
-                            safeHtmlBuilder.appendEscapedLines(summaryStr);
-                        }
-                        view.setLogTextAreaText(safeHtmlBuilder.toSafeHtml().asString());
-                    }
+        params.put( "taskId", currentTaskId );
+        QueryFilter filter = new PortableQueryFilter( 0, 0, false, "", "", false, "", params );
 
-                    public String summaryToString(TaskEventSummary tes) {
-                        String timeStamp = DateUtils.getDateTimeStr(tes.getLogTime());
-                        String additionalDetail = "UPDATED".equals(tes.getType()) ? tes.getMessage() : tes.getUserId();
-                        return timeStamp + ": Task " + tes.getType() + " (" + additionalDetail + ")\n";
-                    }
-                },
-                new DefaultErrorCallback()
-        ).getData(filter);
+        taskAuditService.call(new RemoteCallback<List<TaskEventSummary>>() {
+            @Override
+            public void callback(List<TaskEventSummary>events) {
+                SafeHtmlBuilder safeHtmlBuilder = new SafeHtmlBuilder();
+                for (TaskEventSummary tes : events) {
+                    String summaryStr = summaryToString(tes);
+                    safeHtmlBuilder.appendEscapedLines(summaryStr);
+                }
+                view.setLogTextAreaText(safeHtmlBuilder.toSafeHtml().asString());
+            }
+
+            public String summaryToString(TaskEventSummary tes) {
+                String timeStamp = DateUtils.getDateTimeStr(tes.getLogTime());
+                String additionalDetail = "UPDATED".equals(tes.getType()) ? tes.getMessage() : tes.getUserId();
+                return timeStamp + ": Task " + tes.getType() + " (" + additionalDetail + ")\n";
+            }
+        }, new DefaultErrorCallback() ).getTaskEvents( serverTemplateId, containerId, currentTaskId );
+
     }
 
     public void onTaskSelectionEvent( @Observes final TaskSelectionEvent event ) {
         this.currentTaskId = event.getTaskId();
+        this.containerId = event.getContainerId();
+        this.serverTemplateId = event.getServerTemplateId();
         refreshLogs();
     }
 

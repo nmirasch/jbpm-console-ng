@@ -115,14 +115,14 @@
       <artifactId>jbpm-console-ng-process-runtime-api</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>org.jbpm</groupId>
-      <artifactId>jbpm-console-ng-process-runtime-backend</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.jbpm</groupId>
-      <artifactId>jbpm-console-ng-human-tasks-backend</artifactId>
-    </dependency>
+    <!--<dependency>-->
+      <!--<groupId>org.jbpm</groupId>-->
+      <!--<artifactId>jbpm-console-ng-process-runtime-backend</artifactId>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+      <!--<groupId>org.jbpm</groupId>-->
+      <!--<artifactId>jbpm-console-ng-human-tasks-backend</artifactId>-->
+    <!--</dependency>-->
     <dependency>
       <groupId>org.jbpm</groupId>
       <artifactId>jbpm-designer-api</artifactId>
@@ -138,6 +138,10 @@
     <dependency>
       <groupId>org.jbpm</groupId>
       <artifactId>jbpm-services-cdi</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jbpm</groupId>
+      <artifactId>jbpm-flow</artifactId>
     </dependency>
 
     <dependency>
@@ -158,6 +162,27 @@
     <dependency>
       <groupId>org.kie.workbench.services</groupId>
       <artifactId>kie-wb-common-services-backend</artifactId>
+    </dependency>
+
+    <!-- kie server dependencies -->
+    <dependency>
+      <groupId>org.kie.server</groupId>
+      <artifactId>kie-server-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kie.server</groupId>
+      <artifactId>kie-server-controller-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kie.workbench.screens</groupId>
+      <artifactId>kie-wb-common-server-ui-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kie.server</groupId>
+      <artifactId>kie-server-client</artifactId>
     </dependency>
 
     <dependency>

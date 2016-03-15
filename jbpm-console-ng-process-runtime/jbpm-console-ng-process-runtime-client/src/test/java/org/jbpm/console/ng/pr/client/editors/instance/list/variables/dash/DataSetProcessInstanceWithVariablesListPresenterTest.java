@@ -40,7 +40,7 @@ import org.jbpm.console.ng.df.client.list.base.DataSetQueryHelper;
 import org.jbpm.console.ng.gc.client.experimental.grid.base.ExtendedPagedTable;
 import org.jbpm.console.ng.gc.client.list.base.events.SearchEvent;
 import org.jbpm.console.ng.pr.client.editors.instance.signal.ProcessInstanceSignalPresenter;
-import org.jbpm.console.ng.pr.model.ProcessInstanceSummary;
+import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
 import org.jbpm.console.ng.pr.service.ProcessInstanceService;
 import org.jbpm.process.instance.ProcessInstance;
 import org.junit.Before;
@@ -55,7 +55,7 @@ import org.uberfire.mocks.CallerMock;
 import org.uberfire.mvp.PlaceRequest;
 
 import static org.dashbuilder.dataset.filter.FilterFactory.*;
-import static org.jbpm.console.ng.pr.model.ProcessInstanceDataSetConstants.*;
+import static org.jbpm.console.ng.bd.model.ProcessInstanceDataSetConstants.*;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -173,7 +173,7 @@ public class DataSetProcessInstanceWithVariablesListPresenterTest {
     public void abortProcessInstanceTest() {
         final Long processInstanceId = new Random().nextLong();
 
-        presenter.abortProcessInstance(processInstanceId);
+        presenter.abortProcessInstance("container", processInstanceId);
 
         verify(kieSessionEntryPointMock).abortProcessInstance(processInstanceId);
     }
@@ -181,12 +181,15 @@ public class DataSetProcessInstanceWithVariablesListPresenterTest {
     @Test
     public void abortProcessInstancesTest() {
         final Random random = new Random();
+        final List<String> containers = new ArrayList<String>();
+        containers.add("container");
+
         final List<Long> pIds = new ArrayList<Long>();
         pIds.add(random.nextLong());
         pIds.add(random.nextLong());
         pIds.add(random.nextLong());
 
-        presenter.abortProcessInstance(pIds);
+        presenter.abortProcessInstance(containers, pIds);
 
         verify(kieSessionEntryPointMock).abortProcessInstances(pIds);
     }

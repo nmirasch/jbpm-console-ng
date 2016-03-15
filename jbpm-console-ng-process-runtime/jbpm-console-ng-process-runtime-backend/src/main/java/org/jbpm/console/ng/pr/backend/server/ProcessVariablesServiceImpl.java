@@ -24,12 +24,19 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.jboss.errai.bus.server.annotations.Service;
+import org.jbpm.console.ng.bd.backend.server.VariableHelper;
 import org.jbpm.console.ng.ga.model.QueryFilter;
-import org.jbpm.console.ng.pr.model.ProcessVariableKey;
-import org.jbpm.console.ng.pr.model.ProcessVariableSummary;
+import org.jbpm.console.ng.bd.integration.KieServerIntegration;
+import org.jbpm.console.ng.bd.model.ProcessVariableKey;
+import org.jbpm.console.ng.bd.model.ProcessVariableSummary;
 import org.jbpm.console.ng.pr.service.ProcessVariablesService;
 import org.jbpm.services.api.DefinitionService;
 import org.jbpm.services.api.RuntimeDataService;
+import org.kie.server.api.model.definition.VariablesDefinition;
+import org.kie.server.api.model.instance.VariableInstance;
+import org.kie.server.client.KieServicesClient;
+import org.kie.server.client.ProcessServicesClient;
+import org.kie.server.client.QueryServicesClient;
 import org.uberfire.paging.PageResponse;
 
 /**
@@ -44,6 +51,9 @@ public class ProcessVariablesServiceImpl implements ProcessVariablesService {
 
     @Inject
     private DefinitionService bpmn2Service;
+
+    @Inject
+    private KieServerIntegration kieServerIntegration;
 
     @Override
     public PageResponse<ProcessVariableSummary> getData(QueryFilter filter) {
@@ -80,18 +90,38 @@ public class ProcessVariablesServiceImpl implements ProcessVariablesService {
         Long processInstanceId = null;
         String processId = "";
         String deploymentId = "";
+        String serverTemplateId = "";
         if (filter.getParams() != null) {
             processInstanceId = Long.valueOf((String) filter.getParams().get("processInstanceId"));
             processId = (String) filter.getParams().get("processDefId");
             deploymentId = (String) filter.getParams().get("deploymentId");
+            serverTemplateId = (String) filter.getParams().get("serverTemplateId");
         }
         // append 1 to the count to check if there are further pages
         org.kie.internal.query.QueryFilter qf = new org.kie.internal.query.QueryFilter(filter.getOffset(), filter.getCount() + 1,
                 filter.getOrderBy(), filter.isAscending());
+        Collection<ProcessVariableSummary> processVariables = null;
+        Map<String, String> properties = new HashMap<String, String>();
+        if (serverTemplateId.equals("Local")) {
+            properties.putAll(bpmn2Service.getProcessVariables(deploymentId, processId));
 
-        Map<String, String> properties = new HashMap<String, String>(bpmn2Service.getProcessVariables(deploymentId, processId));
-        Collection<ProcessVariableSummary> processVariables = VariableHelper.adaptCollection(dataService.getVariablesCurrentState(processInstanceId), properties,
-                processInstanceId);
+            processVariables = VariableHelper.adaptCollection(dataService.getVariablesCurrentState(processInstanceId), properties,
+                    processInstanceId);
+        } else {
+            KieServicesClient client = kieServerIntegration.getServerClient(serverTemplateId);
+
+            QueryServicesClient queryClient = client.getServicesClient(QueryServicesClient.class);
+            ProcessServicesClient processClient = client.getServicesClient(ProcessServicesClient.class);
+
+            VariablesDefinition vars = processClient.getProcessVariableDefinitions(deploymentId, processId);
+            properties.putAll(vars.getVariables());
+
+            List<VariableInstance> variables = queryClient.findVariablesCurrentState(processInstanceId);
+
+            processVariables = VariableHelper.adaptCollection(variables, properties, processInstanceId);
+        }
+
+
 
         List<ProcessVariableSummary> processVariablesSums = new ArrayList<ProcessVariableSummary>(processVariables.size());
         for (ProcessVariableSummary pv : processVariables) {

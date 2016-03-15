@@ -16,6 +16,7 @@
 package org.jbpm.console.ng.pr.client.editors.instance.list.variables.dash;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,6 +24,8 @@ import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.view.client.Range;
 import org.dashbuilder.dataset.DataSet;
@@ -34,8 +37,11 @@ import org.dashbuilder.dataset.filter.CoreFunctionFilter;
 import org.dashbuilder.dataset.filter.CoreFunctionType;
 import org.dashbuilder.dataset.filter.DataSetFilter;
 import org.dashbuilder.dataset.sort.SortOrder;
+import org.gwtbootstrap3.client.ui.AnchorListItem;
+import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
+import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
 import org.jbpm.console.ng.bd.service.KieSessionEntryPoint;
 import org.jbpm.console.ng.df.client.filter.FilterSettings;
 import org.jbpm.console.ng.df.client.list.base.DataSetQueryHelper;
@@ -49,11 +55,16 @@ import org.jbpm.console.ng.pr.client.editors.instance.signal.ProcessInstanceSign
 import org.jbpm.console.ng.pr.client.i18n.Constants;
 import org.jbpm.console.ng.pr.client.perspectives.DataSetProcessInstancesWithVariablesPerspective;
 import org.jbpm.console.ng.pr.forms.client.editors.quicknewinstance.QuickNewProcessInstancePopup;
-import org.jbpm.console.ng.pr.model.ProcessInstanceSummary;
 import org.jbpm.console.ng.pr.model.events.NewProcessInstanceEvent;
 import org.jbpm.console.ng.pr.model.events.ProcessInstancesUpdateEvent;
 import org.jbpm.console.ng.pr.service.ProcessInstanceService;
+import org.jbpm.console.ng.pr.service.integration.RemoteProcessService;
+import org.jbpm.console.ng.pr.service.integration.RemoteRuntimeDataService;
 import org.kie.api.runtime.process.ProcessInstance;
+import org.kie.server.controller.api.model.events.ServerTemplateDeleted;
+import org.kie.server.controller.api.model.events.ServerTemplateUpdated;
+import org.kie.server.controller.api.model.spec.ServerTemplate;
+import org.kie.workbench.common.screens.server.management.service.SpecManagementService;
 import org.uberfire.client.annotations.WorkbenchMenu;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
@@ -61,6 +72,7 @@ import org.uberfire.client.annotations.WorkbenchScreen;
 import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.client.mvp.UberView;
 import org.uberfire.client.workbench.widgets.common.ErrorPopupPresenter;
+import org.uberfire.ext.widgets.common.client.callbacks.DefaultErrorCallback;
 import org.uberfire.ext.widgets.common.client.menu.RefreshMenuBuilder;
 import org.uberfire.ext.widgets.common.client.menu.RefreshSelectorMenuBuilder;
 import org.uberfire.lifecycle.OnFocus;
@@ -74,8 +86,8 @@ import org.uberfire.workbench.model.menu.MenuFactory;
 import org.uberfire.workbench.model.menu.Menus;
 
 import static org.dashbuilder.dataset.filter.FilterFactory.*;
-import static org.jbpm.console.ng.pr.model.ProcessInstanceDataSetConstants.*;
-import org.uberfire.ext.widgets.common.client.callbacks.DefaultErrorCallback;
+import static org.jbpm.console.ng.bd.model.ProcessInstanceDataSetConstants.*;
+
 
 @Dependent
 @WorkbenchScreen( identifier = DataSetProcessInstanceWithVariablesListPresenter.SCREEN_ID)
@@ -95,6 +107,14 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
                                      Set<String> columns );
 
         void applyFilterOnPresenter( String key );
+
+        String getSelectedServer();
+
+        void setSelectedServer(String selected);
+
+        void addServerTemplate(AnchorListItem serverTemplateNavLink);
+
+        void removeServerTemplate(String serverTemplateId);
 
     }
 
@@ -122,6 +142,13 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
     private QuickNewProcessInstancePopup newProcessInstancePopup;
 
     protected final List<ProcessInstanceSummary> myProcessInstancesFromDataSet = new ArrayList<ProcessInstanceSummary>();
+
+    @Inject
+    private Caller<SpecManagementService> specManagementService;
+    @Inject
+    private Caller<RemoteRuntimeDataService> remoteRuntimeDataService;
+    @Inject
+    private Caller<RemoteProcessService> remoteProcessService;
 
     public DataSetProcessInstanceWithVariablesListPresenter() {
         super();
@@ -167,7 +194,7 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
         try {
             if ( !isAddingDefaultFilters() ) {
                 final FilterSettings currentTableSettings = dataSetQueryHelper.getCurrentTableSettings();
-                if ( currentTableSettings != null ) {
+                if ( currentTableSettings != null && view.getSelectedServer() == null ) {
                     currentTableSettings.setTablePageSize( view.getListGrid().getPageSize() );
                     ColumnSortList columnSortList = view.getListGrid().getColumnSortList();
                     if ( columnSortList != null && columnSortList.size() > 0 ) {
@@ -193,11 +220,39 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
                     dataSetQueryHelper.setDataSetHandler( currentTableSettings );
                     dataSetQueryHelper.lookupDataSet( visibleRange.getStart(), createDataSetProcessInstanceCallback( visibleRange.getStart(), currentTableSettings ) );
                 } else {
-                    view.hideBusyIndicator();
+                    List<Integer> statuses = new ArrayList<Integer>();
+                    if (currentTableSettings.getKey().equals(PROCESS_INSTANCES_WITH_VARIABLES_INCLUDED_LIST_PREFIX+"_0")) {
+                        statuses.add(ProcessInstance.STATE_ACTIVE);
+                    } else if (currentTableSettings.getKey().equals(PROCESS_INSTANCES_WITH_VARIABLES_INCLUDED_LIST_PREFIX+"_1")) {
+                        statuses.add(ProcessInstance.STATE_COMPLETED);
+                    } else if (currentTableSettings.getKey().equals(PROCESS_INSTANCES_WITH_VARIABLES_INCLUDED_LIST_PREFIX+"_2")) {
+                        statuses.add(ProcessInstance.STATE_ABORTED);
+                    }
+                    remoteRuntimeDataService.call(new RemoteCallback<List<ProcessInstanceSummary>>() {
+                        @Override
+                        public void callback(List<ProcessInstanceSummary> processInstanceSummaries) {
+                            PageResponse<ProcessInstanceSummary> processInstanceSummaryPageResponse = new PageResponse<ProcessInstanceSummary>();
+                            processInstanceSummaryPageResponse.setPageRowList( processInstanceSummaries );
+                            processInstanceSummaryPageResponse.setStartRowIndex( visibleRange.getStart() );
+                            processInstanceSummaryPageResponse.setTotalRowSize( processInstanceSummaries.size() );
+                            processInstanceSummaryPageResponse.setTotalRowSizeExact( processInstanceSummaries.isEmpty() );
+                            if ( processInstanceSummaries.size() < visibleRange.getLength() ) {
+                                processInstanceSummaryPageResponse.setLastPage( true );
+                            } else {
+                                processInstanceSummaryPageResponse.setLastPage( false );
+                            }
+
+                            DataSetProcessInstanceWithVariablesListPresenter.this.updateDataOnCallback( processInstanceSummaryPageResponse );
+
+                            view.hideBusyIndicator();
+                        }
+                    }).getProcessInstances(view.getSelectedServer(), statuses, visibleRange.getStart()/visibleRange.getLength(), visibleRange.getLength());
+
                 }
             }
         } catch ( Exception e ) {
             errorPopup.showMessage(Constants.INSTANCE.UnexpectedError(e.getMessage()));
+            view.hideBusyIndicator();
         }
     }
 
@@ -375,28 +430,22 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
         refreshGrid();
     }
 
-    public void abortProcessInstance(long processInstanceId) {
-        kieSessionServices.call(
-                new RemoteCallback<Void>() {
-                    @Override
-                    public void callback(Void v) {
-                        refreshGrid();
-                    }
-                },
-                new DefaultErrorCallback()
-        ).abortProcessInstance(processInstanceId);
+    public void abortProcessInstance( String containerId, long processInstanceId ) {
+        remoteProcessService.call( new RemoteCallback<Void>() {
+            @Override
+            public void callback( Void v ) {
+                refreshGrid();
+            }
+        }, new DefaultErrorCallback() ).abortProcessInstance( view.getSelectedServer(), containerId, processInstanceId );
     }
 
-    public void abortProcessInstance(List<Long> processInstanceIds) {
-        kieSessionServices.call(
-                new RemoteCallback<Void>() {
-                    @Override
-                    public void callback(Void v) {
-                        refreshGrid();
-                    }
-                },
-                new DefaultErrorCallback()
-        ).abortProcessInstances(processInstanceIds);
+    public void abortProcessInstance( List<String> containers, List<Long> processInstanceIds ) {
+        remoteProcessService.call( new RemoteCallback<Void>() {
+            @Override
+            public void callback( Void v ) {
+                refreshGrid();
+            }
+        }, new DefaultErrorCallback() ).abortProcessInstances( view.getSelectedServer(),containers, processInstanceIds );
     }
 
     public void bulkSignal( List<ProcessInstanceSummary> processInstances ) {
@@ -431,17 +480,18 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
             return;
         }
         final List<Long> ids = new ArrayList<Long>();
+        final List<String> containers = new ArrayList<String>();
         for ( ProcessInstanceSummary selected : processInstances ) {
             if ( selected.getState() != ProcessInstance.STATE_ACTIVE ) {
                 view.displayNotification(Constants.INSTANCE.Aborting_Process_Instance_Not_Allowed(selected.getId()));
                 continue;
             }
             ids.add( selected.getProcessInstanceId() );
-
+            containers.add( selected.getDeploymentId() );
             view.displayNotification(Constants.INSTANCE.Aborting_Process_Instance(selected.getId()));
         }
         if( ids.size() > 0 ) {
-            abortProcessInstance(ids);
+            abortProcessInstance(containers, ids);
         }
     }
 
@@ -493,4 +543,48 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
         return  myProcessInstancesFromDataSet;
     }
 
+    public void loadServerTemplates() {
+        specManagementService.call( new RemoteCallback<Collection<ServerTemplate>>() {
+            @Override
+            public void callback( final Collection<ServerTemplate> serverTemplates ) {
+
+                for (ServerTemplate serverTemplate : serverTemplates) {
+                    if (serverTemplate.getServerInstanceKeys() != null && !serverTemplate.getServerInstanceKeys().isEmpty()) {
+                        AnchorListItem serverTemplateNavLink = new AnchorListItem(serverTemplate.getId());
+                        serverTemplateNavLink.setIcon(IconType.BAN);
+                        serverTemplateNavLink.setIconFixedWidth(true);
+                        serverTemplateNavLink.addClickHandler(new SelectServerTemplateClickHandler(serverTemplate.getId()));
+
+                        view.addServerTemplate(serverTemplateNavLink);
+                    }
+                }
+            }
+        } ).listServerTemplates();
+    }
+
+    private class SelectServerTemplateClickHandler implements ClickHandler {
+
+        private String selected;
+
+        public SelectServerTemplateClickHandler(String selected) {
+            this.selected = selected;
+        }
+
+        @Override
+        public void onClick( ClickEvent event ) {
+            view.setSelectedServer(selected);
+            refreshGrid();
+        }
+    }
+
+    public void onServerTemplateDeleted(@Observes ServerTemplateDeleted serverTemplateDeleted) {
+        view.removeServerTemplate(serverTemplateDeleted.getServerTemplateId());
+    }
+
+    public void onServerTemplateUpdated(@Observes ServerTemplateUpdated serverTemplateUpdated) {
+        ServerTemplate serverTemplate = serverTemplateUpdated.getServerTemplate();
+        if (serverTemplate.getServerInstanceKeys() == null || serverTemplate.getServerInstanceKeys().isEmpty()) {
+            view.removeServerTemplate(serverTemplate.getId());
+        }
+    }
 }

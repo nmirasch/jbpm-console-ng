@@ -19,13 +19,14 @@ package org.jbpm.console.ng.bd.service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
 import org.jboss.errai.bus.server.annotations.Remote;
 import org.jbpm.console.ng.bd.model.RuntimeLogSummary;
-import org.jbpm.console.ng.ht.model.TaskDefSummary;
-import org.jbpm.console.ng.pr.model.NodeInstanceSummary;
-import org.jbpm.console.ng.pr.model.ProcessInstanceSummary;
-import org.jbpm.console.ng.pr.model.ProcessSummary;
-import org.jbpm.console.ng.pr.model.ProcessVariableSummary;
+import org.jbpm.console.ng.bd.model.TaskDefSummary;
+import org.jbpm.console.ng.bd.model.NodeInstanceSummary;
+import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
+import org.jbpm.console.ng.bd.model.ProcessSummary;
+import org.jbpm.console.ng.bd.model.ProcessVariableSummary;
 
 @Remote
 public interface DataServiceEntryPoint {

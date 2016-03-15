@@ -32,15 +32,16 @@ import org.jbpm.console.ng.bd.service.DataServiceEntryPoint;
 import org.jbpm.console.ng.bd.service.KieSessionEntryPoint;
 import org.jbpm.console.ng.ga.model.process.DummyProcessPath;
 import org.jbpm.console.ng.pr.client.i18n.Constants;
-import org.jbpm.console.ng.pr.model.NodeInstanceSummary;
-import org.jbpm.console.ng.pr.model.ProcessInstanceKey;
-import org.jbpm.console.ng.pr.model.ProcessInstanceSummary;
-import org.jbpm.console.ng.pr.model.ProcessSummary;
-import org.jbpm.console.ng.pr.model.UserTaskSummary;
+import org.jbpm.console.ng.bd.model.NodeInstanceSummary;
+import org.jbpm.console.ng.bd.model.ProcessInstanceKey;
+import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
+import org.jbpm.console.ng.bd.model.ProcessSummary;
+import org.jbpm.console.ng.bd.model.UserTaskSummary;
 import org.jbpm.console.ng.pr.model.events.ProcessInstanceSelectionEvent;
 import org.jbpm.console.ng.pr.model.events.ProcessInstanceStyleEvent;
 import org.jbpm.console.ng.pr.model.events.ProcessInstancesUpdateEvent;
 import org.jbpm.console.ng.pr.service.ProcessInstanceService;
+import org.jbpm.console.ng.pr.service.integration.RemoteRuntimeDataService;
 import org.kie.api.runtime.process.ProcessInstance;
 import org.uberfire.backend.vfs.Path;
 import org.uberfire.backend.vfs.VFSService;
@@ -55,6 +56,7 @@ public class ProcessInstanceDetailsPresenter {
     private String currentDeploymentId;
     private String currentProcessInstanceId;
     private String currentProcessDefId;
+    private String currentServerTemplateId;
 
     public interface ProcessInstanceDetailsView extends IsWidget {
 
@@ -114,6 +116,9 @@ public class ProcessInstanceDetailsPresenter {
     private Event<ProcessInstancesUpdateEvent> processInstancesUpdatedEvent;
 
     @Inject
+    private Caller<RemoteRuntimeDataService> remoteRuntimeDataService;
+
+    @Inject
     private Caller<VFSService> fileServices;
 
     private Constants constants = GWT.create(Constants.class);
@@ -126,7 +131,8 @@ public class ProcessInstanceDetailsPresenter {
 
     public void refreshProcessInstanceData( final String deploymentId,
                                             final String processId,
-                                            final String processDefId ) {
+                                            final String processDefId
+    ) {
         processSelected = null;
 
         view.getProcessDefinitionIdText().setText(processId);
@@ -268,8 +274,101 @@ public class ProcessInstanceDetailsPresenter {
         this.currentDeploymentId = event.getDeploymentId();
         this.currentProcessInstanceId = String.valueOf( event.getProcessInstanceId() );
         this.currentProcessDefId = event.getProcessDefId();
-
-        refreshProcessInstanceData( currentDeploymentId, currentProcessInstanceId, currentProcessDefId );
+        this.currentServerTemplateId = event.getServerTemplateId();
+        if (currentServerTemplateId == null) {
+            refreshProcessInstanceData(currentDeploymentId, currentProcessInstanceId, currentProcessDefId);
+        } else {
+            refreshProcessInstanceDataRemote(currentDeploymentId, currentProcessInstanceId, currentProcessDefId, currentServerTemplateId);
+        }
     }
 
+    public void refreshProcessInstanceDataRemote( final String deploymentId,
+            final String processId,
+            final String processDefId,
+            final String serverTemplateId) {
+        processSelected = null;
+
+        view.getProcessDefinitionIdText().setText( processId );
+
+        remoteRuntimeDataService.call( new RemoteCallback<ProcessInstanceSummary>() {
+            @Override
+            public void callback( ProcessInstanceSummary process ) {
+                view.getProcessDefinitionIdText().setText( process.getProcessId() );
+                view.getProcessVersionText().setText( process.getProcessVersion() );
+                view.getProcessDeploymentText().setText( process.getDeploymentId() );
+                view.getCorrelationKeyText().setText(process.getCorrelationKey());
+                if(process.getParentId() > 0){
+                    view.getParentProcessInstanceIdText().setText(process.getParentId().toString());
+                }else{
+                    view.getParentProcessInstanceIdText().setText(constants.No_Parent_Process_Instance());
+                }
+
+                view.setProcessInstance( process );
+
+                String statusStr = constants.Unknown();
+                switch ( process.getState() ) {
+                    case ProcessInstance.STATE_ACTIVE:
+                        statusStr = constants.Active();
+                        break;
+                    case ProcessInstance.STATE_ABORTED:
+                        statusStr = constants.Aborted();
+                        break;
+                    case ProcessInstance.STATE_COMPLETED:
+                        statusStr = constants.Completed();
+                        break;
+                    case ProcessInstance.STATE_PENDING:
+                        statusStr = constants.Pending();
+                        break;
+                    case ProcessInstance.STATE_SUSPENDED:
+                        statusStr = constants.Suspended();
+                        break;
+                    default:
+                        break;
+                }
+                view.getActiveTasksListBox().setText( "" );
+                if (process.getActiveTasks() != null && !process.getActiveTasks().isEmpty()) {
+                    SafeHtmlBuilder safeHtmlBuilder = new SafeHtmlBuilder();
+
+                    for ( UserTaskSummary uts : process.getActiveTasks() ) {
+                        safeHtmlBuilder.appendEscapedLines( uts.getName() + " (" + uts.getStatus() +")  "+constants.Owner() +": " + uts.getOwner() +" \n" );
+                    }
+                    view.getActiveTasksListBox().setHTML( safeHtmlBuilder.toSafeHtml() );
+                }
+                view.getStateText().setText( statusStr );
+                processSelected = process;
+                changeStyleRow( Long.parseLong( processId ), processSelected.getProcessName(), processSelected.getProcessVersion(),
+                        processSelected.getStartTime() );
+
+            }
+        }, new ErrorCallback<Message>() {
+            @Override
+            public boolean error( Message message,
+                    Throwable throwable ) {
+                ErrorPopup.showMessage( constants.UnexpectedError(throwable.getMessage()) );
+                return true;
+            }
+        } ).getProcessInstance(serverTemplateId, new ProcessInstanceKey(Long.parseLong(processId)));
+
+
+        remoteRuntimeDataService.call( new RemoteCallback<List<NodeInstanceSummary>>() {
+            @Override
+            public void callback( List<NodeInstanceSummary> details ) {
+                view.setCurrentActiveNodes( details );
+                view.getCurrentActivitiesListBox().setText( "" );
+                SafeHtmlBuilder safeHtmlBuilder = new SafeHtmlBuilder();
+                for ( NodeInstanceSummary nis : details ) {
+                    safeHtmlBuilder.appendEscapedLines( nis.getTimestamp() + ": "
+                            + nis.getId() + " - " + nis.getNodeName() + " (" + nis.getType() + ") \n" );
+                }
+                view.getCurrentActivitiesListBox().setHTML( safeHtmlBuilder.toSafeHtml() );
+            }
+        }, new ErrorCallback<Message>() {
+            @Override
+            public boolean error( Message message,
+                    Throwable throwable ) {
+                ErrorPopup.showMessage( constants.UnexpectedError(throwable.getMessage()) );
+                return true;
+            }
+        } ).getProcessInstanceActiveNodes( serverTemplateId, Long.parseLong( processId ) );
+    }
 }

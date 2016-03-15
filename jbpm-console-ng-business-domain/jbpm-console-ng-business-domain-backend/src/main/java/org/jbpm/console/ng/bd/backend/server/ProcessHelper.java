@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.jbpm.console.ng.pr.backend.server;
+package org.jbpm.console.ng.bd.backend.server;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.jbpm.console.ng.pr.model.ProcessSummary;
+import org.jbpm.console.ng.bd.model.ProcessSummary;
 import org.jbpm.kie.services.impl.model.ProcessAssetDesc;
 import org.jbpm.services.api.model.ProcessDefinition;
 

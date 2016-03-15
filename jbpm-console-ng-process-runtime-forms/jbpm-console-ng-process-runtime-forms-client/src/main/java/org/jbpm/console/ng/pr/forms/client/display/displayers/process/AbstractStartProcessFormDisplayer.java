@@ -44,9 +44,9 @@ import org.jbpm.console.ng.ga.forms.display.view.FormContentResizeListener;
 import org.jbpm.console.ng.gc.forms.client.display.displayers.util.ActionRequest;
 import org.jbpm.console.ng.gc.forms.client.display.displayers.util.JSNIHelper;
 import org.jbpm.console.ng.pr.forms.client.i18n.Constants;
-import org.jbpm.console.ng.pr.forms.client.display.process.api.StartProcessFormDisplayer;
-import org.jbpm.console.ng.pr.model.ProcessDefinitionKey;
-import org.jbpm.console.ng.pr.model.ProcessSummary;
+import org.jbpm.console.ng.pr.forms.display.process.api.StartProcessFormDisplayer;
+import org.jbpm.console.ng.bd.model.ProcessDefinitionKey;
+import org.jbpm.console.ng.bd.model.ProcessSummary;
 import org.jbpm.console.ng.pr.model.events.NewProcessInstanceEvent;
 import org.uberfire.client.workbench.widgets.common.ErrorPopupPresenter;
 import org.uberfire.mvp.Command;
@@ -67,6 +67,7 @@ public abstract class AbstractStartProcessFormDisplayer implements StartProcessF
 
     protected String formContent;
 
+    protected String serverTemplateId;
     protected String deploymentId;
     protected String processDefId;
     protected String processName;
@@ -80,9 +81,6 @@ public abstract class AbstractStartProcessFormDisplayer implements StartProcessF
 
     @Inject
     protected ErrorPopupPresenter errorPopup;
-
-    @Inject
-    private Caller<DataServiceEntryPoint> dataServices;
 
     @Inject
     protected Event<NewProcessInstanceEvent> newProcessInstanceEvent;
@@ -102,6 +100,7 @@ public abstract class AbstractStartProcessFormDisplayer implements StartProcessF
 
     @Override
     public void init(FormDisplayerConfig<ProcessDefinitionKey> config, Command onClose, Command onRefreshCommand, FormContentResizeListener resizeContentListener) {
+        this.serverTemplateId = config.getKey().getServerTemplateId();
         this.deploymentId = config.getKey().getDeploymentId();
         this.processDefId = config.getKey().getProcessId();
         this.formContent = config.getFormContent();
@@ -127,22 +126,18 @@ public abstract class AbstractStartProcessFormDisplayer implements StartProcessF
         startButton.setType(ButtonType.PRIMARY);
         footerButtons.add(startButton);
 
-        dataServices.call(new RemoteCallback<ProcessSummary>() {
-            @Override
-            public void callback(ProcessSummary summary) {
-                processName = summary.getProcessDefName();
-                FocusPanel wrapperFlowPanel = new FocusPanel();
-                wrapperFlowPanel.setStyleName("wrapper form-actions");
+        processName = config.getKey().getProcessName();
+        FocusPanel wrapperFlowPanel = new FocusPanel();
+        wrapperFlowPanel.setStyleName("wrapper form-actions");
 
-                if (opener != null) {
-                    injectEventListener(AbstractStartProcessFormDisplayer.this);
-                }
+        if (opener != null) {
+            injectEventListener(AbstractStartProcessFormDisplayer.this);
+        }
 
-                initDisplayer();
+        initDisplayer();
 
-                doResize();
-            }
-        }).getProcessDesc(deploymentId, processDefId);
+        doResize();
+
     }
 
     protected abstract void initDisplayer();
@@ -189,7 +184,7 @@ public abstract class AbstractStartProcessFormDisplayer implements StartProcessF
         return new RemoteCallback<Long>() {
             @Override
             public void callback(Long processInstanceId) {
-                newProcessInstanceEvent.fire(new NewProcessInstanceEvent(deploymentId, processInstanceId, processDefId, processName, 1));
+                newProcessInstanceEvent.fire(new NewProcessInstanceEvent(serverTemplateId, deploymentId, processInstanceId, processDefId, processName, 1));
                 final String message = Constants.INSTANCE.ProcessStarted( processInstanceId );
                 jsniHelper.notifySuccessMessage(opener, message );
                 notificationEvent.fire( new NotificationEvent( message, NotificationEvent.NotificationType.SUCCESS ) );

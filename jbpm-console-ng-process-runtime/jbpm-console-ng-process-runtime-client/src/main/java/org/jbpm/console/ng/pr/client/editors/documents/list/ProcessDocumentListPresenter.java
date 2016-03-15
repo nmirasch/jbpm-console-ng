@@ -33,7 +33,7 @@ import org.jbpm.console.ng.ga.model.PortableQueryFilter;
 import org.jbpm.console.ng.gc.client.list.base.AbstractListPresenter;
 import org.jbpm.console.ng.gc.client.list.base.AbstractListView;
 import org.jbpm.console.ng.pr.client.i18n.Constants;
-import org.jbpm.console.ng.pr.model.DocumentSummary;
+import org.jbpm.console.ng.bd.model.DocumentSummary;
 import org.jbpm.console.ng.pr.model.events.ProcessInstanceSelectionEvent;
 import org.jbpm.console.ng.pr.service.DocumentsService;
 import org.uberfire.paging.PageResponse;
@@ -58,6 +58,7 @@ public class ProcessDocumentListPresenter extends AbstractListPresenter<Document
     private String processDefId;
     private String deploymentId;
     private String documentId;
+    private String serverTemplateId;
 
     public ProcessDocumentListPresenter() {
         super();
@@ -77,6 +78,7 @@ public class ProcessDocumentListPresenter extends AbstractListPresenter<Document
         this.processInstanceId = String.valueOf( event.getProcessInstanceId() );
         this.processDefId = event.getProcessDefId();
         this.deploymentId = event.getDeploymentId();
+        this.serverTemplateId = event.getServerTemplateId();
         refreshGrid();
     }
 

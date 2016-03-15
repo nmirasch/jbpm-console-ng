@@ -18,8 +18,8 @@ package org.jbpm.console.ng.pr.service;
 
 import org.jboss.errai.bus.server.annotations.Remote;
 import org.jbpm.console.ng.ga.service.GenericServiceEntryPoint;
-import org.jbpm.console.ng.pr.model.ProcessInstanceKey;
-import org.jbpm.console.ng.pr.model.ProcessInstanceSummary;
+import org.jbpm.console.ng.bd.model.ProcessInstanceKey;
+import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
 
 /**
  *

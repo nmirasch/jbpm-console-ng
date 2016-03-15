@@ -17,6 +17,7 @@
 package org.jbpm.console.ng.ht.client.editors.taskslist.grid;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,6 +25,8 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.view.client.AsyncDataProvider;
 import com.google.gwt.view.client.HasData;
@@ -38,6 +41,8 @@ import org.dashbuilder.dataset.filter.CoreFunctionType;
 import org.dashbuilder.dataset.filter.DataSetFilter;
 import org.dashbuilder.dataset.filter.FilterFactory;
 import org.dashbuilder.dataset.sort.SortOrder;
+import org.gwtbootstrap3.client.ui.AnchorListItem;
+import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
 import org.jboss.errai.security.shared.api.Group;
@@ -53,17 +58,22 @@ import org.jbpm.console.ng.ht.client.editors.taskslist.grid.dash.DataSetTasksLis
 import org.jbpm.console.ng.ht.client.i18n.Constants;
 import org.jbpm.console.ng.ht.model.TaskSummary;
 import org.jbpm.console.ng.ht.service.TaskLifeCycleService;
+import org.jbpm.console.ng.ht.service.integration.RemoteTaskService;
+import org.kie.server.controller.api.model.events.ServerTemplateDeleted;
+import org.kie.server.controller.api.model.events.ServerTemplateUpdated;
+import org.kie.server.controller.api.model.spec.ServerTemplate;
+import org.kie.workbench.common.screens.server.management.service.SpecManagementService;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.mvp.UberView;
 import org.uberfire.client.workbench.widgets.common.ErrorPopupPresenter;
+import org.uberfire.ext.widgets.common.client.callbacks.DefaultErrorCallback;
 import org.uberfire.ext.widgets.common.client.menu.RefreshSelectorMenuBuilder;
 import org.uberfire.paging.PageResponse;
 import org.uberfire.workbench.model.menu.Menus;
 
 import static org.dashbuilder.dataset.filter.FilterFactory.*;
 import static org.jbpm.console.ng.ht.model.TaskDataSetConstants.*;
-import org.uberfire.ext.widgets.common.client.callbacks.DefaultErrorCallback;
 
 public abstract class AbstractTasksListGridPresenter extends AbstractScreenListPresenter<TaskSummary> {
 
@@ -78,6 +88,14 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
         void addDomainSpecifColumns(ExtendedPagedTable<TaskSummary> extendedPagedTable, Set<String> columns);
 
         FilterSettings getVariablesTableSettings(String processName);
+
+        String getSelectedServer();
+
+        void setSelectedServer(String selected);
+
+        void addServerTemplate(AnchorListItem serverTemplateNavLink);
+
+        void removeServerTemplate(String serverTemplateId);
     }
 
     @Inject
@@ -89,6 +107,9 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
     private Caller<TaskLifeCycleService> taskOperationsService;
 
     @Inject
+    private Caller<RemoteTaskService> remoteTaskService;
+
+    @Inject
     DataSetQueryHelper dataSetQueryHelper;
 
     @Inject
@@ -96,6 +117,9 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
 
     @Inject
     private ErrorPopupPresenter errorPopup;
+
+    @Inject
+    private Caller<SpecManagementService> specManagementService;
 
     protected RefreshSelectorMenuBuilder refreshSelectorMenuBuilder = new RefreshSelectorMenuBuilder(this);
 
@@ -135,7 +159,7 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
         try {
             if (!isAddingDefaultFilters()) {
                 FilterSettings currentTableSettings = dataSetQueryHelper.getCurrentTableSettings();
-                if (currentTableSettings != null) {
+                if (currentTableSettings != null && view.getSelectedServer() == null ) {
                     currentTableSettings.setTablePageSize(view.getListGrid().getPageSize());
                     ColumnSortList columnSortList = view.getListGrid().getColumnSortList();
                     if (columnSortList != null && columnSortList.size() > 0) {
@@ -171,6 +195,27 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
                     }
                     dataSetQueryHelper.setDataSetHandler(currentTableSettings);
                     dataSetQueryHelper.lookupDataSet(visibleRange.getStart(), createDataSetTaskCallback(visibleRange.getStart(), currentTableSettings));
+                } else {
+                    remoteTaskService.call(new RemoteCallback<List<TaskSummary>>() {
+                        @Override
+                        public void callback(List<TaskSummary> taskSummaries) {
+
+                            PageResponse<TaskSummary> taskSummaryPageResponse = new PageResponse<TaskSummary>();
+                            taskSummaryPageResponse.setPageRowList(taskSummaries);
+                            taskSummaryPageResponse.setStartRowIndex(visibleRange.getStart());
+                            taskSummaryPageResponse.setTotalRowSize(taskSummaries.size());
+                            taskSummaryPageResponse.setTotalRowSizeExact(taskSummaries.isEmpty());
+                            if (taskSummaries.size() < visibleRange.getLength()) {
+                                taskSummaryPageResponse.setLastPage(true);
+                            } else {
+                                taskSummaryPageResponse.setLastPage(false);
+                            }
+
+                            AbstractTasksListGridPresenter.this.updateDataOnCallback(taskSummaryPageResponse);
+
+                            view.hideBusyIndicator();
+                        }
+                    }).getActiveTasks(view.getSelectedServer(), visibleRange.getStart()/visibleRange.getLength(), visibleRange.getLength());
                 }
             }
         } catch (Exception e) {
@@ -426,4 +471,49 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
     }
 
     public abstract Menus getMenus();
+
+    public void loadServerTemplates() {
+        specManagementService.call( new RemoteCallback<Collection<ServerTemplate>>() {
+            @Override
+            public void callback( final Collection<ServerTemplate> serverTemplates ) {
+
+                for (ServerTemplate serverTemplate : serverTemplates) {
+                    if (serverTemplate.getServerInstanceKeys() != null && !serverTemplate.getServerInstanceKeys().isEmpty()) {
+                        AnchorListItem serverTemplateNavLink = new AnchorListItem(serverTemplate.getId());
+                        serverTemplateNavLink.setIcon(IconType.BAN);
+                        serverTemplateNavLink.setIconFixedWidth(true);
+                        serverTemplateNavLink.addClickHandler(new SelectServerTemplateClickHandler(serverTemplate.getId()));
+
+                        view.addServerTemplate(serverTemplateNavLink);
+                    }
+                }
+            }
+        } ).listServerTemplates();
+    }
+
+    private class SelectServerTemplateClickHandler implements ClickHandler {
+
+        private String selected;
+
+        public SelectServerTemplateClickHandler(String selected) {
+            this.selected = selected;
+        }
+
+        @Override
+        public void onClick( ClickEvent event ) {
+            view.setSelectedServer(selected);
+            refreshGrid();
+        }
+    }
+
+    public void onServerTemplateDeleted(@Observes ServerTemplateDeleted serverTemplateDeleted) {
+        view.removeServerTemplate(serverTemplateDeleted.getServerTemplateId());
+    }
+
+    public void onServerTemplateUpdated(@Observes ServerTemplateUpdated serverTemplateUpdated) {
+        ServerTemplate serverTemplate = serverTemplateUpdated.getServerTemplate();
+        if (serverTemplate.getServerInstanceKeys() == null || serverTemplate.getServerInstanceKeys().isEmpty()) {
+            view.removeServerTemplate(serverTemplate.getId());
+        }
+    }
 }

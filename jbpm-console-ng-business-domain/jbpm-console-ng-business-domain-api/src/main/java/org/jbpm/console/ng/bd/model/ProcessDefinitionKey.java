@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jbpm.console.ng.pr.model;
+package org.jbpm.console.ng.bd.model;
 
 import org.jboss.errai.common.client.api.annotations.Portable;
 import org.jbpm.console.ng.ga.service.ItemKey;
@@ -25,10 +25,13 @@ import org.jbpm.console.ng.ga.service.ItemKey;
  */
 @Portable
 public class ProcessDefinitionKey implements ItemKey {
+  private String serverTemplateId;
   private String deploymentId;
   private String processId;
+  private String processName;
 
-  public ProcessDefinitionKey(String deploymentId, String processId) {
+  public ProcessDefinitionKey(String serverTemplateId, String deploymentId, String processId) {
+    this.serverTemplateId = serverTemplateId;
     this.deploymentId = deploymentId;
     this.processId = processId;
   }
@@ -42,6 +45,14 @@ public class ProcessDefinitionKey implements ItemKey {
 
   public String getProcessId() {
     return processId;
+  }
+
+  public String getServerTemplateId() {
+    return serverTemplateId;
+  }
+
+  public String getProcessName() {
+    return processName == null ? processId : processName;
   }
 
   @Override

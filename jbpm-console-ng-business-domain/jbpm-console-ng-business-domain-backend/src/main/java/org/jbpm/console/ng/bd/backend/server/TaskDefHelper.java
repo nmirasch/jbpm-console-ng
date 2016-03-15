@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.jbpm.console.ng.ht.backend.server;
+package org.jbpm.console.ng.bd.backend.server;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.jbpm.console.ng.ht.model.TaskDefSummary;
+import org.jbpm.console.ng.bd.model.TaskDefSummary;
 import org.jbpm.services.api.model.UserTaskDefinition;
-import org.kie.internal.task.api.model.TaskDef;
 
 public class TaskDefHelper {
     public static Collection<TaskDefSummary> adaptCollection(Collection<? extends UserTaskDefinition> tasks) {

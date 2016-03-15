@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jbpm.console.ng.pr.model;
+
+package org.jbpm.console.ng.bd.model;
 
 import org.jboss.errai.common.client.api.annotations.Portable;
 import org.jbpm.console.ng.ga.service.ItemKey;
@@ -23,25 +24,30 @@ import org.jbpm.console.ng.ga.service.ItemKey;
  * @author salaboy
  */
 @Portable
-public class ProcessVariableKey implements ItemKey {
+public class DocumentKey implements ItemKey {
+  private String documentId;
+  
 
-  private String processVariableId;
-
-  public ProcessVariableKey() {
+  public DocumentKey(String documentId) {
+    this.documentId = documentId;
   }
 
-  public ProcessVariableKey(String processVariableId) {
-    this.processVariableId = processVariableId;
+  public DocumentKey() {
   }
 
-  public String getProcessVariableId() {
-    return processVariableId;
+  public String getDocumentId() {
+    return documentId;
   }
 
   @Override
+  public String toString() {
+    return "DocumentKey{" + "documentId=" + documentId + '}';
+  }
+  
+  @Override
   public int hashCode() {
     int hash = 3;
-    hash = 13 * hash + (this.processVariableId != null ? this.processVariableId.hashCode() : 0);
+    hash = 31 * hash + (this.documentId != null ? this.documentId.hashCode() : 0);
     return hash;
   }
 
@@ -53,16 +59,14 @@ public class ProcessVariableKey implements ItemKey {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    final ProcessVariableKey other = (ProcessVariableKey) obj;
-    if ((this.processVariableId == null) ? (other.processVariableId != null) : !this.processVariableId.equals(other.processVariableId)) {
+    final DocumentKey other = (DocumentKey) obj;
+    if ((this.documentId == null) ? (other.documentId != null) : !this.documentId.equals(other.documentId)) {
       return false;
     }
     return true;
   }
 
-  @Override
-  public String toString() {
-    return "ProcessVariableKey{" + "processVariableId=" + processVariableId + '}';
-  }
-
+  
+  
+  
 }

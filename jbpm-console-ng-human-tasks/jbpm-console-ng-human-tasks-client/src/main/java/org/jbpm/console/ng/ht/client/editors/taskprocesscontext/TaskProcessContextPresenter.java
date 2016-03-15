@@ -24,14 +24,17 @@ import javax.inject.Inject;
 import com.google.gwt.user.client.ui.IsWidget;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
+import org.jbpm.console.ng.bd.model.ProcessInstanceKey;
 import org.jbpm.console.ng.bd.service.DataServiceEntryPoint;
 import org.jbpm.console.ng.ht.model.TaskKey;
 import org.jbpm.console.ng.ht.model.TaskSummary;
 import org.jbpm.console.ng.ht.model.events.TaskRefreshedEvent;
 import org.jbpm.console.ng.ht.model.events.TaskSelectionEvent;
 import org.jbpm.console.ng.ht.service.TaskQueryService;
-import org.jbpm.console.ng.pr.model.ProcessInstanceSummary;
+import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
+import org.jbpm.console.ng.ht.service.integration.RemoteTaskService;
 import org.jbpm.console.ng.pr.model.events.ProcessInstancesWithDetailsRequestEvent;
+import org.jbpm.console.ng.pr.service.integration.RemoteRuntimeDataService;
 import org.uberfire.client.mvp.Activity;
 import org.uberfire.client.mvp.ActivityManager;
 import org.uberfire.client.mvp.PlaceManager;
@@ -63,23 +66,25 @@ public class TaskProcessContextPresenter {
 
     private Event<ProcessInstancesWithDetailsRequestEvent> processInstanceSelected;
 
-    private Caller<TaskQueryService> taskQueryService;
+    private Caller<RemoteTaskService> taskService;
 
-    private Caller<DataServiceEntryPoint> dataServices;
+    private Caller<RemoteRuntimeDataService> dataServices;
 
     private long currentTaskId = 0;
     private long currentProcessInstanceId = -1L;
     private boolean enableProcessInstanceDetails = true;
+    private String serverTemplateId;
+    private String containerId;
 
     @Inject
     public TaskProcessContextPresenter(TaskProcessContextView view,
                                        PlaceManager placeManager,
-                                       Caller<TaskQueryService> taskQueryService,
-                                       Caller<DataServiceEntryPoint> dataServices,
+                                       Caller<RemoteTaskService> taskService,
+                                       Caller<RemoteRuntimeDataService> dataServices,
                                        Event<ProcessInstancesWithDetailsRequestEvent> processInstanceSelected,
                                        ActivityManager activityManager) {
         this.view = view;
-        this.taskQueryService = taskQueryService;
+        this.taskService = taskService;
         this.dataServices = dataServices;
         this.placeManager = placeManager;
         this.processInstanceSelected = processInstanceSelected;
@@ -113,11 +118,11 @@ public class TaskProcessContextPresenter {
                               }
                           },
                 new DefaultErrorCallback()
-        ).getProcessInstanceById(currentProcessInstanceId);
+        ).getProcessInstance(serverTemplateId, new ProcessInstanceKey(currentProcessInstanceId));
     }
 
     public void refreshProcessContextOfTask() {
-        taskQueryService.call(new RemoteCallback<TaskSummary>() {
+        taskService.call(new RemoteCallback<TaskSummary>() {
                                   @Override
                                   public void callback(TaskSummary details) {
                                       if (details == null || details.getProcessInstanceId() == -1) {
@@ -135,11 +140,13 @@ public class TaskProcessContextPresenter {
                                   }
                               },
                 new DefaultErrorCallback()
-        ).getItem(new TaskKey(currentTaskId));
+        ).getTask(serverTemplateId, containerId, currentTaskId);
     }
 
     public void onTaskSelectionEvent(@Observes final TaskSelectionEvent event) {
         this.currentTaskId = event.getTaskId();
+        this.serverTemplateId = event.getServerTemplateId();
+        this.containerId = event.getContainerId();
         refreshProcessContextOfTask();
     }
 

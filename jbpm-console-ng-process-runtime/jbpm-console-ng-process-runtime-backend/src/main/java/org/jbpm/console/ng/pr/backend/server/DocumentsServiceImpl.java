@@ -27,10 +27,11 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.jboss.errai.bus.server.annotations.Service;
+import org.jbpm.console.ng.bd.backend.server.VariableHelper;
 import org.jbpm.console.ng.ga.model.QueryFilter;
-import org.jbpm.console.ng.pr.model.DocumentKey;
-import org.jbpm.console.ng.pr.model.DocumentSummary;
-import org.jbpm.console.ng.pr.model.ProcessVariableSummary;
+import org.jbpm.console.ng.bd.model.DocumentKey;
+import org.jbpm.console.ng.bd.model.DocumentSummary;
+import org.jbpm.console.ng.bd.model.ProcessVariableSummary;
 import org.jbpm.console.ng.pr.service.DocumentsService;
 import org.jbpm.document.Document;
 import org.jbpm.services.api.DefinitionService;

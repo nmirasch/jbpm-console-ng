@@ -27,17 +27,20 @@ import com.google.gwt.user.client.ui.IsWidget;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
 import org.jbpm.console.ng.bd.model.RuntimeLogSummary;
-import org.jbpm.console.ng.bd.service.DataServiceEntryPoint;
 import org.jbpm.console.ng.pr.client.i18n.Constants;
 import org.jbpm.console.ng.pr.client.util.LogUtils.LogOrder;
 import org.jbpm.console.ng.pr.client.util.LogUtils.LogType;
 import org.jbpm.console.ng.pr.model.events.ProcessInstanceSelectionEvent;
+import org.jbpm.console.ng.pr.service.integration.RemoteRuntimeDataService;
 import org.uberfire.ext.widgets.common.client.callbacks.DefaultErrorCallback;
+
 
 @Dependent
 public class RuntimeLogPresenter {
 
-    private String currentProcessInstanceId;
+    private Long currentProcessInstanceId;
+    private String currentProcessName;
+    private String currentServerTemplateId;
 
     public interface RuntimeLogView extends IsWidget {
 
@@ -54,7 +57,7 @@ public class RuntimeLogPresenter {
     private RuntimeLogView view;
 
     @Inject
-    private Caller<DataServiceEntryPoint> dataServices;
+    private Caller<RemoteRuntimeDataService> dataServices;
 
     @PostConstruct
     public void init() {
@@ -65,51 +68,49 @@ public class RuntimeLogPresenter {
         return view;
     }
 
-    public void refreshProcessInstanceData(final LogOrder logOrder,
-            final LogType logType) {
-        if (LogType.TECHNICAL.equals(logType)) {
-            dataServices.call(
-                    new RemoteCallback<List<RuntimeLogSummary>>() {
-                        @Override
-                        public void callback(List<RuntimeLogSummary> logs) {
-                            final List<String> logsLine = new ArrayList<String>();
+    public void refreshProcessInstanceData( final LogOrder logOrder,
+                                            final LogType logType ) {
 
-                            if (logOrder == LogOrder.DESC) {
-                                Collections.reverse(logs);
-                            }
+        if ( LogType.TECHNICAL.equals( logType ) ) {
+            dataServices.call( new RemoteCallback<List<RuntimeLogSummary>>() {
+                @Override
+                public void callback( List<RuntimeLogSummary> logs ) {
+                    final List<String> logsLine = new ArrayList<String>();
 
-                            for (RuntimeLogSummary rls : logs) {
-                                logsLine.add(rls.getTime() + ": " + rls.getLogLine() + " - " + rls.getType());
-                            }
+                    if ( logOrder == LogOrder.DESC ) {
+                        Collections.reverse( logs );
+                    }
 
-                            view.setLogs(logsLine);
-                        }
-                    },
-                    new DefaultErrorCallback()
-            ).getAllRuntimeLogs(Long.valueOf(currentProcessInstanceId));
+                    for ( RuntimeLogSummary rls : logs ) {
+                        logsLine.add( rls.getTime() + ": " + rls.getLogLine() + " - " + rls.getType() );
+                    }
+
+
+                    view.setLogs( logsLine );
+                }
+            }, new DefaultErrorCallback() ).getRuntimeLogs(currentServerTemplateId, currentProcessInstanceId);
         } else {
-            dataServices.call(
-                    new RemoteCallback<List<RuntimeLogSummary>>() {
-                        @Override
-                        public void callback(List<RuntimeLogSummary> logs) {
-                            final List<String> logsLine = new ArrayList<String>();
-                            if (logOrder == LogOrder.DESC) {
-                                Collections.reverse(logs);
-                            }
+            dataServices.call( new RemoteCallback<List<RuntimeLogSummary>>() {
+                @Override
+                public void callback( List<RuntimeLogSummary> logs ) {
+                    final List<String> logsLine = new ArrayList<String>();
+                    if ( logOrder == LogOrder.DESC ) {
+                        Collections.reverse( logs );
+                    }
 
-                            for (RuntimeLogSummary rls : logs) {
-                                logsLine.add(rls.getTime() + ": " + rls.getLogLine());
-                            }
-                            view.setLogs(logsLine);
-                        }
-                    },
-                    new DefaultErrorCallback()
-            ).getBusinessLogs(Long.valueOf(currentProcessInstanceId));
+                    for ( RuntimeLogSummary rls : logs ) {
+                        logsLine.add( rls.getTime() + ": " + rls.getLogLine() );
+                    }
+                    view.setLogs( logsLine );
+                }
+            }, new DefaultErrorCallback() ).getBusinessLogs(currentServerTemplateId, currentProcessName, currentProcessInstanceId );
         }
     }
 
     public void onProcessInstanceSelectionEvent( @Observes final ProcessInstanceSelectionEvent event ) {
-        this.currentProcessInstanceId = String.valueOf( event.getProcessInstanceId() );
+        this.currentProcessInstanceId = event.getProcessInstanceId();
+        this.currentProcessName = event.getProcessDefName();
+        this.currentServerTemplateId = event.getServerTemplateId();
 
         refreshProcessInstanceData( LogOrder.ASC, LogType.BUSINESS );
     }

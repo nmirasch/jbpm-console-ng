@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jbpm.console.ng.pr.model;
+package org.jbpm.console.ng.bd.model;
 
 public final class ProcessInstanceDataSetConstants {
 

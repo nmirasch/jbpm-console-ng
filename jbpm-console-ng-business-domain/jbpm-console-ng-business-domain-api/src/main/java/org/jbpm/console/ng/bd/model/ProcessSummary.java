@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
-package org.jbpm.console.ng.pr.model;
+package org.jbpm.console.ng.bd.model;
+
+import java.util.Collection;
+import java.util.Map;
 
 import org.jboss.errai.common.client.api.annotations.Portable;
 import org.jbpm.console.ng.ga.model.GenericSummary;
@@ -30,6 +33,14 @@ public class ProcessSummary extends GenericSummary{
     private String originalPath;
     private String deploymentId;
     private String encodedProcessSource;
+
+    private Map<String, String[]> associatedEntities;
+
+    private Map<String, String> serviceTasks;
+
+    private Map<String, String> processVariables;
+
+    private Collection<String> reusableSubProcesses;
 
     public ProcessSummary() {
     }
@@ -112,4 +123,35 @@ public class ProcessSummary extends GenericSummary{
         this.encodedProcessSource = encodedProcessSource;
     }
 
+    public Map<String, String[]> getAssociatedEntities() {
+        return associatedEntities;
+    }
+
+    public void setAssociatedEntities(Map<String, String[]> associatedEntities) {
+        this.associatedEntities = associatedEntities;
+    }
+
+    public Map<String, String> getServiceTasks() {
+        return serviceTasks;
+    }
+
+    public void setServiceTasks(Map<String, String> serviceTasks) {
+        this.serviceTasks = serviceTasks;
+    }
+
+    public Map<String, String> getProcessVariables() {
+        return processVariables;
+    }
+
+    public void setProcessVariables(Map<String, String> processVariables) {
+        this.processVariables = processVariables;
+    }
+
+    public Collection<String> getReusableSubProcesses() {
+        return reusableSubProcesses;
+    }
+
+    public void setReusableSubProcesses(Collection<String> reusableSubProcesses) {
+        this.reusableSubProcesses = reusableSubProcesses;
+    }
 }

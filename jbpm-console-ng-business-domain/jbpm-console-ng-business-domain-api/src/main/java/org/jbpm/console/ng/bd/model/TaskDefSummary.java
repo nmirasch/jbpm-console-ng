@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.jbpm.console.ng.ht.model;
+package org.jbpm.console.ng.bd.model;
 
 import java.io.Serializable;
 import org.jboss.errai.common.client.api.annotations.Portable;

@@ -16,6 +16,7 @@
 package org.jbpm.console.ng.pr.client.editors.definition.list;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import javax.enterprise.context.Dependent;
@@ -31,16 +32,26 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.BrowserEvents;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.dom.client.Style;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.CellPreviewEvent;
 import com.google.gwt.view.client.DefaultSelectionEventManager;
 import com.google.gwt.view.client.NoSelectionModel;
 import com.google.gwt.view.client.SelectionChangeEvent;
+import org.gwtbootstrap3.client.ui.AnchorListItem;
+import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.ButtonGroup;
+import org.gwtbootstrap3.client.ui.DropDownMenu;
+import org.gwtbootstrap3.client.ui.constants.IconType;
+import org.gwtbootstrap3.client.ui.constants.Styles;
+import org.gwtbootstrap3.client.ui.constants.Toggle;
 import org.jbpm.console.ng.gc.client.experimental.grid.base.ExtendedPagedTable;
 import org.jbpm.console.ng.gc.client.list.base.AbstractListView;
 import org.jbpm.console.ng.gc.client.util.ButtonActionCell;
 import org.jbpm.console.ng.pr.client.i18n.Constants;
-import org.jbpm.console.ng.pr.model.ProcessSummary;
+import org.jbpm.console.ng.bd.model.ProcessSummary;
 import org.jbpm.console.ng.pr.model.events.NewProcessInstanceEvent;
 import org.jbpm.console.ng.pr.model.events.ProcessDefSelectionEvent;
 import org.jbpm.console.ng.pr.model.events.ProcessInstanceSelectionEvent;
@@ -70,6 +81,11 @@ public class ProcessDefinitionListViewImpl extends AbstractListView<ProcessSumma
     private ContextualView contextualView;
 
     private String placeIdentifier;
+
+    private DropDownMenu dropDownServerTemplates;
+    private String selectedServerTemplate = "";
+    private Button serverTemplateButton;
+    private ButtonGroup serverTemplates;
 
     @Override
     public void init( final ProcessDefinitionListPresenter presenter ) {
@@ -115,9 +131,9 @@ public class ProcessDefinitionListViewImpl extends AbstractListView<ProcessSumma
 
                 if ( status == PlaceStatus.CLOSE ) {
                     placeManager.goTo( placeIdentifier );
-                    processDefSelected.fire( new ProcessDefSelectionEvent( selectedItem.getProcessDefId(), selectedItem.getDeploymentId() ) );
+                    processDefSelected.fire( new ProcessDefSelectionEvent( selectedItem.getProcessDefId(), selectedItem.getDeploymentId(), selectedServerTemplate ) );
                 } else if ( status == PlaceStatus.OPEN && !close ) {
-                    processDefSelected.fire( new ProcessDefSelectionEvent( selectedItem.getProcessDefId(), selectedItem.getDeploymentId() ) );
+                    processDefSelected.fire( new ProcessDefSelectionEvent( selectedItem.getProcessDefId(), selectedItem.getDeploymentId(), selectedServerTemplate ) );
                 } else if ( status == PlaceStatus.OPEN && close ) {
                     placeManager.closePlace( placeIdentifier );
                 }
@@ -153,6 +169,8 @@ public class ProcessDefinitionListViewImpl extends AbstractListView<ProcessSumma
 
         listGrid.getElement().getStyle().setPaddingRight( 20, Style.Unit.PX );
         listGrid.getElement().getStyle().setPaddingLeft( 20, Style.Unit.PX );
+
+        initServerTemplateSelector();
     }
 
     @Override
@@ -169,6 +187,8 @@ public class ProcessDefinitionListViewImpl extends AbstractListView<ProcessSumma
         columnMetas.add( new ColumnMeta<ProcessSummary>( actionsColumn, constants.Actions() ) );
 
         extendedPagedTable.addColumns( columnMetas );
+
+        extendedPagedTable.getRightActionsToolbar().add(serverTemplates);
     }
 
     private Column initProcessNameColumn() {
@@ -240,8 +260,60 @@ public class ProcessDefinitionListViewImpl extends AbstractListView<ProcessSumma
         placeManager.goTo( "Process Instance Details Multi" );
         processInstanceSelected.fire( new ProcessInstanceSelectionEvent( newProcessInstance.getDeploymentId(),
                                                                          newProcessInstance.getNewProcessInstanceId(),
-                                                                         newProcessInstance.getNewProcessDefId(), newProcessInstance.getProcessDefName(), newProcessInstance.getNewProcessInstanceStatus() ) );
+                                                                         newProcessInstance.getNewProcessDefId(), newProcessInstance.getProcessDefName(),
+                newProcessInstance.getNewProcessInstanceStatus(), newProcessInstance.getServerTemplateId() ) );
 
+    }
+
+    private void initServerTemplateSelector() {
+
+        serverTemplateButton = new Button("Server templates") {{
+            setDataToggle(Toggle.DROPDOWN);
+            getElement().getStyle().setMarginRight(5, Style.Unit.PX);
+        }};
+
+        dropDownServerTemplates = new DropDownMenu() {{
+            addStyleName(Styles.DROPDOWN_MENU + "-right");
+            getElement().getStyle().setMarginRight(5, Style.Unit.PX);
+
+        }};
+
+        serverTemplates = new ButtonGroup() {{
+            add(serverTemplateButton);
+            add(dropDownServerTemplates);
+        }};
+
+
+        presenter.loadServerTemplates();
+
+    }
+
+    @Override
+    public String getSelectedServer() {
+        return selectedServerTemplate;
+    }
+
+    @Override
+    public void setSelectedServer(String selected) {
+        selectedServerTemplate = selected;
+        serverTemplateButton.setText(selected);
+    }
+
+    @Override
+    public void addServerTemplate(AnchorListItem serverTemplateNavLink) {
+        dropDownServerTemplates.add(serverTemplateNavLink);
+    }
+
+    @Override
+    public void removeServerTemplate(String serverTemplateId) {
+        Iterator<Widget> it = dropDownServerTemplates.iterator();
+
+        while (it.hasNext()) {
+            AnchorListItem item = (AnchorListItem) it.next();
+            if (item.getText().equals(serverTemplateId)) {
+                it.remove();
+            }
+        }
     }
 
 }

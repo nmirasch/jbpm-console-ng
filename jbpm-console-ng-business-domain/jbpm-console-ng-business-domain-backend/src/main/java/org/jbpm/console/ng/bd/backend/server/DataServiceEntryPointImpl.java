@@ -25,28 +25,24 @@ import java.util.List;
 import java.util.Map;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+
 import org.jboss.errai.bus.server.annotations.Service;
+import org.jbpm.console.ng.bd.model.NodeInstanceSummary;
+import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
+import org.jbpm.console.ng.bd.model.ProcessSummary;
+import org.jbpm.console.ng.bd.model.ProcessVariableSummary;
 import org.jbpm.console.ng.bd.model.RuntimeLogSummary;
+import org.jbpm.console.ng.bd.model.TaskDefSummary;
 import org.jbpm.console.ng.bd.service.DataServiceEntryPoint;
-import org.jbpm.console.ng.ht.backend.server.TaskDefHelper;
-import org.jbpm.console.ng.ht.model.TaskDefSummary;
 import org.jbpm.console.ng.ht.model.TaskEventSummary;
 import org.jbpm.console.ng.ht.service.TaskAuditService;
-import org.jbpm.console.ng.pr.backend.server.NodeInstanceHelper;
-import org.jbpm.console.ng.pr.backend.server.ProcessHelper;
-import org.jbpm.console.ng.pr.backend.server.ProcessInstanceHelper;
-import org.jbpm.console.ng.pr.backend.server.VariableHelper;
-import org.jbpm.console.ng.pr.model.NodeInstanceSummary;
-import org.jbpm.console.ng.pr.model.ProcessInstanceSummary;
-import org.jbpm.console.ng.pr.model.ProcessSummary;
-import org.ocpsoft.prettytime.PrettyTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.jbpm.console.ng.pr.model.ProcessVariableSummary;
 import org.jbpm.services.api.DefinitionService;
 import org.jbpm.services.api.RuntimeDataService;
 import org.jbpm.services.api.model.ProcessInstanceDesc;
 import org.kie.internal.query.QueryContext;
+import org.ocpsoft.prettytime.PrettyTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**

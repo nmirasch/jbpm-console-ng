@@ -35,7 +35,7 @@ import org.jbpm.console.ng.ga.model.PortableQueryFilter;
 import org.jbpm.console.ng.gc.client.list.base.AbstractListPresenter;
 import org.jbpm.console.ng.gc.client.list.base.AbstractListView;
 import org.jbpm.console.ng.pr.client.i18n.Constants;
-import org.jbpm.console.ng.pr.model.ProcessVariableSummary;
+import org.jbpm.console.ng.bd.model.ProcessVariableSummary;
 import org.jbpm.console.ng.pr.model.events.ProcessInstanceSelectionEvent;
 import org.jbpm.console.ng.pr.service.ProcessVariablesService;
 import org.uberfire.ext.widgets.common.client.callbacks.HasBusyIndicatorDefaultErrorCallback;
@@ -63,6 +63,7 @@ public class ProcessVariableListPresenter extends AbstractListPresenter<ProcessV
     private String processDefId;
     private String deploymentId;
     private int processInstanceStatus;
+    private String serverTemplateId;
 
     @Inject
     public ProcessVariableListPresenter(
@@ -89,6 +90,7 @@ public class ProcessVariableListPresenter extends AbstractListPresenter<ProcessV
         this.processDefId = event.getProcessDefId();
         this.deploymentId = event.getDeploymentId();
         this.processInstanceStatus = event.getProcessInstanceStatus();
+        this.serverTemplateId = event.getServerTemplateId();
         refreshGrid();
     }
 
@@ -146,6 +148,7 @@ public class ProcessVariableListPresenter extends AbstractListPresenter<ProcessV
             currentFilter.getParams().put( "processDefId", processDefId );
             currentFilter.getParams().put( "deploymentId", deploymentId );
             currentFilter.getParams().put( "processInstanceStatus", processInstanceStatus );
+            currentFilter.getParams().put( "serverTemplateId", serverTemplateId );
 
             currentFilter.setOrderBy( ( columnSortList.size() > 0 ) ? columnSortList.get( 0 )
                     .getColumn().getDataStoreName() : "" );

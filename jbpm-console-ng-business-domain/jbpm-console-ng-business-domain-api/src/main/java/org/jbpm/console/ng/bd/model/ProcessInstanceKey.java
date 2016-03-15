@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jbpm.console.ng.pr.model;
+package org.jbpm.console.ng.bd.model;
 
 import org.jboss.errai.common.client.api.annotations.Portable;
 import org.jbpm.console.ng.ga.service.ItemKey;
@@ -64,6 +64,6 @@ public class ProcessInstanceKey implements ItemKey {
   public String toString() {
     return "ProcessInstanceKey{" + "processInstanceId=" + processInstanceId + '}';
   }
-  
-  
+
+
 }

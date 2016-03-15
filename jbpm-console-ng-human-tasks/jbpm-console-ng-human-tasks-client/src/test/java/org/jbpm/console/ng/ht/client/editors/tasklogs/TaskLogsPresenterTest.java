@@ -15,6 +15,8 @@
  */
 package org.jbpm.console.ng.ht.client.editors.tasklogs;
 
+import java.util.List;
+
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import java.time.LocalDate;
 import java.time.Month;
@@ -28,6 +30,7 @@ import org.jbpm.console.ng.ht.model.TaskEventSummary;
 import org.jbpm.console.ng.ht.model.events.TaskRefreshedEvent;
 import org.jbpm.console.ng.ht.model.events.TaskSelectionEvent;
 import org.jbpm.console.ng.ht.service.TaskAuditService;
+import org.jbpm.console.ng.ht.service.integration.RemoteTaskService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,9 +46,9 @@ public class TaskLogsPresenterTest {
     private static final Long TASK_ID = 1L;
 
     @Mock
-    private TaskAuditService taskAuditServiceMock;
+    private RemoteTaskService taskAuditServiceMock;
 
-    private Caller<TaskAuditService> taskAuditService;
+    private Caller<RemoteTaskService> taskAuditService;
 
     @Mock
     private TaskLogsPresenter.TaskLogsView taskLogsView;
@@ -54,9 +57,9 @@ public class TaskLogsPresenterTest {
 
     @Before
     public void setupMocks() {
-        taskAuditService = new CallerMock<TaskAuditService>( taskAuditServiceMock );
+        taskAuditService = new CallerMock<RemoteTaskService>( taskAuditServiceMock );
         presenter = new TaskLogsPresenter( taskLogsView, taskAuditService );
-        when( taskAuditServiceMock.getData( any( QueryFilter.class ) ) ).thenReturn( mock( PageResponse.class ) );
+        when(taskAuditServiceMock.getTaskComments("", "", 1l)).thenReturn(mock(List.class));
     }
 
     @Test
@@ -65,7 +68,7 @@ public class TaskLogsPresenterTest {
         presenter.onTaskSelectionEvent( new TaskSelectionEvent( TASK_ID ) );
 
         //Logs retrieved and text area refreshed
-        verify( taskAuditServiceMock ).getData( any( QueryFilter.class ) );
+        verify( taskAuditServiceMock ).getTaskComments(anyString(), anyString(), anyLong());
         verify( taskLogsView ).setLogTextAreaText( "" );
     }
 
@@ -78,7 +81,7 @@ public class TaskLogsPresenterTest {
         presenter.onTaskRefreshedEvent( new TaskRefreshedEvent( TASK_ID ) );
 
         //Logs retrieved and text area refreshed
-        verify( taskAuditServiceMock, times( 2 ) ).getData( any( QueryFilter.class ) );
+        verify( taskAuditServiceMock, times( 2 ) ).getTaskComments(anyString(), anyString(), anyLong());
         verify( taskLogsView, times( 2 ) ).setLogTextAreaText( "" );
     }
 
@@ -91,7 +94,7 @@ public class TaskLogsPresenterTest {
         presenter.onTaskRefreshedEvent( new TaskRefreshedEvent( TASK_ID + 1 ) );
 
         //Logs retrieved and text area refreshed
-        verify( taskAuditServiceMock ).getData( any( QueryFilter.class ) );
+        verify( taskAuditServiceMock ).getTaskComments(anyString(), anyString(), anyLong());
         verify( taskLogsView ).setLogTextAreaText( "" );
     }
 

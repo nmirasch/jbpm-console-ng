@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jbpm.console.ng.pr.backend.server;
+package org.jbpm.console.ng.bd.backend.server;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,8 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.jbpm.console.ng.pr.model.ProcessVariableSummary;
+import org.jbpm.console.ng.bd.model.ProcessVariableSummary;
 import org.jbpm.services.api.model.VariableDesc;
+import org.kie.server.api.model.instance.VariableInstance;
 
 public class VariableHelper {
 
@@ -53,6 +54,27 @@ public class VariableHelper {
             String type = properties.remove(v.getVariableId());
             variablesSummary.add(new ProcessVariableSummary(v.getVariableId(), v.getVariableInstanceId(), v.getProcessInstanceId(), v
                     .getOldValue(), v.getNewValue(), v.getDataTimeStamp().getTime(), type));
+
+        }
+        if (!properties.isEmpty()) {
+            for (Entry<String, String> entry : properties.entrySet()) {
+                variablesSummary.add(new ProcessVariableSummary(entry.getKey(), "", processInstanceId, "", "", new Date().getTime(), entry.getValue()));
+            }
+        }
+
+        return variablesSummary;
+    }
+
+    public static Collection<ProcessVariableSummary> adaptCollection(List<VariableInstance> variables,
+            Map<String, String> properties, long processInstanceId) {
+        List<ProcessVariableSummary> variablesSummary = new ArrayList<ProcessVariableSummary>();
+        for (VariableInstance v : variables) {
+            if (excludedVariables.contains(v.getVariableName())) {
+                continue;
+            }
+            String type = properties.remove(v.getVariableName());
+            variablesSummary.add(new ProcessVariableSummary(v.getVariableName(), v.getVariableName(), v.getProcessInstanceId(), v
+                    .getOldValue(), v.getValue(), v.getDate().getTime(), type));
 
         }
         if (!properties.isEmpty()) {

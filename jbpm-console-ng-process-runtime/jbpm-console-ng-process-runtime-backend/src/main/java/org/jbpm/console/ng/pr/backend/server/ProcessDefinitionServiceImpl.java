@@ -22,9 +22,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.jboss.errai.bus.server.annotations.Service;
+import org.jbpm.console.ng.bd.backend.server.ProcessHelper;
 import org.jbpm.console.ng.ga.model.QueryFilter;
-import org.jbpm.console.ng.pr.model.ProcessDefinitionKey;
-import org.jbpm.console.ng.pr.model.ProcessSummary;
+import org.jbpm.console.ng.bd.model.ProcessDefinitionKey;
+import org.jbpm.console.ng.bd.model.ProcessSummary;
 import org.jbpm.console.ng.pr.service.ProcessDefinitionService;
 
 import org.jbpm.services.api.RuntimeDataService;

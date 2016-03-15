@@ -17,6 +17,7 @@ package org.jbpm.console.ng.ht.client.editors.taskslist.grid.dash;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -34,19 +35,26 @@ import com.google.gwt.cell.client.TextCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.BrowserEvents;
 import com.google.gwt.dom.client.NativeEvent;
+import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.RowStyles;
+import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.CellPreviewEvent;
 import com.google.gwt.view.client.DefaultSelectionEventManager;
 import com.google.gwt.view.client.NoSelectionModel;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import org.dashbuilder.dataset.filter.FilterFactory;
+import org.gwtbootstrap3.client.ui.AnchorListItem;
 import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.ButtonGroup;
+import org.gwtbootstrap3.client.ui.DropDownMenu;
 import org.gwtbootstrap3.client.ui.constants.ButtonSize;
 import org.gwtbootstrap3.client.ui.constants.IconType;
+import org.gwtbootstrap3.client.ui.constants.Styles;
+import org.gwtbootstrap3.client.ui.constants.Toggle;
 import org.jbpm.console.ng.df.client.filter.FilterSettings;
 import org.jbpm.console.ng.df.client.filter.FilterSettingsBuilderHelper;
 import org.jbpm.console.ng.df.client.list.base.DataSetEditorManager;
@@ -95,6 +103,11 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
     @Inject
     private DataSetEditorManager dataSetEditorManager;
 
+    private DropDownMenu dropDownServerTemplates;
+    private String selectedServerTemplate = "";
+    private Button serverTemplateButton;
+    private ButtonGroup serverTemplates;
+
     @Override
     public void init( final AbstractTasksListGridPresenter presenter ) {
 
@@ -140,6 +153,7 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
             }
         } );
         super.init( presenter, new GridGlobalPreferences( DATASET_TASK_LIST_PREFIX, initColumns, bannedColumns ), button );
+        initServerTemplateSelector();
 
     }
 
@@ -204,9 +218,9 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
                 }
                 if ( status == PlaceStatus.CLOSE ) {
                     placeManager.goTo( defaultPlaceRequest );
-                    taskSelected.fire( new TaskSelectionEvent( selectedItem.getTaskId(), selectedItem.getTaskName(), selectedItem.isForAdmin(), logOnly ) );
+                    taskSelected.fire( new TaskSelectionEvent( selectedServerTemplate, selectedItem.getDeploymentId(), selectedItem.getTaskId(), selectedItem.getTaskName(), selectedItem.isForAdmin(), logOnly ) );
                 } else if ( status == PlaceStatus.OPEN && !close ) {
-                    taskSelected.fire( new TaskSelectionEvent( selectedItem.getTaskId(), selectedItem.getTaskName(), selectedItem.isForAdmin(), logOnly ) );
+                    taskSelected.fire( new TaskSelectionEvent( selectedServerTemplate, selectedItem.getDeploymentId(),selectedItem.getTaskId(), selectedItem.getTaskName(), selectedItem.isForAdmin(), logOnly ) );
                 } else if ( status == PlaceStatus.OPEN && close ) {
                     placeManager.closePlace( "Task Details Multi" );
                 }
@@ -236,6 +250,30 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
                 } );
         extendedPagedTable.setSelectionModel( selectionModel, noActionColumnManager );
         extendedPagedTable.setRowStyles( selectedStyles );
+
+        extendedPagedTable.getRightActionsToolbar().add(serverTemplates);
+
+    }
+
+    private void initServerTemplateSelector() {
+
+        serverTemplateButton = new Button("Server templates") {{
+            setDataToggle(Toggle.DROPDOWN);
+            getElement().getStyle().setMarginRight(5, Style.Unit.PX);
+        }};
+
+        dropDownServerTemplates = new DropDownMenu() {{
+            addStyleName(Styles.DROPDOWN_MENU + "-right");
+            getElement().getStyle().setMarginRight(5, Style.Unit.PX);
+
+        }};
+
+        serverTemplates = new ButtonGroup() {{
+            add(serverTemplateButton);
+            add(dropDownServerTemplates);
+        }};
+
+        presenter.loadServerTemplates();
 
     }
 
@@ -422,7 +460,7 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
             public void execute( TaskSummary task ) {
 
                 presenter.claimTask( task.getTaskId(), identity.getIdentifier(), task.getDeploymentId() );
-                taskSelected.fire( new TaskSelectionEvent( task.getTaskId(), task.getTaskName() ) );
+                taskSelected.fire( new TaskSelectionEvent( selectedServerTemplate, task.getDeploymentId(),task.getTaskId(), task.getTaskName() ) );
                 extendedPagedTable.refresh();
             }
         } ) );
@@ -432,7 +470,7 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
             public void execute( TaskSummary task ) {
 
                 presenter.releaseTask( task.getTaskId(), identity.getIdentifier() );
-                taskSelected.fire( new TaskSelectionEvent( task.getTaskId(), task.getTaskName() ) );
+                taskSelected.fire( new TaskSelectionEvent( selectedServerTemplate, task.getDeploymentId(),task.getTaskId(), task.getTaskName() ) );
                 extendedPagedTable.refresh();
             }
         } ) );
@@ -446,7 +484,7 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
                     logOnly = true;
                 }
                 selectedRow = -1;
-                taskSelected.fire( new TaskSelectionEvent( task.getTaskId(), task.getName(), task.isForAdmin(), logOnly ) );
+                taskSelected.fire( new TaskSelectionEvent( selectedServerTemplate, task.getDeploymentId(), task.getTaskId(), task.getName(), task.isForAdmin(), logOnly ) );
             }
         } ) );
 
@@ -466,10 +504,10 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
         presenter.refreshGrid();
         PlaceStatus status = placeManager.getStatus( new DefaultPlaceRequest( "Task Details Multi" ) );
         if ( status == PlaceStatus.OPEN ) {
-            taskSelected.fire( new TaskSelectionEvent( newTask.getNewTaskId(), newTask.getNewTaskName() ) );
+            taskSelected.fire( new TaskSelectionEvent( selectedServerTemplate, null, newTask.getNewTaskId(), newTask.getNewTaskName() ) );
         } else {
             placeManager.goTo( "Task Details Multi" );
-            taskSelected.fire( new TaskSelectionEvent( newTask.getNewTaskId(), newTask.getNewTaskName() ) );
+            taskSelected.fire( new TaskSelectionEvent( selectedServerTemplate, null, newTask.getNewTaskId(), newTask.getNewTaskName() ) );
         }
 
         selectionModel.setSelected( new TaskSummary( newTask.getNewTaskId(), newTask.getNewTaskName() ), true );
@@ -586,7 +624,7 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
         initFilterTab(builder , key, tabName, tabDesc, preferences);
     }
 
-    
+
 
     private void initAdminTabFilter( GridGlobalPreferences preferences,
                                      final String key,
@@ -694,7 +732,35 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
             }
         });
     }
-    
+
+    @Override
+    public String getSelectedServer() {
+        return selectedServerTemplate;
+    }
+
+    @Override
+    public void setSelectedServer(String selected) {
+        selectedServerTemplate = selected;
+        serverTemplateButton.setText(selected);
+    }
+
+    @Override
+    public void addServerTemplate(AnchorListItem serverTemplateNavLink) {
+        dropDownServerTemplates.add(serverTemplateNavLink);
+    }
+
+    @Override
+    public void removeServerTemplate(String serverTemplateId) {
+        Iterator<Widget> it = dropDownServerTemplates.iterator();
+
+        while (it.hasNext()) {
+            AnchorListItem item = (AnchorListItem) it.next();
+            if (item.getText().equals(serverTemplateId)) {
+                it.remove();
+            }
+        }
+    }
+
     public void applyFilterOnPresenter(HashMap<String, Object> params) {
         String tableSettingsJSON = (String) params.get(FILTER_TABLE_SETTINGS);
         FilterSettings tableSettings = dataSetEditorManager.getStrToTableSettings(tableSettingsJSON);

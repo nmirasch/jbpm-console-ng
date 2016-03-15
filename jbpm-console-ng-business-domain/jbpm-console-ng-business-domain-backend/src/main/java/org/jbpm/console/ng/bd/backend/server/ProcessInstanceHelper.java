@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.jbpm.console.ng.pr.backend.server;
+package org.jbpm.console.ng.bd.backend.server;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import org.jbpm.console.ng.pr.model.ProcessInstanceSummary;
-import org.jbpm.console.ng.pr.model.UserTaskSummary;
+import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
+import org.jbpm.console.ng.bd.model.UserTaskSummary;
 import org.jbpm.services.api.model.ProcessInstanceDesc;
 import org.jbpm.services.api.model.UserTaskInstanceDesc;
 import org.jbpm.workflow.instance.node.CompositeNodeInstance;

@@ -29,8 +29,8 @@ import org.gwtbootstrap3.client.ui.FormLabel;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.jbpm.console.ng.pr.client.i18n.Constants;
-import org.jbpm.console.ng.pr.model.NodeInstanceSummary;
-import org.jbpm.console.ng.pr.model.ProcessInstanceSummary;
+import org.jbpm.console.ng.bd.model.NodeInstanceSummary;
+import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
 import org.uberfire.backend.vfs.Path;
 import org.uberfire.workbench.events.NotificationEvent;
 
