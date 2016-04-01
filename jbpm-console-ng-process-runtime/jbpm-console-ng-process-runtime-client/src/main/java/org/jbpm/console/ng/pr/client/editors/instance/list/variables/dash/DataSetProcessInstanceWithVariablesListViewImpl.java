@@ -30,6 +30,7 @@ import com.google.gwt.cell.client.CheckboxCell;
 import com.google.gwt.cell.client.CompositeCell;
 import com.google.gwt.cell.client.HasCell;
 import com.google.gwt.cell.client.TextCell;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.BrowserEvents;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.InputElement;
@@ -372,23 +373,57 @@ public class DataSetProcessInstanceWithVariablesListViewImpl extends AbstractMul
     }
 
     public void initExtraButtons( final ExtendedPagedTable<ProcessInstanceSummary> extendedPagedTable ) {
+        final Button selectAllButton = GWT.create(Button.class);
+        selectAllButton.setText(constants.SelectAll());
+        selectAllButton.setIcon(IconType.SQUARE_O);
+        selectAllButton.setTitle(constants.SelectAllTooltip());
+        selectAllButton.setIcon(IconType.SQUARE_O);
+        selectAllButton.addClickHandler(new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                selectedProcessInstances.clear();
+                if (IconType.SQUARE_O.equals(selectAllButton.getIcon())) {
+                    selectedProcessInstances.addAll(presenter.getDisplayedProcessInstances());
+                    presenter.refreshGrid();
+                    selectAllButton.setIcon(IconType.CHECK_SQUARE_O);
+                    selectAllButton.setText(constants.UnselectAll());
+                    selectAllButton.setTitle(constants.UnselectAllTooltip());
+                } else {
+                    selectAllButton.setIcon(IconType.SQUARE_O);
+                    selectAllButton.setText(constants.SelectAll());
+                    selectAllButton.setTitle(constants.SelectAllTooltip());
+                }
+                presenter.refreshGrid();
+                controlBulkOperations();
+            }
+        });
+        extendedPagedTable.getLeftToolbar().clear();
+        extendedPagedTable.getLeftToolbar().add(selectAllButton);
     }
 
-    private void initBulkActions( final ExtendedPagedTable<ProcessInstanceSummary> extendedPagedTable ) {
-        bulkAbortNavLink = new AnchorListItem( constants.Bulk_Abort() );
-        bulkSignalNavLink = new AnchorListItem( constants.Bulk_Signal() );
+    protected void initBulkActions( final ExtendedPagedTable<ProcessInstanceSummary> extendedPagedTable ) {
+        bulkAbortNavLink = GWT.create(AnchorListItem.class);
+        bulkAbortNavLink.setText( constants.Bulk_Abort() );
+        bulkSignalNavLink = GWT.create(AnchorListItem.class);
+        bulkSignalNavLink.setText( constants.Bulk_Signal() );
 
         final ButtonGroup bulkActions = new ButtonGroup() {{
-            add( new Button( constants.Bulk_Actions() ) {{
-                setDataToggle( Toggle.DROPDOWN );
-                getElement().getStyle().setMarginRight( 5, Style.Unit.PX );
-            }} );
-            add( new DropDownMenu() {{
-                addStyleName( Styles.DROPDOWN_MENU + "-right" );
-                getElement().getStyle().setMarginRight( 5, Style.Unit.PX );
-                add( bulkAbortNavLink );
-                add( bulkSignalNavLink );
-            }} );
+            Button bulkActionsButton = GWT.create(Button.class);
+            bulkActionsButton.setText(constants.Bulk_Actions());
+            bulkActionsButton.setDataToggle(Toggle.DROPDOWN);
+            if(bulkActionsButton.getElement()!=null){
+                bulkActionsButton.getElement().getStyle().setMarginRight(5, Style.Unit.PX);
+            }
+            add(bulkActionsButton);
+
+            DropDownMenu dropDownMenu = GWT.create(DropDownMenu.class);
+            dropDownMenu.addStyleName(Styles.DROPDOWN_MENU + "-right");
+            if (dropDownMenu.getElement()!=null){
+                dropDownMenu.getElement().getStyle().setMarginRight(5, Style.Unit.PX);
+            }
+            dropDownMenu.add(bulkAbortNavLink);
+            dropDownMenu.add(bulkSignalNavLink);
+            add( dropDownMenu);
         }};
         bulkAbortNavLink.setIcon( IconType.BAN );
         bulkAbortNavLink.setIconFixedWidth( true );
