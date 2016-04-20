@@ -32,6 +32,7 @@ import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;
 import org.kie.server.api.KieServerConstants;
 import org.kie.server.api.marshalling.MarshallingFormat;
+import org.kie.server.client.CredentialsProvider;
 import org.kie.server.client.KieServicesClient;
 import org.kie.server.client.KieServicesConfiguration;
 import org.kie.server.client.KieServicesFactory;
@@ -200,7 +201,7 @@ public class KieServerIntegration {
             }
             endpoints.deleteCharAt(endpoints.length() - 1);
             logger.debug("Creating client that will use following list of endpoints {}", endpoints);
-            KieServicesConfiguration configuration = KieServicesFactory.newRestConfiguration(endpoints.toString(), new SubjectCredentialsProvider());
+            KieServicesConfiguration configuration = KieServicesFactory.newRestConfiguration(endpoints.toString(), getCredentialsProvider());
             configuration.setTimeout(60000);
 
             List<String> mappedCapabilities = new ArrayList<String>();
@@ -233,6 +234,14 @@ public class KieServerIntegration {
         } catch (Exception e) {
             logger.error("Unable to create kie server client for server template {} due to {}", serverTemplate, e.getMessage(), e);
             return null;
+        }
+    }
+
+    protected CredentialsProvider getCredentialsProvider() {
+        try {
+            return new KeyCloakTokenCredentialsProvider();
+        } catch (UnsupportedOperationException e) {
+            return new SubjectCredentialsProvider();
         }
     }
 }

@@ -15,28 +15,24 @@
  */
 package org.jbpm.console.ng.ht.client.editors.tasklogs;
 
-import java.util.List;
-
-import com.google.gwtmockito.GwtMockitoTestRunner;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+
+import com.google.gwtmockito.GwtMockitoTestRunner;
 import org.jboss.errai.common.client.api.Caller;
-import org.jbpm.console.ng.ga.model.QueryFilter;
 import org.jbpm.console.ng.ht.model.TaskEventSummary;
 import org.jbpm.console.ng.ht.model.events.TaskRefreshedEvent;
 import org.jbpm.console.ng.ht.model.events.TaskSelectionEvent;
-import org.jbpm.console.ng.ht.service.TaskAuditService;
 import org.jbpm.console.ng.ht.service.integration.RemoteTaskService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.uberfire.mocks.CallerMock;
-import org.uberfire.paging.PageResponse;
 
 import static org.mockito.Mockito.*;
 
@@ -100,8 +96,8 @@ public class TaskLogsPresenterTest {
 
     @Test
     public void logEventsAreFormattedProperly() {
-        PageResponse<TaskEventSummary> eventSummaries = createEventSummariesForTaks(TASK_ID);
-        when(taskAuditServiceMock.getData(any(QueryFilter.class)))
+        List<TaskEventSummary> eventSummaries = createEventSummariesForTaks(TASK_ID);
+        when(taskAuditServiceMock.getTaskEvents(anyString(), anyString(), TASK_ID))
                 .thenReturn(eventSummaries);
 
         presenter.onTaskSelectionEvent(new TaskSelectionEvent(TASK_ID));
@@ -111,7 +107,7 @@ public class TaskLogsPresenterTest {
                 + "20/01/2018 00:00: Task CLAIMED (John)<br>");
     }
 
-    private PageResponse<TaskEventSummary> createEventSummariesForTaks(Long taskId) {
+    private List<TaskEventSummary> createEventSummariesForTaks(Long taskId) {
         TaskEventSummary added = new TaskEventSummary(
                 1L, taskId, "ADDED", "Jan", 3L, createDate(2017, Month.DECEMBER, 15), "Jan created this task"
         );
@@ -122,9 +118,8 @@ public class TaskLogsPresenterTest {
                 3L, taskId, "CLAIMED", "John", 3L, createDate(2018, Month.JANUARY, 20), "John claimed this task"
         );
         List<TaskEventSummary> summaryList = Arrays.asList(added, updated, claimed);
-        PageResponse<TaskEventSummary> pageResponse = new PageResponse<>();
-        pageResponse.setPageRowList(summaryList);
-        return pageResponse;
+
+        return summaryList;
     }
 
     private Date createDate(int year, Month month, int day) {
