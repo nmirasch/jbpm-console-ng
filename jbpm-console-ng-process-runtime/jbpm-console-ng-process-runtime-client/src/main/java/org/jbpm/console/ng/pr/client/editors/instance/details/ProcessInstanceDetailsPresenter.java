@@ -340,14 +340,7 @@ public class ProcessInstanceDetailsPresenter {
                         processSelected.getStartTime() );
 
             }
-        }, new ErrorCallback<Message>() {
-            @Override
-            public boolean error( Message message,
-                    Throwable throwable ) {
-                ErrorPopup.showMessage( constants.UnexpectedError(throwable.getMessage()) );
-                return true;
-            }
-        } ).getProcessInstance(serverTemplateId, new ProcessInstanceKey(Long.parseLong(processId)));
+        }, new DefaultErrorCallback() ).getProcessInstance(serverTemplateId, new ProcessInstanceKey(Long.parseLong(processId)));
 
 
         remoteRuntimeDataService.call( new RemoteCallback<List<NodeInstanceSummary>>() {
@@ -362,13 +355,6 @@ public class ProcessInstanceDetailsPresenter {
                 }
                 view.getCurrentActivitiesListBox().setHTML( safeHtmlBuilder.toSafeHtml() );
             }
-        }, new ErrorCallback<Message>() {
-            @Override
-            public boolean error( Message message,
-                    Throwable throwable ) {
-                ErrorPopup.showMessage( constants.UnexpectedError(throwable.getMessage()) );
-                return true;
-            }
-        } ).getProcessInstanceActiveNodes( serverTemplateId, Long.parseLong( processId ) );
+        }, new DefaultErrorCallback() ).getProcessInstanceActiveNodes( serverTemplateId, Long.parseLong( processId ) );
     }
 }
