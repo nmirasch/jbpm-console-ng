@@ -25,13 +25,10 @@ import com.google.gwt.user.client.ui.IsWidget;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
 import org.jbpm.console.ng.bd.model.ProcessInstanceKey;
-import org.jbpm.console.ng.bd.service.DataServiceEntryPoint;
-import org.jbpm.console.ng.ht.model.TaskKey;
+import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
 import org.jbpm.console.ng.ht.model.TaskSummary;
 import org.jbpm.console.ng.ht.model.events.TaskRefreshedEvent;
 import org.jbpm.console.ng.ht.model.events.TaskSelectionEvent;
-import org.jbpm.console.ng.ht.service.TaskQueryService;
-import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
 import org.jbpm.console.ng.ht.service.integration.RemoteTaskService;
 import org.jbpm.console.ng.pr.model.events.ProcessInstancesWithDetailsRequestEvent;
 import org.jbpm.console.ng.pr.service.integration.RemoteRuntimeDataService;
@@ -118,7 +115,7 @@ public class TaskProcessContextPresenter {
                               }
                           },
                 new DefaultErrorCallback()
-        ).getProcessInstance(serverTemplateId, new ProcessInstanceKey(currentProcessInstanceId));
+        ).getProcessInstance(serverTemplateId, new ProcessInstanceKey(serverTemplateId, currentProcessInstanceId));
     }
 
     public void refreshProcessContextOfTask() {

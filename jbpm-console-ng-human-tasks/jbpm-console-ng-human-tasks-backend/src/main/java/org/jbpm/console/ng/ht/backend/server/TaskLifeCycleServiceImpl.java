@@ -16,17 +16,10 @@
 package org.jbpm.console.ng.ht.backend.server;
 
 import java.util.Map;
-
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import org.jboss.errai.bus.server.annotations.Service;
 import org.jbpm.console.ng.ht.service.TaskLifeCycleService;
-import org.jbpm.services.api.UserTaskService;
-import org.jbpm.services.task.commands.ClaimTaskCommand;
-import org.jbpm.services.task.commands.CompositeCommand;
-import org.jbpm.services.task.commands.StartTaskCommand;
-import org.kie.api.task.model.Task;
 
 /**
  *
@@ -36,34 +29,31 @@ import org.kie.api.task.model.Task;
 @ApplicationScoped
 public class TaskLifeCycleServiceImpl implements TaskLifeCycleService {
 
-    @Inject
-    private UserTaskService taskService;
-
     public TaskLifeCycleServiceImpl() {
     }
 
     @Override
     public void start(long taskId, String user) {
-        taskService.start(taskId, user);
+
     }
 
     @Override
     public void complete(long taskId, String user, Map<String, Object> params) {
-        taskService.complete(taskId, user, params);
+
     }
 
     @Override
     public void claim(long taskId, String user, String deploymentId) {
-        taskService.execute(deploymentId, new CompositeCommand<Void>(new StartTaskCommand(taskId, user), new ClaimTaskCommand(taskId, user)));
+
     }
 
     @Override
     public void release(long taskId, String user) {
-        taskService.release(taskId, user);
+
     }
 
     @Override
     public void delegate(long taskId, String userId, String targetEntityId) {
-        taskService.delegate(taskId, userId, targetEntityId);
+
     }
 }

@@ -30,4 +30,11 @@ public interface RemoteProcessService {
 
     Long startProcess(String serverTemplateId, String containerId, String processId, String correlationKey, Map<String, Object> params);
 
+    List<String> getAvailableSignals(String serverTemplateId, String containerId, Long processInstanceId);
+
+    void signalProcessInstance(String serverTemplateId, String containerId, Long processInstanceId, String signal, Object event);
+
+    void signalProcessInstances(String serverTemplateId, List<String> containers, List<Long> processInstanceId, String signal, Object event);
+
+    void setProcessVariable(String serverTemplateId, String deploymentId, long processInstanceId, String variableName, String value);
 }

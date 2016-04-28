@@ -17,20 +17,15 @@ package org.jbpm.console.ng.asset.backend.server;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
-import javax.inject.Inject;
 
 import org.guvnor.asset.management.model.BuildProjectStructureEvent;
 import org.guvnor.asset.management.model.ConfigureRepositoryEvent;
 import org.guvnor.asset.management.model.ExecuteOperationEvent;
 import org.guvnor.asset.management.model.PromoteChangesEvent;
 import org.guvnor.asset.management.model.ReleaseProjectEvent;
-import org.jbpm.console.ng.bd.service.KieSessionEntryPoint;
 
 @ApplicationScoped
 public class AdvancedAssetManagementImpl {
-
-    @Inject
-    private KieSessionEntryPoint sessionServices;
 
     private String deploymentId = "org.guvnor:guvnor-asset-mgmt-project:latest";
 
@@ -38,22 +33,22 @@ public class AdvancedAssetManagementImpl {
     }
 
     public void configureRepository(@Observes ConfigureRepositoryEvent event) {
-        sessionServices.startProcess(deploymentId, "guvnor-asset-management.ConfigureRepository", event.getParams());
+
     }
 
     public void buildProject(@Observes BuildProjectStructureEvent event) {
-        sessionServices.startProcess(deploymentId, "guvnor-asset-management.BuildProject", event.getParams());
+
     }
 
     public void promoteChanges(@Observes PromoteChangesEvent event) {
-        sessionServices.startProcess(deploymentId, "guvnor-asset-management.PromoteAssets", event.getParams());
+
     }
 
     public void releaseProject(@Observes ReleaseProjectEvent event) {
-        sessionServices.startProcess(deploymentId, "guvnor-asset-management.ReleaseProject", event.getParams());
+
     }
 
     public void executeOperation(@Observes ExecuteOperationEvent event) {
-        sessionServices.startProcess(deploymentId, "guvnor-asset-management.ExecuteOperation", event.getParams());
+
     }
 }

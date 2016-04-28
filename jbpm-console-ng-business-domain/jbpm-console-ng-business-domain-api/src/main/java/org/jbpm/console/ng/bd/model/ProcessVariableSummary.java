@@ -29,6 +29,8 @@ public class ProcessVariableSummary extends GenericSummary {
     private String newValue;
     private long timestamp;
     private String type;
+    private String deploymentId;
+    private String serverTemplateId;
 
     public ProcessVariableSummary(String variableId, String variableInstanceId, long processInstanceId, String oldValue,
             String newValue, long timestamp, String type) {
@@ -41,6 +43,21 @@ public class ProcessVariableSummary extends GenericSummary {
         this.newValue = newValue;
         this.timestamp = timestamp;
         this.type = type;
+    }
+
+    public ProcessVariableSummary(String variableId, String variableInstanceId, long processInstanceId, String oldValue,
+            String newValue, long timestamp, String type, String deploymentId, String serverTemplateId) {
+        this.id = variableId;
+        this.name = variableId;
+        this.variableId = variableId;
+        this.variableInstanceId = variableInstanceId;
+        this.processInstanceId = processInstanceId;
+        this.oldValue = oldValue;
+        this.newValue = newValue;
+        this.timestamp = timestamp;
+        this.type = type;
+        this.deploymentId = deploymentId;
+        this.serverTemplateId = serverTemplateId;
     }
 
     public ProcessVariableSummary() {
@@ -102,4 +119,19 @@ public class ProcessVariableSummary extends GenericSummary {
         this.type = type;
     }
 
+    public String getDeploymentId() {
+        return deploymentId;
+    }
+
+    public void setDeploymentId(String deploymentId) {
+        this.deploymentId = deploymentId;
+    }
+
+    public String getServerTemplateId() {
+        return serverTemplateId;
+    }
+
+    public void setServerTemplateId(String serverTemplateId) {
+        this.serverTemplateId = serverTemplateId;
+    }
 }

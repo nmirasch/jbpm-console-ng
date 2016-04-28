@@ -22,7 +22,6 @@ import javax.inject.Inject;
 import org.dashbuilder.dataset.def.DataSetDef;
 import org.dashbuilder.dataset.def.DataSetDefFactory;
 import org.dashbuilder.dataset.def.DataSetDefRegistry;
-import org.jbpm.persistence.settings.JpaSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uberfire.commons.services.cdi.Startup;
@@ -40,14 +39,9 @@ public class DataSetDefsBootstrap {
     @Inject
     DataSetDefRegistry dataSetDefRegistry;
 
-    @Inject
-    DeploymentIdsPreprocessor deploymentIdsPreprocessor;
-
-    JpaSettings jpaSettings = JpaSettings.get();
-
     @PostConstruct
     protected void registerDataSetDefinitions() {
-        String jbpmDataSource = jpaSettings.getDataSourceJndiName();
+        String jbpmDataSource = "java:jboss/datasources/ExampleDS";
 
         DataSetDef processMonitoringDef = DataSetDefFactory.newSQLDataSetDef()
                 .uuid(PROCESSES_MONITORING_DATASET)
@@ -80,8 +74,5 @@ public class DataSetDefsBootstrap {
         dataSetDefRegistry.registerDataSetDef(taskMonitoringDef);
         logger.info("Process dashboard datasets registered");
 
-        // Attach a preprocessor to ensure the user only sees the right process instances
-        dataSetDefRegistry.registerPreprocessor(PROCESSES_MONITORING_DATASET, deploymentIdsPreprocessor);
-        dataSetDefRegistry.registerPreprocessor(TASKS_MONITORING_DATASET, deploymentIdsPreprocessor);
     }
 }

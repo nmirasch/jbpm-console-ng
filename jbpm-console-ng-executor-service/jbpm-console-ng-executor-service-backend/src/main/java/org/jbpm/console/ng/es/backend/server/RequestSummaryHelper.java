@@ -49,7 +49,7 @@ public class RequestSummaryHelper {
         List<ErrorSummary> errorSummaries = new ArrayList<ErrorSummary>(errors.size());
         for (ErrorInfo error : errors) {
             errorSummaries.add(new ErrorSummary(error.getId(), error.getTime(), error.getMessage(), error.getStacktrace(),
-                    ((org.jbpm.executor.entities.ErrorInfo) error).getRequestInfo().getId()));
+                    null));
         }
         return errorSummaries;
     }

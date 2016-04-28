@@ -30,12 +30,11 @@ import org.jboss.errai.bus.client.api.messaging.Message;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.ErrorCallback;
 import org.jboss.errai.common.client.api.RemoteCallback;
-import org.jbpm.console.ng.bd.service.DataServiceEntryPoint;
+import org.jbpm.console.ng.bd.model.ProcessVariableSummary;
 import org.jbpm.console.ng.ga.model.PortableQueryFilter;
 import org.jbpm.console.ng.gc.client.list.base.AbstractListPresenter;
 import org.jbpm.console.ng.gc.client.list.base.AbstractListView;
 import org.jbpm.console.ng.pr.client.i18n.Constants;
-import org.jbpm.console.ng.bd.model.ProcessVariableSummary;
 import org.jbpm.console.ng.pr.model.events.ProcessInstanceSelectionEvent;
 import org.jbpm.console.ng.pr.service.ProcessVariablesService;
 import org.uberfire.ext.widgets.common.client.callbacks.HasBusyIndicatorDefaultErrorCallback;
@@ -57,8 +56,6 @@ public class ProcessVariableListPresenter extends AbstractListPresenter<ProcessV
 
     private Caller<ProcessVariablesService> variablesServices;
 
-    private Caller<DataServiceEntryPoint> dataServices;
-
     private Long processInstanceId;
     private String processDefId;
     private String deploymentId;
@@ -68,12 +65,10 @@ public class ProcessVariableListPresenter extends AbstractListPresenter<ProcessV
     @Inject
     public ProcessVariableListPresenter(
             final ProcessVariableListView view,
-            final Caller<ProcessVariablesService> variablesServices,
-            final Caller<DataServiceEntryPoint> dataServices
+            final Caller<ProcessVariablesService> variablesServices
     ) {
         this.view = view;
         this.variablesServices = variablesServices;
-        this.dataServices = dataServices;
     }
 
     @PostConstruct
@@ -99,12 +94,12 @@ public class ProcessVariableListPresenter extends AbstractListPresenter<ProcessV
     }
 
     public void loadVariableHistory(final ParameterizedCommand<List<ProcessVariableSummary>> callback, final String variableName) {
-        dataServices.call(new RemoteCallback<List<ProcessVariableSummary>>() {
+        variablesServices.call(new RemoteCallback<List<ProcessVariableSummary>>() {
             @Override
             public void callback(final List<ProcessVariableSummary> processVariableSummaries) {
-                   callback.execute(processVariableSummaries);
+                callback.execute(processVariableSummaries);
             }
-        }, new HasBusyIndicatorDefaultErrorCallback(view)).getVariableHistory(processInstanceId, variableName);
+        }, new HasBusyIndicatorDefaultErrorCallback(view)).getVariableHistory(serverTemplateId, deploymentId, processInstanceId, variableName);
     }
 
     @Override

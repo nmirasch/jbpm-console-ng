@@ -25,12 +25,14 @@ import org.jbpm.console.ng.ga.service.ItemKey;
  */
 @Portable
 public class ProcessInstanceKey implements ItemKey {
+  private String serverTemplateId;
   private Long processInstanceId;
 
   public ProcessInstanceKey() {
   }
 
-  public ProcessInstanceKey(Long processInstanceId) {
+  public ProcessInstanceKey(String serverTemplateId, Long processInstanceId) {
+    this.serverTemplateId = serverTemplateId;
     this.processInstanceId = processInstanceId;
   }
 
@@ -38,9 +40,14 @@ public class ProcessInstanceKey implements ItemKey {
     return processInstanceId;
   }
 
+  public String getServerTemplateId() {
+    return serverTemplateId;
+  }
+
   @Override
   public int hashCode() {
     int hash = 7;
+    hash = 13 * hash + (this.serverTemplateId != null ? this.serverTemplateId.hashCode() : 0);
     hash = 13 * hash + (this.processInstanceId != null ? this.processInstanceId.hashCode() : 0);
     return hash;
   }
@@ -54,6 +61,9 @@ public class ProcessInstanceKey implements ItemKey {
       return false;
     }
     final ProcessInstanceKey other = (ProcessInstanceKey) obj;
+    if (this.serverTemplateId != other.serverTemplateId && (this.serverTemplateId == null || !this.serverTemplateId.equals(other.serverTemplateId))) {
+      return false;
+    }
     if (this.processInstanceId != other.processInstanceId && (this.processInstanceId == null || !this.processInstanceId.equals(other.processInstanceId))) {
       return false;
     }

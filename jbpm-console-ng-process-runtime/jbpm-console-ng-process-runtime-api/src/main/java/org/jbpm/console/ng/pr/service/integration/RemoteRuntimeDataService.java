@@ -25,6 +25,7 @@ import org.jbpm.console.ng.bd.model.ProcessInstanceKey;
 import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
 import org.jbpm.console.ng.bd.model.ProcessSummary;
 import org.jbpm.console.ng.bd.model.RuntimeLogSummary;
+import org.kie.internal.query.QueryFilter;
 
 @Remote
 public interface RemoteRuntimeDataService {
@@ -42,4 +43,8 @@ public interface RemoteRuntimeDataService {
     List<ProcessSummary> getProcesses(String serverTemplateId, Integer page, Integer pageSize);
 
     ProcessSummary getProcess(String serverTemplateId, ProcessDefinitionKey processDefinitionKey);
+
+    List<ProcessSummary> getProcessesByFilter(String serverTemplateId, String textSearch, Integer page, Integer pageSize);
+
+    ProcessSummary getProcessesByContainerIdProcessId(String serverTemplateId, String containerId, String processId);
 }

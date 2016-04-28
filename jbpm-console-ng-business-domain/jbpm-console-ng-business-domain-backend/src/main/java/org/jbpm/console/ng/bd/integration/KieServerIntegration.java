@@ -28,6 +28,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import org.jbpm.console.ng.bd.integration.security.KeyCloakTokenCredentialsProvider;
 import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;
 import org.kie.server.api.KieServerConstants;

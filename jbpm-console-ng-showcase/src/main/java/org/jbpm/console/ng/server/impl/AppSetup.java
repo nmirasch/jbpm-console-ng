@@ -28,7 +28,6 @@ import org.guvnor.structure.server.config.ConfigType;
 import org.guvnor.structure.server.config.ConfigurationFactory;
 import org.guvnor.structure.server.config.ConfigurationService;
 import org.jbpm.console.ng.bd.service.AdministrationService;
-
 import org.uberfire.commons.services.cdi.ApplicationStarted;
 import org.uberfire.commons.services.cdi.Startup;
 import org.uberfire.io.IOService;
@@ -50,8 +49,6 @@ public class AppSetup {
 
     @Inject
     private AdministrationService administrationService;
-
-    private Repository repository;
     
     @Inject
     private ConfigurationService configurationService;
@@ -71,11 +68,6 @@ public class AppSetup {
             administrationService.bootstrapRepository( "example", "repository1", null, "", "" );
             administrationService.bootstrapProject("repository1", "org.kie.example", "project1", "1.0.0-SNAPSHOT");
         }
-        
-        administrationService.bootstrapConfig();
-
-        administrationService.bootstrapDeployments();
-
         configurationService.addConfiguration( getGlobalConfiguration() );
 
         // notify cluster service that bootstrap is completed to start synchronization
@@ -84,36 +76,12 @@ public class AppSetup {
 
 
     private ConfigGroup getGlobalConfiguration() {
-        final ConfigGroup group = configurationFactory.newConfigGroup( ConfigType.GLOBAL,
-                GLOBAL_SETTINGS,
-                "" );
-
-        /*
-        group.addConfigItem( configurationFactory.newConfigItem( "drools.dateformat",
-                "dd-MMM-yyyy" ) );
-        group.addConfigItem( configurationFactory.newConfigItem( "drools.datetimeformat",
-                "dd-MMM-yyyy hh:mm:ss" ) );
-        group.addConfigItem( configurationFactory.newConfigItem( "drools.defaultlanguage",
-                "en" ) );
-        group.addConfigItem( configurationFactory.newConfigItem( "drools.defaultcountry",
-                "US" ) );
-        */
+        final ConfigGroup group = configurationFactory.newConfigGroup( ConfigType.GLOBAL, GLOBAL_SETTINGS, "" );
 
         group.addConfigItem( configurationFactory.newConfigItem( "build.enable-incremental",
                 "true" ) );
         group.addConfigItem( configurationFactory.newConfigItem( "support.runtime.deploy",
                 "true" ) );
-
-        /*
-        group.addConfigItem( configurationFactory.newConfigItem( "rule-modeller-onlyShowDSLStatements",
-                "false" ) );
-        group.addConfigItem( configurationFactory.newConfigItem( "designer.url",
-                "http://localhost:8080" ) );
-        group.addConfigItem( configurationFactory.newConfigItem( "designer.context",
-                "designer" ) );
-        group.addConfigItem( configurationFactory.newConfigItem( "designer.profile",
-                "jbpm" ) );
-        */
 
         return group;
     }

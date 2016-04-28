@@ -116,6 +116,7 @@ public class ProcessDocumentListPresenter extends AbstractListPresenter<Document
             currentFilter.getParams().put( "processInstanceId", processInstanceId );
             currentFilter.getParams().put( "processDefId", processDefId );
             currentFilter.getParams().put( "deploymentId", deploymentId );
+            currentFilter.getParams().put( "serverTemplateId", serverTemplateId );
 
             currentFilter.setOrderBy( ( columnSortList.size() > 0 ) ? columnSortList.get( 0 )
                     .getColumn().getDataStoreName() : "" );

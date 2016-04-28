@@ -16,22 +16,15 @@
 package org.jbpm.console.ng.pr.admin.backend.server;
 
 import javax.annotation.PostConstruct;
-
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import org.jboss.errai.bus.server.annotations.Service;
-
 import org.jbpm.console.ng.pr.admin.service.ProcessServiceAdminEntryPoint;
-import org.jbpm.services.api.ProcessService;
 
 
 @Service
 @ApplicationScoped
 public class ProcessServiceAdminEntryPointImpl implements ProcessServiceAdminEntryPoint {
-
-    @Inject
-    private ProcessService processService;
 
     @PostConstruct
     public void init(){
@@ -39,14 +32,7 @@ public class ProcessServiceAdminEntryPointImpl implements ProcessServiceAdminEnt
 
     @Override
     public void generateMockInstances(String deploymentId, String processId, int amountOfInstances) {
-        for (int i = 0; i < amountOfInstances; i++) {
-            processService.startProcess( deploymentId, processId );
 
-        }
     }
-    
-    
-
-   
 
 }

@@ -16,7 +16,6 @@
 
 package org.jbpm.console.ng.ht.forms.backend.server;
 
-
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,21 +27,13 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import org.jbpm.console.ng.bd.integration.KieServerIntegration;
-import org.jbpm.kie.services.api.FormProviderService;
 import org.jboss.errai.bus.server.annotations.Service;
+import org.jbpm.console.ng.bd.integration.KieServerIntegration;
 import org.jbpm.console.ng.ga.forms.service.FormServiceEntryPoint;
-import org.jbpm.kie.services.impl.FormManagerService;
-import org.jbpm.kie.services.impl.form.FormProvider;
-import org.jbpm.kie.services.impl.model.ProcessAssetDesc;
-import org.jbpm.services.task.impl.model.TaskImpl;
-import org.kie.api.task.model.Status;
-import org.kie.api.task.model.Task;
+import org.jbpm.formModeler.kie.services.form.FormManagerService;
+import org.jbpm.formModeler.kie.services.form.FormProvider;
+import org.jbpm.formModeler.kie.services.form.TaskDefinition;
 import org.kie.internal.task.api.ContentMarshallerContext;
-import org.kie.internal.task.api.TaskModelFactory;
-import org.kie.internal.task.api.TaskModelProvider;
-import org.kie.internal.task.api.model.InternalTask;
-import org.kie.internal.task.api.model.InternalTaskData;
 import org.kie.server.api.model.definition.ProcessDefinition;
 import org.kie.server.api.model.instance.TaskInstance;
 import org.kie.server.client.KieServicesClient;
@@ -57,11 +48,6 @@ import org.slf4j.LoggerFactory;
 public class FormServiceEntryPointImpl implements FormServiceEntryPoint {
 
     private static final Logger logger = LoggerFactory.getLogger(FormServiceEntryPointImpl.class);
-
-    private TaskModelFactory factory = TaskModelProvider.getTaskModelProviderService().getTaskModelFactory();
-
-    @Inject
-    private FormProviderService displayService;
 
     @Inject
     private KieServerIntegration kieServerIntegration;
@@ -110,24 +96,15 @@ public class FormServiceEntryPointImpl implements FormServiceEntryPoint {
             throw new RuntimeException("No task found for id " + taskId);
         }
 
-        InternalTask taskInstance = (InternalTask) factory.newTask();
+        TaskDefinition taskInstance = new TaskDefinition();
         taskInstance.setId(task.getId());
         taskInstance.setName(task.getName());
+        taskInstance.setDescription(task.getDescription());
         taskInstance.setFormName(task.getFormName());
+        taskInstance.setDeploymentId(registrationKey);
+        taskInstance.setProcessId(task.getProcessId());
 
-        InternalTaskData taskData = (InternalTaskData) factory.newTaskData();
-        taskData.setDeploymentId(registrationKey);
-        taskData.setActivationTime(task.getActivationTime());
-        taskData.setActualOwner(factory.newUser(task.getActualOwner()));
-        taskData.setCreatedBy(factory.newUser(task.getCreatedBy()));
-        taskData.setCreatedOn(task.getCreatedOn());
-        taskData.setExpirationTime(task.getExpirationDate());
-        taskData.setProcessId(task.getProcessId());
-        taskData.setProcessInstanceId(task.getProcessInstanceId());
-        taskData.setStatus(Status.valueOf(task.getStatus()));
-
-
-        taskInstance.setTaskData(taskData);
+        taskInstance.setStatus(task.getStatus());
 
         // prepare render context
         Map<String, Object> renderContext = new HashMap<String, Object>();
@@ -137,15 +114,13 @@ public class FormServiceEntryPointImpl implements FormServiceEntryPoint {
         if (task.getInputData() != null && !task.getInputData().isEmpty()) {
             renderContext.put("inputs", task.getInputData());
             renderContext.putAll(task.getInputData());
-
-            taskData.setDocumentContentId(99999); // artificial id to render data properly
         }
 
         if (task.getOutputData() != null && !task.getOutputData().isEmpty()) {
             renderContext.put("outputs", task.getOutputData());
             renderContext.putAll(task.getOutputData());
 
-            taskData.setOutputContentId(99999); // artificial id to render data properly
+            taskInstance.setOutputIncluded(true);
         }
 
         if (formContent != null) {
@@ -181,14 +156,11 @@ public class FormServiceEntryPointImpl implements FormServiceEntryPoint {
 
         ProcessDefinition processDefinition = processClient.getProcessDefinition(domainId, processId);
 
-        ProcessAssetDesc processDesc = new ProcessAssetDesc();
+        org.jbpm.formModeler.kie.services.form.ProcessDefinition processDesc = new org.jbpm.formModeler.kie.services.form.ProcessDefinition();
         processDesc.setId(processDefinition.getId());
         processDesc.setName(processDefinition.getName());
         processDesc.setPackageName(processDefinition.getPackageName());
         processDesc.setDeploymentId(serverTemplateId + "@" + processDefinition.getContainerId() + "@" + System.currentTimeMillis());
-        processDesc.setServiceTasks(processDefinition.getServiceTasks());
-        processDesc.setProcessVariables(processDefinition.getProcessVariables());
-        processDesc.setReusableSubProcesses(processDefinition.getReusableSubProcesses());
 
         Map<String, String> processData = processDefinition.getProcessVariables();
 

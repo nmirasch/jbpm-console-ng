@@ -225,7 +225,7 @@ public class ProcessVariableListViewImpl extends AbstractListView<ProcessVariabl
         cells.add( new EditVariableActionHasCell( constants.Edit(), new Delegate<ProcessVariableSummary>() {
             @Override
             public void execute( ProcessVariableSummary variable ) {
-                variableEditPopup.show( variable.getProcessInstanceId(), variable.getVariableId(), (variable.getNewValue()!=null?variable.getNewValue():"") );
+                variableEditPopup.show( variable.getServerTemplateId(), variable.getDeploymentId(), variable.getProcessInstanceId(), variable.getVariableId(), (variable.getNewValue()!=null?variable.getNewValue():"") );
             }
         } ) );
 

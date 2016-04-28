@@ -17,20 +17,19 @@
 package org.jbpm.console.ng.pr.backend.server;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.jboss.errai.bus.server.annotations.Service;
-import org.jbpm.console.ng.bd.backend.server.ProcessInstanceHelper;
-import org.jbpm.console.ng.ga.model.QueryFilter;
 import org.jbpm.console.ng.bd.model.ProcessInstanceKey;
 import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
+import org.jbpm.console.ng.ga.model.QueryFilter;
 import org.jbpm.console.ng.pr.service.ProcessInstanceService;
-import org.jbpm.services.api.RuntimeDataService;
-import org.jbpm.services.api.model.ProcessInstanceDesc;
+import org.jbpm.console.ng.pr.service.integration.RemoteRuntimeDataService;
 import org.uberfire.paging.PageResponse;
+
+import static java.util.stream.Collectors.*;
 
 /**
  * @author salaboy
@@ -40,7 +39,7 @@ import org.uberfire.paging.PageResponse;
 public class ProcessInstanceServiceImpl implements ProcessInstanceService {
 
     @Inject
-    private RuntimeDataService dataService;
+    private RemoteRuntimeDataService dataService;
 
     @Override
     public PageResponse<ProcessInstanceSummary> getData(QueryFilter filter) {
@@ -71,29 +70,33 @@ public class ProcessInstanceServiceImpl implements ProcessInstanceService {
     private List<ProcessInstanceSummary> getProcessInstances(QueryFilter filter) {
         List<Integer> states = null;
         String initiator = "";
+        String serverTemplateId = "";
         if (filter.getParams() != null) {
             states = (List<Integer>) filter.getParams().get("states");
             initiator = (String) filter.getParams().get("initiator");
+            serverTemplateId = (String) filter.getParams().get("serverTemplateId");
         }
         // append 1 to the count to check if there are further pages
         org.kie.internal.query.QueryFilter qf = new org.kie.internal.query.QueryFilter(filter.getOffset(), filter.getCount() + 1,
                 filter.getOrderBy(), filter.isAscending());
-        Collection<ProcessInstanceDesc> processInstances = dataService.getProcessInstances(states, initiator, qf);
-        List<ProcessInstanceSummary> processInstancesSums = new ArrayList<ProcessInstanceSummary>(processInstances.size());
-        for (ProcessInstanceDesc pi : processInstances) {
-            
-            if (filter.getParams().get("textSearch") == null || ((String) filter.getParams().get("textSearch")).isEmpty()) {
-                processInstancesSums.add(ProcessInstanceHelper.adapt(pi));
-            } else if (pi.getProcessName().toLowerCase().contains((String) filter.getParams().get("textSearch"))) {
-                processInstancesSums.add(ProcessInstanceHelper.adapt(pi));
-            }
+        List<ProcessInstanceSummary> processInstancesSums = dataService.getProcessInstances(serverTemplateId, states, qf.getOffset(), qf.getCount());
+
+        if (filter.getParams().get("textSearch") == null || ((String) filter.getParams().get("textSearch")).isEmpty()) {
+            return processInstancesSums;
         }
+
+        String textSearch = (String) filter.getParams().get("textSearch");
+        processInstancesSums = processInstancesSums
+                .stream()
+                .filter(pi -> pi.getProcessName().toLowerCase().contains(textSearch))
+                .collect(toList());
+
         return processInstancesSums;
     }
 
     @Override
     public ProcessInstanceSummary getItem(ProcessInstanceKey key) {
-        return ProcessInstanceHelper.adapt(dataService.getProcessInstanceById(key.getProcessInstanceId()));
+        return dataService.getProcessInstance(key.getServerTemplateId(), key);
     }
 
     @Override

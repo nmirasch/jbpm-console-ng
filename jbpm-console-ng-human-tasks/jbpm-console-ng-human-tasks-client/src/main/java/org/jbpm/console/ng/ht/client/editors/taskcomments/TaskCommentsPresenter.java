@@ -32,7 +32,6 @@ import org.jbpm.console.ng.ht.client.i18n.Constants;
 import org.jbpm.console.ng.ht.model.CommentSummary;
 import org.jbpm.console.ng.ht.model.events.TaskRefreshedEvent;
 import org.jbpm.console.ng.ht.model.events.TaskSelectionEvent;
-import org.jbpm.console.ng.ht.service.TaskCommentsService;
 import org.jbpm.console.ng.ht.service.integration.RemoteTaskService;
 import org.uberfire.client.mvp.UberView;
 import org.uberfire.ext.widgets.common.client.callbacks.DefaultErrorCallback;

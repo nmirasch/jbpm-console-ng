@@ -45,11 +45,6 @@
       <groupId>org.jbpm</groupId>
       <artifactId>jbpm-console-ng-generic-api</artifactId>
     </dependency>
-    
-    <dependency>
-      <groupId>org.jbpm</groupId>
-      <artifactId>jbpm-services-cdi</artifactId>
-    </dependency>
    
     <dependency>
       <groupId>org.kie.workbench.services</groupId>

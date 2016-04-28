@@ -15,19 +15,15 @@
  */
 package org.jbpm.console.ng.ht.forms.backend.server;
 
+import java.util.Map;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import org.jboss.errai.bus.server.annotations.Service;
-import org.jbpm.console.ng.bd.service.KieSessionEntryPoint;
 import org.jbpm.console.ng.ht.forms.modeler.service.FormModelerProcessStarterEntryPoint;
 import org.jbpm.console.ng.ht.service.integration.RemoteTaskService;
 import org.jbpm.console.ng.pr.service.integration.RemoteProcessService;
 import org.jbpm.formModeler.api.client.FormRenderContextManager;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import java.util.Map;
-import org.jbpm.console.ng.ht.service.TaskLifeCycleService;
-import org.jbpm.console.ng.ht.service.TaskOperationsService;
 
 @Service
 @ApplicationScoped

@@ -15,28 +15,25 @@
  */
 package org.jbpm.console.ng.ht.client.editors.taskcomments;
 
-import com.google.gwtmockito.GwtMockitoTestRunner;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.util.Date;
+
+import com.google.gwtmockito.GwtMockitoTestRunner;
 import org.jboss.errai.security.shared.api.identity.User;
 import org.jbpm.console.ng.ht.client.editors.taskcomments.TaskCommentsPresenter.TaskCommentsView;
 import org.jbpm.console.ng.ht.model.events.TaskRefreshedEvent;
 import org.jbpm.console.ng.ht.model.events.TaskSelectionEvent;
-import org.jbpm.console.ng.ht.service.TaskCommentsService;
 import org.jbpm.console.ng.ht.service.integration.RemoteTaskService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import static org.mockito.Mockito.times;
 import org.uberfire.mocks.CallerMock;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 @RunWith(GwtMockitoTestRunner.class)
 public class TaskCommentsPresenterTest {

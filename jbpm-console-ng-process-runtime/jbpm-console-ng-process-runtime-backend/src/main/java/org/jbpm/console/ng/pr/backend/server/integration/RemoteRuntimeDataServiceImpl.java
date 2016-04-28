@@ -31,6 +31,7 @@ import org.jbpm.console.ng.bd.model.ProcessSummary;
 import org.jbpm.console.ng.bd.model.RuntimeLogSummary;
 import org.jbpm.console.ng.bd.model.UserTaskSummary;
 import org.jbpm.console.ng.pr.service.integration.RemoteRuntimeDataService;
+import org.kie.internal.query.QueryFilter;
 import org.kie.server.api.model.definition.ProcessDefinition;
 import org.kie.server.api.model.instance.NodeInstance;
 import org.kie.server.api.model.instance.ProcessInstance;
@@ -42,6 +43,8 @@ import org.kie.server.client.QueryServicesClient;
 import org.ocpsoft.prettytime.PrettyTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 @ApplicationScoped
@@ -151,19 +154,17 @@ public class RemoteRuntimeDataServiceImpl implements RemoteRuntimeDataService {
 
         List<ProcessDefinition> processes = queryServicesClient.findProcesses(page, pageSize);
 
-        for (ProcessDefinition definition : processes) {
-
-            ProcessSummary summary = new ProcessSummary(definition.getId(),
-                    definition.getName(),
-                    definition.getContainerId(),
-                    definition.getPackageName(),
-                    "",
-                    definition.getVersion(),
-                    "",
-                    "");
-
-            summaries.add(summary);
-        }
+        summaries = processes
+                .stream()
+                .map(definition -> new ProcessSummary(definition.getId(),
+                        definition.getName(),
+                        definition.getContainerId(),
+                        definition.getPackageName(),
+                        "",
+                        definition.getVersion(),
+                        "",
+                        ""))
+                .collect(toList());
 
         return summaries;
     }
@@ -173,6 +174,50 @@ public class RemoteRuntimeDataServiceImpl implements RemoteRuntimeDataService {
         ProcessServicesClient queryServicesClient = getClient(serverTemplateId, ProcessServicesClient.class);
 
         ProcessDefinition definition = queryServicesClient.getProcessDefinition(processDefinitionKey.getDeploymentId(), processDefinitionKey.getProcessId());
+
+        ProcessSummary summary = new ProcessSummary(definition.getId(),
+                definition.getName(),
+                definition.getContainerId(),
+                definition.getPackageName(),
+                "",
+                definition.getVersion(),
+                "",
+                "");
+
+        summary.setAssociatedEntities(definition.getAssociatedEntities());
+        summary.setProcessVariables(definition.getProcessVariables());
+        summary.setReusableSubProcesses(definition.getReusableSubProcesses());
+        summary.setServiceTasks(definition.getServiceTasks());
+
+        return summary;
+    }
+
+    @Override
+    public List<ProcessSummary> getProcessesByFilter(String serverTemplateId, String textSearch, Integer page, Integer pageSize) {
+
+        QueryServicesClient queryServicesClient = getClient(serverTemplateId, QueryServicesClient.class);
+
+        List<ProcessDefinition> processes = queryServicesClient.findProcesses(textSearch, page, pageSize);
+
+        List<ProcessSummary> summaries = processes
+                .stream()
+                .map(definition -> new ProcessSummary(definition.getId(),
+                        definition.getName(),
+                        definition.getContainerId(),
+                        definition.getPackageName(),
+                        "",
+                        definition.getVersion(),
+                        "",
+                        ""))
+                .collect(toList());
+        return summaries;
+    }
+
+    @Override
+    public ProcessSummary getProcessesByContainerIdProcessId(String serverTemplateId, String containerId, String processId) {
+        QueryServicesClient queryServicesClient = getClient(serverTemplateId, QueryServicesClient.class);
+
+        ProcessDefinition definition = queryServicesClient.findProcessByContainerIdProcessId(containerId, processId);
 
         ProcessSummary summary = new ProcessSummary(definition.getId(),
                 definition.getName(),

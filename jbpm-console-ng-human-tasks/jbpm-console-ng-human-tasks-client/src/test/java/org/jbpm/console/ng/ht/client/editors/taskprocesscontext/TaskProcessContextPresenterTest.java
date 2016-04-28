@@ -20,13 +20,10 @@ import javax.enterprise.event.Event;
 
 import com.google.common.collect.Sets;
 import org.jbpm.console.ng.bd.model.ProcessInstanceKey;
-import org.jbpm.console.ng.bd.service.DataServiceEntryPoint;
+import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
 import org.jbpm.console.ng.ht.client.editors.taskprocesscontext.TaskProcessContextPresenter.TaskProcessContextView;
-import org.jbpm.console.ng.ht.model.TaskKey;
 import org.jbpm.console.ng.ht.model.TaskSummary;
 import org.jbpm.console.ng.ht.model.events.TaskSelectionEvent;
-import org.jbpm.console.ng.ht.service.TaskQueryService;
-import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
 import org.jbpm.console.ng.ht.service.integration.RemoteTaskService;
 import org.jbpm.console.ng.pr.model.events.ProcessInstancesWithDetailsRequestEvent;
 import org.jbpm.console.ng.pr.service.integration.RemoteRuntimeDataService;
@@ -128,7 +125,7 @@ public class TaskProcessContextPresenterTest {
         summary.setProcessId("processId");
         summary.setProcessName("processName");
         summary.setState(1);
-        when(dataServiceEntryPoint.getProcessInstance("", new ProcessInstanceKey(-1l))).thenReturn(summary);
+        when(dataServiceEntryPoint.getProcessInstance("", new ProcessInstanceKey("", -1l))).thenReturn(summary);
 
         presenter.goToProcessInstanceDetails();
 

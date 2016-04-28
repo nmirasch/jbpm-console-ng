@@ -93,10 +93,6 @@
       <artifactId>jbpm-console-ng-human-tasks-forms-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.jbpm</groupId>
-      <artifactId>jbpm-human-task-audit</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.kie</groupId>
       <artifactId>kie-api</artifactId>
     </dependency>
@@ -164,20 +160,6 @@
       <artifactId>logback-classic</artifactId>
       <scope>runtime</scope>
     </dependency>
-
-    <dependency>
-      <groupId>org.jbpm</groupId>
-      <artifactId>jbpm-services-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.jbpm</groupId>
-      <artifactId>jbpm-kie-services</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.jbpm</groupId>
-      <artifactId>jbpm-services-cdi</artifactId>
-    </dependency>
-
 
     <!-- jBPM Console Panels -->
 
@@ -414,28 +396,6 @@
       </exclusions>
     </dependency>
 
-    <dependency>
-      <groupId>org.jbpm</groupId>
-      <artifactId>jbpm-workitems</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.cxf</groupId>
-          <artifactId>cxf-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.cxf</groupId>
-          <artifactId>cxf-rt-frontend-jaxws</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.cxf</groupId>
-          <artifactId>cxf-rt-databinding-jaxb</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.cxf</groupId>
-          <artifactId>cxf-rt-transports-http</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
 
     <!-- UberFire -->
     <dependency>
@@ -580,17 +540,9 @@
       <artifactId>jboss-transaction-api_1.1_spec</artifactId>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>org.jbpm</groupId>
-      <artifactId>jbpm-shared-services</artifactId>
-    </dependency>
+
 
     <!--Miscellaneous -->
-    <dependency>
-      <groupId>org.quartz-scheduler</groupId>
-      <artifactId>quartz</artifactId>
-      <scope>runtime</scope>
-    </dependency>
     <dependency>
       <groupId>org.jbpm</groupId>
       <artifactId>jbpm-bpmn2-emfextmodel</artifactId>
@@ -1220,7 +1172,7 @@
                 <include>src/main/webapp/WEB-INF/tlds/</include>
                 <include>**/gwt-unitCache/**</include>
                 <include>.errai/</include>
-                <include>.niogit/**</include>
+                <!--<include>.niogit/**</include> exclude it for not so server templates are not removed-->
                 <include>.index/**</include>
               </includes>
             </fileset>

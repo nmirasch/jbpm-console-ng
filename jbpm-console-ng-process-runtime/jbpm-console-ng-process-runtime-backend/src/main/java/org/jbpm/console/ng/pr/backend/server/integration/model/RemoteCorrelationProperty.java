@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 JBoss by Red Hat.
+ * Copyright 2016 JBoss by Red Hat.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,30 @@
  * limitations under the License.
  */
 
-package org.jbpm.console.ng.es.model.events;
+package org.jbpm.console.ng.pr.backend.server.integration.model;
 
-import org.jboss.errai.common.client.api.annotations.Portable;
+import org.kie.internal.process.CorrelationProperty;
 
-@Portable
-public class RequestSelectionEvent {
-    private Long taskId;
+public class RemoteCorrelationProperty implements CorrelationProperty {
 
-    public RequestSelectionEvent() {
+    private Object value;
+
+    public RemoteCorrelationProperty(Object value) {
+        this.value = value;
     }
 
-    public RequestSelectionEvent(Long taskId) {
-        this.taskId = taskId;
+    @Override
+    public String getName() {
+        return null;
     }
 
-    public long getTaskId() {
-        return taskId;
+    @Override
+    public String getType() {
+        return null;
     }
 
+    @Override
+    public Object getValue() {
+        return value;
+    }
 }

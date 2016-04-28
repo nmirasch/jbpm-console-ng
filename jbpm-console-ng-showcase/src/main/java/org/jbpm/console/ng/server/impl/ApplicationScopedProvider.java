@@ -22,21 +22,10 @@ import javax.enterprise.context.RequestScoped;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.PersistenceUnit;
 
 import org.guvnor.common.services.backend.metadata.attribute.OtherMetaView;
 import org.jboss.errai.security.shared.api.identity.User;
 import org.jboss.errai.security.shared.service.AuthenticationService;
-import org.jbpm.services.cdi.Selectable;
-import org.jbpm.services.cdi.producer.UserGroupInfoProducer;
-import org.jbpm.services.task.lifecycle.listeners.BAMTaskEventListener;
-import org.kie.api.task.TaskLifeCycleEventListener;
-import org.kie.api.task.UserGroupCallback;
-import org.kie.internal.task.api.UserInfo;
 import org.uberfire.backend.server.IOWatchServiceNonDotImpl;
 import org.uberfire.commons.cluster.ClusterServiceFactory;
 import org.uberfire.commons.services.cdi.Startup;
@@ -78,10 +67,6 @@ public class ApplicationScopedProvider {
 
     @PostConstruct
     public void setup() {
-        if ( System.getProperty( "org.kie.deployment.desc.location" ) == null ) {
-            System.setProperty( "org.kie.deployment.desc.location", "classpath:META-INF/kie-wb-deployment-descriptor.xml" );
-        }
-
         final IOService service = new IOServiceIndexedImpl( watchService,
                                                             config.getIndexEngine(),
                                                             DublinCoreView.class,
@@ -104,36 +89,6 @@ public class ApplicationScopedProvider {
         ioService.dispose();
     }
 
-    @Inject
-    @Selectable
-    private UserGroupInfoProducer userGroupInfoProducer;
-
-    @Produces
-    public UserGroupCallback produceSelectedUserGroupCalback() {
-        return userGroupInfoProducer.produceCallback();
-    }
-
-    @Produces
-    public UserInfo produceUserInfo() {
-        return userGroupInfoProducer.produceUserInfo();
-    }
-
-    @PersistenceUnit(unitName = "org.jbpm.domain")
-    private EntityManagerFactory emf;
-
-    @Produces
-    public EntityManagerFactory getEntityManagerFactory() {
-        if ( this.emf == null ) {
-            // this needs to be here for non EE containers
-            try {
-                this.emf = InitialContext.doLookup( "jBPMEMF" );
-            } catch ( NamingException e ) {
-                this.emf = Persistence.createEntityManagerFactory( "org.jbpm.domain" );
-            }
-
-        }
-        return this.emf;
-    }
 
     @Produces
     @RequestScoped
@@ -156,12 +111,6 @@ public class ApplicationScopedProvider {
     @Named("ioSearchStrategy")
     public IOSearchService ioSearchService() {
         return ioSearchService;
-    }
-
-    @Produces
-    @ApplicationScoped
-    public TaskLifeCycleEventListener produceBAMListener() {
-        return new BAMTaskEventListener( true );
     }
 
 }

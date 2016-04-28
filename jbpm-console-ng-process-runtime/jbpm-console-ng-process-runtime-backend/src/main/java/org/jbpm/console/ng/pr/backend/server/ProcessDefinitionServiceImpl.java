@@ -16,20 +16,16 @@
 package org.jbpm.console.ng.pr.backend.server;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.jboss.errai.bus.server.annotations.Service;
-import org.jbpm.console.ng.bd.backend.server.ProcessHelper;
-import org.jbpm.console.ng.ga.model.QueryFilter;
 import org.jbpm.console.ng.bd.model.ProcessDefinitionKey;
 import org.jbpm.console.ng.bd.model.ProcessSummary;
+import org.jbpm.console.ng.ga.model.QueryFilter;
 import org.jbpm.console.ng.pr.service.ProcessDefinitionService;
-
-import org.jbpm.services.api.RuntimeDataService;
-import org.jbpm.services.api.model.ProcessDefinition;
+import org.jbpm.console.ng.pr.service.integration.RemoteRuntimeDataService;
 import org.uberfire.paging.PageResponse;
 
 /**
@@ -40,7 +36,7 @@ import org.uberfire.paging.PageResponse;
 public class ProcessDefinitionServiceImpl implements ProcessDefinitionService {
 
     @Inject
-    private RuntimeDataService dataService;
+    private RemoteRuntimeDataService dataService;
 
     @Override
     public PageResponse<ProcessSummary> getData(final QueryFilter filter) {
@@ -70,22 +66,23 @@ public class ProcessDefinitionServiceImpl implements ProcessDefinitionService {
     }
 
     private List<ProcessSummary> getProcessDefinitions(final QueryFilter filter) {
+        String serverTemplateId = (String) filter.getParams().get("serverTemplateId");
         // append 1 to the count to check if there are further pages
         org.kie.internal.query.QueryFilter qf = new org.kie.internal.query.QueryFilter(filter.getOffset(), filter.getCount()+1,
                 filter.getOrderBy(), filter.isAscending());
-        Collection<ProcessDefinition> processDefs;
+        List<ProcessSummary> processDefsSums = null;
         if((String)filter.getParams().get("textSearch") != null && !((String)filter.getParams().get("textSearch")).equals("")){
-            processDefs = dataService.getProcessesByFilter(((String)filter.getParams().get("textSearch")), qf);
+            processDefsSums = dataService.getProcessesByFilter(serverTemplateId, ((String)filter.getParams().get("textSearch")), qf.getOffset(), qf.getCount());
         }else{
-            processDefs = dataService.getProcesses(qf);
+            processDefsSums = dataService.getProcesses(serverTemplateId, qf.getOffset(), qf.getCount());
         }
-        List<ProcessSummary> processDefsSums = new ArrayList<ProcessSummary>(ProcessHelper.adaptCollection(processDefs));
+
         return processDefsSums;
     }
 
     @Override
     public ProcessSummary getItem(ProcessDefinitionKey key) {
-        return ProcessHelper.adapt(dataService.getProcessesByDeploymentIdProcessId(key.getDeploymentId(), key.getProcessId()));
+        return dataService.getProcessesByContainerIdProcessId(key.getServerTemplateId(), key.getDeploymentId(), key.getProcessId());
     }
 
     @Override

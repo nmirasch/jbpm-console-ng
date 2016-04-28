@@ -34,18 +34,17 @@ import org.dashbuilder.dataset.client.DataSetReadyCallback;
 import org.dashbuilder.dataset.filter.ColumnFilter;
 import org.dashbuilder.dataset.filter.DataSetFilter;
 import org.dashbuilder.dataset.sort.SortOrder;
-import org.jbpm.console.ng.bd.service.KieSessionEntryPoint;
+import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
 import org.jbpm.console.ng.df.client.filter.FilterSettings;
 import org.jbpm.console.ng.df.client.list.base.DataSetQueryHelper;
 import org.jbpm.console.ng.gc.client.experimental.grid.base.ExtendedPagedTable;
 import org.jbpm.console.ng.gc.client.list.base.events.SearchEvent;
 import org.jbpm.console.ng.pr.client.editors.instance.signal.ProcessInstanceSignalPresenter;
-import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
 import org.jbpm.console.ng.pr.service.ProcessInstanceService;
-import org.jbpm.process.instance.ProcessInstance;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.kie.api.runtime.process.ProcessInstance;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
@@ -67,10 +66,6 @@ public class DataSetProcessInstanceWithVariablesListPresenterTest {
     @Mock
     private ProcessInstanceService processInstanceServiceMock;
 
-    private CallerMock<KieSessionEntryPoint> callerMockKieSessionServices;
-
-    @Mock
-    private KieSessionEntryPoint kieSessionEntryPointMock;
 
     @Mock
     private DataSetProcessInstanceWithVariablesListViewImpl viewMock;
@@ -107,7 +102,6 @@ public class DataSetProcessInstanceWithVariablesListPresenterTest {
     @Before
     public void setupMocks() {
         //Mock that actually calls the callbacks
-        callerMockKieSessionServices = new CallerMock<KieSessionEntryPoint>(kieSessionEntryPointMock);
         callerMockProcessInstanceService = new CallerMock<ProcessInstanceService>(processInstanceServiceMock);
 
         processInstanceSummaries = createProcessInstanceSummaryList(5);
@@ -136,7 +130,7 @@ public class DataSetProcessInstanceWithVariablesListPresenterTest {
             }
         }).when(dataSetQueryHelperDomainSpecific).lookupDataSet(anyInt(), any(DataSetReadyCallback.class));
 
-        presenter = new DataSetProcessInstanceWithVariablesListPresenter(viewMock, callerMockProcessInstanceService, callerMockKieSessionServices,
+        presenter = new DataSetProcessInstanceWithVariablesListPresenter(viewMock, callerMockProcessInstanceService,
                 dataSetQueryHelper, dataSetQueryHelperDomainSpecific, placeManager);
     }
 
@@ -175,7 +169,7 @@ public class DataSetProcessInstanceWithVariablesListPresenterTest {
 
         presenter.abortProcessInstance("container", processInstanceId);
 
-        verify(kieSessionEntryPointMock).abortProcessInstance(processInstanceId);
+//        verify(kieSessionEntryPointMock).abortProcessInstance(processInstanceId);
     }
 
     @Test
@@ -191,7 +185,7 @@ public class DataSetProcessInstanceWithVariablesListPresenterTest {
 
         presenter.abortProcessInstance(containers, pIds);
 
-        verify(kieSessionEntryPointMock).abortProcessInstances(pIds);
+//        verify(kieSessionEntryPointMock).abortProcessInstances(pIds);
     }
 
     @Test
@@ -203,7 +197,7 @@ public class DataSetProcessInstanceWithVariablesListPresenterTest {
 
         presenter.bulkAbort(processInstanceSummaries);
 
-        verify(kieSessionEntryPointMock).abortProcessInstances(pIds);
+//        verify(kieSessionEntryPointMock).abortProcessInstances(pIds);
     }
 
     @Test
@@ -218,7 +212,7 @@ public class DataSetProcessInstanceWithVariablesListPresenterTest {
 
         presenter.bulkAbort(processInstanceSummaries);
 
-        verify(kieSessionEntryPointMock).abortProcessInstances(pIds);
+//        verify(kieSessionEntryPointMock).abortProcessInstances(pIds);
     }
 
     @Test

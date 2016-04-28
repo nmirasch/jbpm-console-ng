@@ -42,7 +42,6 @@ import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
 import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
-import org.jbpm.console.ng.bd.service.KieSessionEntryPoint;
 import org.jbpm.console.ng.df.client.filter.FilterSettings;
 import org.jbpm.console.ng.df.client.list.base.DataSetQueryHelper;
 import org.jbpm.console.ng.gc.client.dataset.AbstractDataSetReadyCallback;
@@ -125,9 +124,6 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
     private Caller<ProcessInstanceService> processInstanceService;
 
     @Inject
-    private Caller<KieSessionEntryPoint> kieSessionServices;
-
-    @Inject
     private DataSetQueryHelper dataSetQueryHelper;
 
     @Inject
@@ -166,14 +162,12 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
     public DataSetProcessInstanceWithVariablesListPresenter(
             DataSetProcessInstanceWithVariablesListView view,
             Caller<ProcessInstanceService> processInstanceService,
-            Caller<KieSessionEntryPoint> kieSessionServices,
             DataSetQueryHelper dataSetQueryHelper,
             DataSetQueryHelper dataSetQueryHelperDomainSpecific,
             PlaceManager placeManager) {
         this();
         this.dataSetQueryHelper = dataSetQueryHelper;
         this.processInstanceService = processInstanceService;
-        this.kieSessionServices = kieSessionServices;
         this.dataSetQueryHelperDomainSpecific = dataSetQueryHelperDomainSpecific;
         this.view = view;
         this.placeManager = placeManager;

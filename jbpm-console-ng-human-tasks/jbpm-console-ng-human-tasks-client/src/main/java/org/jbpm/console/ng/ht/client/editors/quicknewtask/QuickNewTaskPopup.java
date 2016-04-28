@@ -24,8 +24,6 @@ import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.KeyPressEvent;
@@ -62,7 +60,6 @@ import org.jbpm.console.ng.gc.client.util.UTCTimeBox;
 import org.jbpm.console.ng.ht.client.i18n.Constants;
 import org.jbpm.console.ng.ht.model.events.NewTaskEvent;
 import org.jbpm.console.ng.ht.model.events.TaskRefreshedEvent;
-import org.jbpm.console.ng.ht.service.TaskFormManagementService;
 import org.jbpm.console.ng.ht.service.TaskOperationsService;
 import org.uberfire.ext.widgets.common.client.common.popups.BaseModal;
 import org.uberfire.ext.widgets.common.client.common.popups.footers.GenericModalFooter;
@@ -165,8 +162,6 @@ public class QuickNewTaskPopup extends BaseModal {
     @Inject
     private Caller<TaskOperationsService> taskOperationsService;
 
-    @Inject
-    private Caller<TaskFormManagementService> taskFormManagementService;
 
     private static Binder uiBinder = GWT.create( Binder.class );
 
@@ -215,7 +210,6 @@ public class QuickNewTaskPopup extends BaseModal {
 
     public void show() {
         cleanForm();
-        loadFormValues();
         super.show();
     }
 
@@ -271,37 +265,7 @@ public class QuickNewTaskPopup extends BaseModal {
         } );
     }
 
-    protected void loadFormValues() {
-        taskFormManagementService.call( new RemoteCallback<List<String>>() {
-            @Override
-            public void callback( List<String> deployments ) {
-                taskFormDeploymentId.addItem( "" );
-                if ( deployments != null ) {
-                    for ( String deployment : deployments ) {
-                        taskFormDeploymentId.addItem( deployment );
-                    }
-                }
-            }
-        } ).getAvailableDeployments();
 
-        taskFormDeploymentId.addChangeHandler( new ChangeHandler() {
-            @Override
-            public void onChange( ChangeEvent event ) {
-                taskFormManagementService.call( new RemoteCallback<List<String>>() {
-                    @Override
-                    public void callback( List<String> forms ) {
-                        taskFormName.clear();
-                        taskFormName.addItem( "" );
-                        if ( forms != null ) {
-                            for ( String form : forms ) {
-                                taskFormName.addItem( form );
-                            }
-                        }
-                    }
-                } ).getFormsByDeployment( taskFormDeploymentId.getSelectedValue() );
-            }
-        } );
-    }
 
     public void cleanForm() {
 

@@ -25,13 +25,11 @@ import javax.inject.Inject;
 
 import org.jboss.errai.bus.server.annotations.Service;
 import org.jbpm.console.ng.bd.backend.server.VariableHelper;
-import org.jbpm.console.ng.ga.model.QueryFilter;
 import org.jbpm.console.ng.bd.integration.KieServerIntegration;
 import org.jbpm.console.ng.bd.model.ProcessVariableKey;
 import org.jbpm.console.ng.bd.model.ProcessVariableSummary;
+import org.jbpm.console.ng.ga.model.QueryFilter;
 import org.jbpm.console.ng.pr.service.ProcessVariablesService;
-import org.jbpm.services.api.DefinitionService;
-import org.jbpm.services.api.RuntimeDataService;
 import org.kie.server.api.model.definition.VariablesDefinition;
 import org.kie.server.api.model.instance.VariableInstance;
 import org.kie.server.client.KieServicesClient;
@@ -46,11 +44,6 @@ import org.uberfire.paging.PageResponse;
 @ApplicationScoped
 public class ProcessVariablesServiceImpl implements ProcessVariablesService {
 
-    @Inject
-    private RuntimeDataService dataService;
-
-    @Inject
-    private DefinitionService bpmn2Service;
 
     @Inject
     private KieServerIntegration kieServerIntegration;
@@ -97,31 +90,19 @@ public class ProcessVariablesServiceImpl implements ProcessVariablesService {
             deploymentId = (String) filter.getParams().get("deploymentId");
             serverTemplateId = (String) filter.getParams().get("serverTemplateId");
         }
-        // append 1 to the count to check if there are further pages
-        org.kie.internal.query.QueryFilter qf = new org.kie.internal.query.QueryFilter(filter.getOffset(), filter.getCount() + 1,
-                filter.getOrderBy(), filter.isAscending());
-        Collection<ProcessVariableSummary> processVariables = null;
+
         Map<String, String> properties = new HashMap<String, String>();
-        if (serverTemplateId.equals("Local")) {
-            properties.putAll(bpmn2Service.getProcessVariables(deploymentId, processId));
+        KieServicesClient client = kieServerIntegration.getServerClient(serverTemplateId);
 
-            processVariables = VariableHelper.adaptCollection(dataService.getVariablesCurrentState(processInstanceId), properties,
-                    processInstanceId);
-        } else {
-            KieServicesClient client = kieServerIntegration.getServerClient(serverTemplateId);
+        QueryServicesClient queryClient = client.getServicesClient(QueryServicesClient.class);
+        ProcessServicesClient processClient = client.getServicesClient(ProcessServicesClient.class);
 
-            QueryServicesClient queryClient = client.getServicesClient(QueryServicesClient.class);
-            ProcessServicesClient processClient = client.getServicesClient(ProcessServicesClient.class);
+        VariablesDefinition vars = processClient.getProcessVariableDefinitions(deploymentId, processId);
+        properties.putAll(vars.getVariables());
 
-            VariablesDefinition vars = processClient.getProcessVariableDefinitions(deploymentId, processId);
-            properties.putAll(vars.getVariables());
+        List<VariableInstance> variables = queryClient.findVariablesCurrentState(processInstanceId);
 
-            List<VariableInstance> variables = queryClient.findVariablesCurrentState(processInstanceId);
-
-            processVariables = VariableHelper.adaptCollection(variables, properties, processInstanceId);
-        }
-
-
+        Collection<ProcessVariableSummary> processVariables = VariableHelper.adaptCollection(variables, properties, processInstanceId, deploymentId, serverTemplateId);
 
         List<ProcessVariableSummary> processVariablesSums = new ArrayList<ProcessVariableSummary>(processVariables.size());
         for (ProcessVariableSummary pv : processVariables) {
@@ -145,4 +126,16 @@ public class ProcessVariablesServiceImpl implements ProcessVariablesService {
         return getProcessVariables(filter);
     }
 
+    @Override
+    public List<ProcessVariableSummary> getVariableHistory(String serverTemplateId, String deploymentId, Long processInstanceId, String variableName) {
+        KieServicesClient client = kieServerIntegration.getServerClient(serverTemplateId);
+
+        QueryServicesClient queryClient = client.getServicesClient(QueryServicesClient.class);
+
+        List<VariableInstance> variables = queryClient.findVariableHistory(processInstanceId, variableName, 0, 100);
+
+        List<ProcessVariableSummary> processVariables = VariableHelper.adaptCollection(variables, new HashMap<String, String>(), processInstanceId, deploymentId, serverTemplateId);
+
+        return processVariables;
+    }
 }

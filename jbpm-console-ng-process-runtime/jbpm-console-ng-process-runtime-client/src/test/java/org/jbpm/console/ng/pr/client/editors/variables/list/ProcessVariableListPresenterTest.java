@@ -22,7 +22,6 @@ import java.util.List;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import org.jboss.errai.common.client.api.Caller;
 import org.jbpm.console.ng.bd.model.ProcessVariableSummary;
-import org.jbpm.console.ng.bd.service.DataServiceEntryPoint;
 import org.jbpm.console.ng.pr.model.events.ProcessInstanceSelectionEvent;
 import org.jbpm.console.ng.pr.service.ProcessVariablesService;
 import org.junit.Before;
@@ -45,18 +44,12 @@ public class ProcessVariableListPresenterTest {
     @Mock
     ProcessVariablesService processVariablesService;
 
-    Caller<DataServiceEntryPoint> dataServicesCaller;
-
-    @Mock
-    DataServiceEntryPoint dataServiceEntryPoint;
-
     ProcessVariableListPresenter presenter;
 
     @Before
     public void setup() {
         variablesServicesCaller = new CallerMock<ProcessVariablesService>(processVariablesService);
-        dataServicesCaller = new CallerMock<DataServiceEntryPoint>(dataServiceEntryPoint);
-        presenter = new ProcessVariableListPresenter(view, variablesServicesCaller, dataServicesCaller);
+        presenter = new ProcessVariableListPresenter(view, variablesServicesCaller);
     }
 
     @Test
@@ -66,7 +59,7 @@ public class ProcessVariableListPresenterTest {
         final long processInstanceId = 1l;
         final ProcessVariableSummary summary = new ProcessVariableSummary(variableName, "variableInstanceId", processInstanceId, "oldValue", "newValue", System.currentTimeMillis(), "type");
         final List<ProcessVariableSummary> summaries = Arrays.asList(summary);
-        when(dataServiceEntryPoint.getVariableHistory(processInstanceId, variableName)).thenReturn(summaries);
+//        when(dataServiceEntryPoint.getVariableHistory(processInstanceId, variableName)).thenReturn(summaries);
         final ProcessInstanceSelectionEvent event = new ProcessInstanceSelectionEvent("deploymentId", processInstanceId, "processDefId", "processDefName", 1);
 
         presenter.onProcessInstanceSelectionEvent(event);

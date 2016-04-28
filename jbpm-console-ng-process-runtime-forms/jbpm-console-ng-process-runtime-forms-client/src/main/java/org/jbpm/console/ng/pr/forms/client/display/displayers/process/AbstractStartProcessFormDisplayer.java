@@ -37,17 +37,15 @@ import org.jboss.errai.bus.client.api.messaging.Message;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.ErrorCallback;
 import org.jboss.errai.common.client.api.RemoteCallback;
-import org.jbpm.console.ng.bd.service.DataServiceEntryPoint;
-import org.jbpm.console.ng.bd.service.KieSessionEntryPoint;
+import org.jbpm.console.ng.bd.model.ProcessDefinitionKey;
 import org.jbpm.console.ng.ga.forms.display.FormDisplayerConfig;
 import org.jbpm.console.ng.ga.forms.display.view.FormContentResizeListener;
 import org.jbpm.console.ng.gc.forms.client.display.displayers.util.ActionRequest;
 import org.jbpm.console.ng.gc.forms.client.display.displayers.util.JSNIHelper;
 import org.jbpm.console.ng.pr.forms.client.i18n.Constants;
 import org.jbpm.console.ng.pr.forms.display.process.api.StartProcessFormDisplayer;
-import org.jbpm.console.ng.bd.model.ProcessDefinitionKey;
-import org.jbpm.console.ng.bd.model.ProcessSummary;
 import org.jbpm.console.ng.pr.model.events.NewProcessInstanceEvent;
+import org.jbpm.console.ng.pr.service.integration.RemoteProcessService;
 import org.uberfire.client.workbench.widgets.common.ErrorPopupPresenter;
 import org.uberfire.mvp.Command;
 import org.uberfire.workbench.events.NotificationEvent;
@@ -85,7 +83,7 @@ public abstract class AbstractStartProcessFormDisplayer implements StartProcessF
     @Inject
     protected Event<NewProcessInstanceEvent> newProcessInstanceEvent;
 
-    protected Caller<KieSessionEntryPoint> sessionServices;
+    protected Caller<RemoteProcessService> processService;
 
     @Inject
     protected JSNIHelper jsniHelper;
@@ -170,14 +168,9 @@ public abstract class AbstractStartProcessFormDisplayer implements StartProcessF
 
     @Override
     public void startProcess(Map<String, Object> params) {
-        if( parentProcessInstanceId > 0 ){
-            sessionServices.call(getStartProcessRemoteCallback(), getUnexpectedErrorCallback())
-                    .startProcess(deploymentId, processDefId, correlationKey.getValue(), params, parentProcessInstanceId);
 
-        } else {
-            sessionServices.call(getStartProcessRemoteCallback(), getUnexpectedErrorCallback())
-                    .startProcess(deploymentId, processDefId, correlationKey.getValue(), params);
-        }
+        processService.call(getStartProcessRemoteCallback(), getUnexpectedErrorCallback())
+                    .startProcess(serverTemplateId, deploymentId, processDefId, correlationKey.getValue(), params);
     }
 
     protected RemoteCallback<Long> getStartProcessRemoteCallback() {
@@ -275,7 +268,7 @@ public abstract class AbstractStartProcessFormDisplayer implements StartProcessF
     }
 
     @Inject
-    public void setSessionServices( final Caller<KieSessionEntryPoint> sessionServices ) {
-        this.sessionServices = sessionServices;
+    public void setProcessService(Caller<RemoteProcessService> processService) {
+        this.processService = processService;
     }
 }

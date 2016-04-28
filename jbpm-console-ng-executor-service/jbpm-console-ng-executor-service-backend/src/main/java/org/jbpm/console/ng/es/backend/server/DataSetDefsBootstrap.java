@@ -22,7 +22,6 @@ import javax.inject.Inject;
 import org.dashbuilder.dataset.def.DataSetDef;
 import org.dashbuilder.dataset.def.DataSetDefFactory;
 import org.dashbuilder.dataset.def.DataSetDefRegistry;
-import org.jbpm.persistence.settings.JpaSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uberfire.commons.services.cdi.Startup;
@@ -40,7 +39,7 @@ public class DataSetDefsBootstrap {
 
     @PostConstruct
     protected void registerDataSetDefinitions() {
-        String jbpmDataSource = JpaSettings.get().getDataSourceJndiName();
+        String jbpmDataSource = "java:jboss/datasources/ExampleDS";
 
         DataSetDef requestListDef = DataSetDefFactory.newSQLDataSetDef()
                 .uuid(REQUEST_LIST_DATASET)

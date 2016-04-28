@@ -15,18 +15,14 @@
 
 package org.jbpm.console.ng.pr.backend.server.listener;
 
-import org.jbpm.workflow.instance.WorkflowProcessInstance;
-import org.kie.api.event.process.ProcessCompletedEvent;
-import org.kie.api.event.process.ProcessEventListener;
-import org.kie.api.event.process.ProcessNodeLeftEvent;
-import org.kie.api.event.process.ProcessNodeTriggeredEvent;
+import org.kie.api.event.process.DefaultProcessEventListener;
 import org.kie.api.event.process.ProcessStartedEvent;
-import org.kie.api.event.process.ProcessVariableChangedEvent;
 import org.kie.api.runtime.Environment;
 import org.kie.api.runtime.KieSession;
 import org.kie.internal.identity.IdentityProvider;
 
-public class InitiatorProviderProcessListener implements ProcessEventListener {
+// TODO move this out from console and include in jbpm-services so it can be used in other places such as kie server
+public class InitiatorProviderProcessListener extends DefaultProcessEventListener {
     
     private KieSession ksession;
     private IdentityProvider identityProvider;
@@ -50,63 +46,10 @@ public class InitiatorProviderProcessListener implements ProcessEventListener {
     public void beforeProcessStarted(ProcessStartedEvent event) {
         resolveIdentityProvider();
         if (identityProvider != null) {
-            WorkflowProcessInstance wpi = (WorkflowProcessInstance)event.getProcessInstance();
-            wpi.setVariable( "initiator", identityProvider.getName() );
+            // TODO expose setVariable on kie-api level - ProcessInstance
+//            WorkflowProcessInstance wpi = (WorkflowProcessInstance)event.getProcessInstance();
+//            wpi.setVariable( "initiator", identityProvider.getName() );
         }
-        
-    }
-
-    @Override
-    public void afterProcessStarted(ProcessStartedEvent event) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void beforeProcessCompleted(ProcessCompletedEvent event) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void afterProcessCompleted(ProcessCompletedEvent event) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void beforeNodeTriggered(ProcessNodeTriggeredEvent event) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void afterNodeTriggered(ProcessNodeTriggeredEvent event) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void beforeNodeLeft(ProcessNodeLeftEvent event) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void afterNodeLeft(ProcessNodeLeftEvent event) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void beforeVariableChanged(ProcessVariableChangedEvent event) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void afterVariableChanged(ProcessVariableChangedEvent event) {
-        // TODO Auto-generated method stub
         
     }
 }

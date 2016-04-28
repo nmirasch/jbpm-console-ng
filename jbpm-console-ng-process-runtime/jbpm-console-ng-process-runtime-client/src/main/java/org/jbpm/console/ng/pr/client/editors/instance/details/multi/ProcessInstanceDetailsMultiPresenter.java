@@ -25,9 +25,6 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.IsWidget;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
-import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
-import org.jbpm.console.ng.bd.service.DataServiceEntryPoint;
-import org.jbpm.console.ng.bd.service.KieSessionEntryPoint;
 import org.jbpm.console.ng.pr.client.editors.diagram.ProcessDiagramUtil;
 import org.jbpm.console.ng.pr.client.editors.documents.list.ProcessDocumentListPresenter;
 import org.jbpm.console.ng.pr.client.editors.instance.details.ProcessInstanceDetailsPresenter;
@@ -36,7 +33,7 @@ import org.jbpm.console.ng.pr.client.editors.variables.list.ProcessVariableListP
 import org.jbpm.console.ng.pr.client.i18n.Constants;
 import org.jbpm.console.ng.pr.model.events.ProcessInstanceSelectionEvent;
 import org.jbpm.console.ng.pr.model.events.ProcessInstancesUpdateEvent;
-import org.kie.api.runtime.process.ProcessInstance;
+import org.jbpm.console.ng.pr.service.integration.RemoteProcessService;
 import org.uberfire.client.annotations.DefaultPosition;
 import org.uberfire.client.annotations.WorkbenchMenu;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
@@ -80,12 +77,8 @@ public class ProcessInstanceDetailsMultiPresenter implements RefreshMenuBuilder.
 
     @Inject
     private PlaceManager placeManager;
-
     @Inject
-    private Caller<KieSessionEntryPoint> kieSessionServices;
-
-    @Inject
-    private Caller<DataServiceEntryPoint> dataServices;
+    private Caller<RemoteProcessService> processService;
 
     @Inject
     private Event<ProcessInstanceSelectionEvent> processInstanceSelected;
@@ -184,30 +177,23 @@ public class ProcessInstanceDetailsMultiPresenter implements RefreshMenuBuilder.
     public void signalProcessInstance() {
         PlaceRequest placeRequestImpl = new DefaultPlaceRequest( "Signal Process Popup" );
         placeRequestImpl.addParameter( "processInstanceId", String.valueOf(processInstanceId) );
+        placeRequestImpl.addParameter( "deploymentId", deploymentId );
+        placeRequestImpl.addParameter( "serverTemplateId", serverTemplateId );
         placeManager.goTo( placeRequestImpl );
 
     }
 
     public void abortProcessInstance() {
-        dataServices.call( new RemoteCallback<ProcessInstanceSummary>() {
-            @Override
-            public void callback( ProcessInstanceSummary processInstance ) {
-                if ( processInstance.getState() == ProcessInstance.STATE_ACTIVE ||
-                        processInstance.getState() == ProcessInstance.STATE_PENDING ) {
-                    if ( Window.confirm( constants.Abort_Process_Instance() ) ) {
+        if ( Window.confirm( constants.Abort_Process_Instance() ) ) {
+            processService.call(new RemoteCallback<Void>() {
+                @Override
+                public void callback(Void processInstance) {
 
-                        kieSessionServices.call( new RemoteCallback<Void>() {
-                            @Override
-                            public void callback( Void v ) {
-                                processInstancesUpdatedEvent.fire(new ProcessInstancesUpdateEvent(0L));
-                            }
-                        }, new DefaultErrorCallback()).abortProcessInstance( processInstanceId );
-                    }
-                } else {
-                    Window.alert(constants.ProcessInstanceNeedsToBeActiveInOrderToBeAborted());
+                    processInstancesUpdatedEvent.fire(new ProcessInstancesUpdateEvent(0L));
+
                 }
-            }
-        }, new DefaultErrorCallback() ).getProcessInstanceById( processInstanceId );
+            }, new DefaultErrorCallback()).abortProcessInstance(serverTemplateId, deploymentId, processInstanceId);
+        }
     }
 
     public void goToProcessInstanceModelPopup() {

@@ -23,9 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import org.jboss.errai.bus.server.annotations.Service;
 import org.jbpm.console.ng.es.model.ErrorSummary;
@@ -36,10 +34,7 @@ import org.jbpm.console.ng.es.model.RequestSummary;
 import org.jbpm.console.ng.es.service.ExecutorServiceEntryPoint;
 import org.jbpm.console.ng.ga.model.QueryFilter;
 import org.jbpm.console.ng.ga.service.GenericServiceEntryPoint;
-import org.jbpm.executor.RequeueAware;
 import org.kie.api.executor.CommandContext;
-import org.kie.api.executor.ErrorInfo;
-import org.kie.api.executor.ExecutionResults;
 import org.kie.api.executor.ExecutorService;
 import org.kie.api.executor.RequestInfo;
 import org.kie.api.executor.STATUS;
@@ -52,7 +47,7 @@ public class ExecutorServiceEntryPointImpl implements ExecutorServiceEntryPoint 
 
     private boolean executorDisabled = "true".equalsIgnoreCase(System.getProperty("org.kie.executor.disabled"));
 
-    @Inject
+
     ExecutorService executor;
 
     @Override
@@ -142,7 +137,7 @@ public class ExecutorServiceEntryPointImpl implements ExecutorServiceEntryPoint 
 
     @Override
     public void requeueRequest(Long requestId) {
-        ((RequeueAware)executor).requeueById(requestId);
+
     }
 
     @Override

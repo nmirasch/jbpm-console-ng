@@ -20,24 +20,18 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.jboss.errai.bus.server.annotations.Service;
-import org.jbpm.console.ng.bd.backend.server.VariableHelper;
-import org.jbpm.console.ng.ga.model.QueryFilter;
 import org.jbpm.console.ng.bd.model.DocumentKey;
 import org.jbpm.console.ng.bd.model.DocumentSummary;
 import org.jbpm.console.ng.bd.model.ProcessVariableSummary;
+import org.jbpm.console.ng.ga.model.QueryFilter;
 import org.jbpm.console.ng.pr.service.DocumentsService;
+import org.jbpm.console.ng.pr.service.ProcessVariablesService;
 import org.jbpm.document.Document;
-import org.jbpm.services.api.DefinitionService;
-import org.jbpm.services.api.ProcessService;
-import org.jbpm.services.api.RuntimeDataService;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uberfire.paging.PageResponse;
@@ -51,13 +45,7 @@ public class DocumentsServiceImpl implements DocumentsService {
   private static final Logger logger = LoggerFactory.getLogger(DocumentsServiceImpl.class);
 
   @Inject
-  private RuntimeDataService dataService;
-
-  @Inject
-  private DefinitionService bpmn2Service;
-  
-  @Inject
-  private ProcessService processService;
+  private ProcessVariablesService processVariablesService;
   
 
   @Override
@@ -90,19 +78,8 @@ public class DocumentsServiceImpl implements DocumentsService {
   }
 
     private List<DocumentSummary> getDocuments(QueryFilter filter) throws NumberFormatException {
-        Long processInstanceId = null;
-        String processId = "";
-        String deploymentId = "";
-        if (filter.getParams() != null) {
-            processInstanceId = Long.valueOf((String) filter.getParams().get("processInstanceId"));
-            processId = (String) filter.getParams().get("processDefId");
-            deploymentId = (String) filter.getParams().get("deploymentId");
-        }   // append 1 to the count to check if there are further pages
-        org.kie.internal.query.QueryFilter qf = new org.kie.internal.query.QueryFilter(filter.getOffset(), filter.getCount() + 1,
-                filter.getOrderBy(), filter.isAscending());
-        Map<String, String> properties = new HashMap<String, String>(bpmn2Service.getProcessVariables(deploymentId, processId));
-        Collection<ProcessVariableSummary> processVariables = VariableHelper.adaptCollection(dataService.getVariablesCurrentState(processInstanceId), properties,
-                processInstanceId);
+
+        Collection<ProcessVariableSummary> processVariables = processVariablesService.getData(filter).getPageRowList();
         SimpleDateFormat sdf = new SimpleDateFormat( Document.DOCUMENT_DATE_PATTERN );
         List<DocumentSummary> documents = new ArrayList<DocumentSummary>();
         for (ProcessVariableSummary pv : processVariables) {
