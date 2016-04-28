@@ -571,6 +571,8 @@ public class DataSetProcessInstanceWithVariablesListViewImpl extends AbstractMul
 
                 PlaceRequest placeRequestImpl = new DefaultPlaceRequest( "Signal Process Popup" );
                 placeRequestImpl.addParameter( "processInstanceId", Long.toString( processInstance.getProcessInstanceId() ) );
+                placeRequestImpl.addParameter( "deploymentId", processInstance.getDeploymentId() );
+                placeRequestImpl.addParameter( "serverTemplateId", getSelectedServer() );
 
                 placeManager.goTo( placeRequestImpl );
             }
@@ -652,7 +654,8 @@ public class DataSetProcessInstanceWithVariablesListViewImpl extends AbstractMul
         placeManager.goTo( "Process Instance Details Multi" );
         processInstanceSelected.fire( new ProcessInstanceSelectionEvent( event.getDeploymentId(),
                                                                          event.getProcessInstanceId(), event.getProcessDefId(),
-                                                                         event.getProcessDefName(), event.getProcessInstanceStatus() ) );
+                                                                         event.getProcessDefName(), event.getProcessInstanceStatus(),
+                                                                         event.getServerTemplateId()) );
     }
 
     public void formClosed( @Observes BeforeClosePlaceEvent closed ) {

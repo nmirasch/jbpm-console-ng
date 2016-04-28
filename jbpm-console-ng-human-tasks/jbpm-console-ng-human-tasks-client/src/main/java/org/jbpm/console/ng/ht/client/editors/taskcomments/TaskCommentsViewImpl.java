@@ -140,10 +140,7 @@ public class TaskCommentsViewImpl extends Composite implements TaskCommentsPrese
         Column<CommentSummary, String> addedByColumn = new Column<CommentSummary, String>( new TextCell() ) {
             @Override
             public String getValue( CommentSummary c ) {
-                // for some reason the username comes in format [User:'<name>'], so parse just the <name>
-                int first = c.getAddedBy().indexOf( '\'' );
-                int last = c.getAddedBy().lastIndexOf( '\'' );
-                return c.getAddedBy().substring( first + 1, last );
+                return c.getAddedBy();
             }
         };
         addedByColumn.setSortable( false );

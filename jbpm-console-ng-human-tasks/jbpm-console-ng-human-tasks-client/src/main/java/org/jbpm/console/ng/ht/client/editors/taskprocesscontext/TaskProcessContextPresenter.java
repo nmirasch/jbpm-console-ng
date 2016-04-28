@@ -106,6 +106,7 @@ public class TaskProcessContextPresenter {
                               public void callback(ProcessInstanceSummary summary) {
                                   placeManager.goTo(PROCESS_INSTANCE_DETAILS);
                                   processInstanceSelected.fire(new ProcessInstancesWithDetailsRequestEvent(
+                                          serverTemplateId,
                                           summary.getDeploymentId(),
                                           summary.getProcessInstanceId(),
                                           summary.getProcessId(),
