@@ -30,12 +30,14 @@ import javax.inject.Inject;
 import org.jboss.errai.bus.server.annotations.Service;
 import org.jbpm.console.ng.bd.integration.KieServerIntegration;
 import org.jbpm.console.ng.ga.forms.service.FormServiceEntryPoint;
+import org.jbpm.document.Document;
 import org.jbpm.formModeler.kie.services.form.FormManagerService;
 import org.jbpm.formModeler.kie.services.form.FormProvider;
 import org.jbpm.formModeler.kie.services.form.TaskDefinition;
 import org.kie.internal.task.api.ContentMarshallerContext;
 import org.kie.server.api.model.definition.ProcessDefinition;
 import org.kie.server.api.model.instance.TaskInstance;
+import org.kie.server.client.DocumentServicesClient;
 import org.kie.server.client.KieServicesClient;
 import org.kie.server.client.ProcessServicesClient;
 import org.kie.server.client.UIServicesClient;
@@ -85,6 +87,8 @@ public class FormServiceEntryPointImpl implements FormServiceEntryPoint {
         if (client == null) {
             throw new RuntimeException("No client to interact with server " + serverTemplateId);
         }
+        DocumentServicesClient documentClient = client.getServicesClient(DocumentServicesClient.class);
+
         // get form content
         UIServicesClient uiServicesClient = client.getServicesClient(UIServicesClient.class);
         String formContent = uiServicesClient.getTaskForm(domainId, taskId);
@@ -111,14 +115,17 @@ public class FormServiceEntryPointImpl implements FormServiceEntryPoint {
         renderContext.put("task", taskInstance);
         renderContext.put("marshallerContext", new ContentMarshallerContext(null, client.getClassLoader()));
 
-        if (task.getInputData() != null && !task.getInputData().isEmpty()) {
-            renderContext.put("inputs", task.getInputData());
-            renderContext.putAll(task.getInputData());
+
+        Map<String, Object> inputs = processData(documentClient, task.getInputData());
+        if (inputs != null && !inputs.isEmpty()) {
+            renderContext.put("inputs", inputs);
+            renderContext.putAll(inputs);
         }
 
-        if (task.getOutputData() != null && !task.getOutputData().isEmpty()) {
-            renderContext.put("outputs", task.getOutputData());
-            renderContext.putAll(task.getOutputData());
+        Map<String, Object> outputs = processData(documentClient, task.getOutputData());
+        if (outputs != null && !outputs.isEmpty()) {
+            renderContext.put("outputs", outputs);
+            renderContext.putAll(outputs);
 
             taskInstance.setOutputIncluded(true);
         }
@@ -196,6 +203,22 @@ public class FormServiceEntryPointImpl implements FormServiceEntryPoint {
         logger.warn("Unable to find form to render for process '{}'", processDesc.getName());
         return "";
 
+    }
+
+    protected Map<String, Object> processData(DocumentServicesClient documentClient, Map<String, Object> data) {
+
+        if (data == null || data.isEmpty()) {
+            return data;
+        }
+
+        for (Map.Entry<String, Object> entry : data.entrySet()) {
+            if (entry.getValue() instanceof Document) {
+                Document document = ((Document) entry.getValue());
+                document.setLink(documentClient.getDocumentLink(document.getIdentifier()));
+            }
+        }
+
+        return data;
     }
 
 }

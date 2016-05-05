@@ -20,8 +20,8 @@ import javax.inject.Inject;
 
 import com.google.gwt.user.client.ui.IsWidget;
 import org.jbpm.console.ng.gc.forms.client.display.views.EmbeddedFormDisplayView;
+import org.jbpm.console.ng.pr.forms.client.display.process.api.StartProcessFormDisplayProvider;
 import org.jbpm.console.ng.pr.forms.display.process.api.ProcessDisplayerConfig;
-import org.jbpm.console.ng.pr.forms.display.process.api.StartProcessFormDisplayProvider;
 import org.jbpm.console.ng.bd.model.ProcessDefinitionKey;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;

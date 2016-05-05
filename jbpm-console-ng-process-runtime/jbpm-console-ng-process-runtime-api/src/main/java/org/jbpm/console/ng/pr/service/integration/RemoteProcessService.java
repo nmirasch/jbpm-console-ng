@@ -37,4 +37,6 @@ public interface RemoteProcessService {
     void signalProcessInstances(String serverTemplateId, List<String> containers, List<Long> processInstanceId, String signal, Object event);
 
     void setProcessVariable(String serverTemplateId, String deploymentId, long processInstanceId, String variableName, String value);
+
+    String getDocumentLink(String serverTemplateId, String documentIdentifier);
 }

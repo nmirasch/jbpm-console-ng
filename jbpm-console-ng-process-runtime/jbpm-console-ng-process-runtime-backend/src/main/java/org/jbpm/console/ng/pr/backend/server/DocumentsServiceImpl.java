@@ -31,6 +31,7 @@ import org.jbpm.console.ng.bd.model.ProcessVariableSummary;
 import org.jbpm.console.ng.ga.model.QueryFilter;
 import org.jbpm.console.ng.pr.service.DocumentsService;
 import org.jbpm.console.ng.pr.service.ProcessVariablesService;
+import org.jbpm.console.ng.pr.service.integration.RemoteProcessService;
 import org.jbpm.document.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,9 @@ public class DocumentsServiceImpl implements DocumentsService {
 
   @Inject
   private ProcessVariablesService processVariablesService;
-  
+
+  @Inject
+  private RemoteProcessService remoteProcessService;
 
   @Override
   public PageResponse<DocumentSummary> getData(QueryFilter filter) {
@@ -79,6 +82,8 @@ public class DocumentsServiceImpl implements DocumentsService {
 
     private List<DocumentSummary> getDocuments(QueryFilter filter) throws NumberFormatException {
 
+        String serverTemplateId = (String) filter.getParams().get("serverTemplateId");
+
         Collection<ProcessVariableSummary> processVariables = processVariablesService.getData(filter).getPageRowList();
         SimpleDateFormat sdf = new SimpleDateFormat( Document.DOCUMENT_DATE_PATTERN );
         List<DocumentSummary> documents = new ArrayList<DocumentSummary>();
@@ -93,7 +98,7 @@ public class DocumentsServiceImpl implements DocumentsService {
                         } catch (ParseException ex) {
                             logger.error("Can not parse last modified date!", ex);
                         }
-                        documents.add(new DocumentSummary(values[0], lastModified, Long.valueOf(values[1]), values[3]));
+                        documents.add(new DocumentSummary(values[0], lastModified, Long.valueOf(values[1]), remoteProcessService.getDocumentLink(serverTemplateId, values[3])));
                     }
             }
 

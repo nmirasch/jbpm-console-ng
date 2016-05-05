@@ -27,6 +27,7 @@ import org.jbpm.console.ng.bd.integration.KieServerIntegration;
 import org.jbpm.console.ng.pr.backend.server.integration.model.RemoteCorrelationKey;
 import org.jbpm.console.ng.pr.service.integration.RemoteProcessService;
 import org.kie.internal.process.CorrelationKey;
+import org.kie.server.client.DocumentServicesClient;
 import org.kie.server.client.KieServicesClient;
 import org.kie.server.client.ProcessServicesClient;
 import org.slf4j.Logger;
@@ -109,6 +110,13 @@ public class RemoteProcessServiceImpl implements RemoteProcessService {
         ProcessServicesClient client = getClient(serverTemplateId, containerId);
 
         client.setProcessVariable(containerId, processInstanceId, variableName, value);
+    }
+
+    @Override
+    public String getDocumentLink(String serverTemplateId, String documentIdentifier) {
+
+        DocumentServicesClient documentClient = kieServerIntegration.getServerClient(serverTemplateId).getServicesClient(DocumentServicesClient.class);
+        return documentClient.getDocumentLink(documentIdentifier);
     }
 
     protected ProcessServicesClient getClient(String serverTemplateId, String containerId) {
