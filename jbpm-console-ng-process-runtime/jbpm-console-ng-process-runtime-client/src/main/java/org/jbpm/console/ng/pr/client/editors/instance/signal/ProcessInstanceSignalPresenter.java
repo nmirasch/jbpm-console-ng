@@ -77,7 +77,7 @@ public class ProcessInstanceSignalPresenter {
     private Caller<RemoteProcessService> processService;
 
     private String serverTemplateId;
-    private String deploymentId;
+    private String[] deploymentId;
 
     @PostConstruct
     public void init() {
@@ -115,7 +115,7 @@ public class ProcessInstanceSignalPresenter {
     @OnOpen
     public void onOpen() {
         serverTemplateId = place.getParameter( "serverTemplateId", "" ).toString();
-        deploymentId = place.getParameter( "deploymentId", "" ).toString();
+        deploymentId = place.getParameter( "deploymentId", "" ).toString().split(",");
         String processInstanceIds = place.getParameter( "processInstanceId", "-1" ).toString();
         String[] ids = processInstanceIds.split( "," );
         for ( String id : ids ) {
@@ -139,6 +139,6 @@ public class ProcessInstanceSignalPresenter {
                     }
                 },
                 new DefaultErrorCallback()
-        ).getAvailableSignals(serverTemplateId, deploymentId, processInstanceId);
+        ).getAvailableSignals(serverTemplateId, deploymentId[0], processInstanceId);
     }
 }

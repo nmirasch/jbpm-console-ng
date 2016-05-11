@@ -157,6 +157,8 @@ public class QuickNewJobPopup extends BaseModal {
 
     private static Binder uiBinder = GWT.create( Binder.class );
 
+    private String serverTemplateId;
+
     public QuickNewJobPopup() {
         setTitle( Constants.INSTANCE.New_Job() );
 
@@ -185,7 +187,8 @@ public class QuickNewJobPopup extends BaseModal {
         this.executorServices = executorServices;
     }
 
-    public void show() {
+    public void show(String serverTemplateId) {
+        this.serverTemplateId = serverTemplateId;
         cleanForm();
         super.show();
     }
@@ -420,7 +423,7 @@ public class QuickNewJobPopup extends BaseModal {
                 basicTab.showTab();
                 return true;
             }
-        } ).scheduleRequest( jobType, dueDate, ctx );
+        } ).scheduleRequest( serverTemplateId, jobType, dueDate, ctx );
 
     }
 

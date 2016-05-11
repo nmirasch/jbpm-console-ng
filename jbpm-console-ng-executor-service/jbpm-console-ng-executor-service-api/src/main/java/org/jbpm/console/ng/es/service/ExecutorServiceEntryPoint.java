@@ -30,33 +30,15 @@ import org.uberfire.paging.PageResponse;
 @Remote
 public interface ExecutorServiceEntryPoint {
 
-    public List<RequestSummary> getQueuedRequests();
+    public RequestDetails getRequestDetails(String serverTemplateId, Long requestId);
 
-    public List<RequestSummary> getCompletedRequests();
+    public Long scheduleRequest(String serverTemplateId, String commandName, Map<String, String> ctx);
 
-    public List<RequestSummary> getInErrorRequests();
+    public Long scheduleRequest(String serverTemplateId, String commandId, Date date, Map<String, String> ctx);
 
-    public List<RequestSummary> getCancelledRequests();
+    public void cancelRequest(String serverTemplateId, Long requestId);
 
-    public List<ErrorSummary> getAllErrors();
-
-    public List<RequestSummary> getAllRequests();
-
-    public List<RequestSummary> getRequestsByStatus(List<String> statuses);
-
-    public RequestDetails getRequestDetails(Long requestId);
-
-    public int clearAllRequests();
-
-    public int clearAllErrors();
-
-    public Long scheduleRequest(String commandName, Map<String, String> ctx);
-
-    public Long scheduleRequest(String commandId, Date date, Map<String, String> ctx);
-
-    public void cancelRequest(Long requestId);
-
-    public void requeueRequest(Long requestId);
+    public void requeueRequest(String serverTemplateId, Long requestId);
 
     public void init();
 
@@ -77,14 +59,6 @@ public interface ExecutorServiceEntryPoint {
     public int getThreadPoolSize();
 
     public void setThreadPoolSize(int nroOfThreads);
-
-    public List<RequestSummary> getPendingRequests();
-
-    public List<RequestSummary> getPendingRequestById(Long id);
-
-    public List<RequestSummary> getRunningRequests();
-
-    public List<RequestSummary> getFutureQueuedRequests();
     
     public PageResponse<RequestSummary> getData(QueryFilter filter);
 

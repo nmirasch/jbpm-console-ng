@@ -98,8 +98,8 @@ public class JobDetailsPopup extends BaseModal {
         add( footer );
     }
 
-    public void show( String jobId ) {
-        cleanForm( jobId );
+    public void show( String serverTemplateId, String jobId ) {
+        cleanForm( serverTemplateId, jobId );
         super.show();
     }
 
@@ -129,7 +129,7 @@ public class JobDetailsPopup extends BaseModal {
         this.dataProvider.addDataDisplay( executionParametersGrid );
     }
 
-    public void cleanForm( String requestId ) {
+    public void cleanForm( String serverTemplateId, String requestId ) {
         this.addShownHandler( new ModalShownHandler() {
             @Override
             public void onShown( ModalShownEvent shownEvent ) {
@@ -141,7 +141,7 @@ public class JobDetailsPopup extends BaseModal {
             public void callback( RequestDetails response ) {
                 setRequest( response.getRequest(), response.getErrors(), response.getParams() );
             }
-        } ).getRequestDetails( Long.valueOf( requestId ) );
+        } ).getRequestDetails( serverTemplateId, Long.valueOf( requestId ) );
     }
 
     public void closePopup() {

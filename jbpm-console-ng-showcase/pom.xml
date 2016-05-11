@@ -526,13 +526,11 @@
     <dependency>
       <groupId>com.sun.xml.bind</groupId>
       <artifactId>jaxb-impl</artifactId>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>com.sun.xml.bind</groupId>
       <artifactId>jaxb-xjc</artifactId>
-      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -936,6 +934,46 @@
       <groupId>org.kie.workbench.screens</groupId>
       <artifactId>kie-wb-common-server-ui-client</artifactId>
       <scope>provided</scope>
+    </dependency>
+
+    <!-- exclude cxf -->
+    <dependency>
+      <groupId>org.jbpm</groupId>
+      <artifactId>jbpm-workitems</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.cxf</groupId>
+          <artifactId>cxf-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.cxf</groupId>
+          <artifactId>cxf-rt-frontend-jaxws</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.cxf</groupId>
+          <artifactId>cxf-rt-databinding-jaxb</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.cxf</groupId>
+          <artifactId>cxf-rt-transports-http</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>javax.mail</groupId>
+          <artifactId>mail</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>javax.activation</groupId>
+          <artifactId>activation</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.neethi</groupId>
+          <artifactId>neethi</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>wsdl4j</groupId>
+          <artifactId>wsdl4j</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- login module -->

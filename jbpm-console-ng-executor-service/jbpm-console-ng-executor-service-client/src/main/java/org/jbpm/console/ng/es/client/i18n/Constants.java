@@ -179,4 +179,6 @@ public interface Constants extends Messages {
     String ErrorRetrievingJobs(String message);
 
     String ClickToEdit();
+
+    String SelectServerTemplate();
 }

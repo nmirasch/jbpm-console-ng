@@ -78,11 +78,11 @@ public class QuickNewJobPopupTest {
                 assertTrue(invocationOnMock.getArguments()[2].equals(JOB_TYPE));
                 return null;
             }
-        }).when(executorServicesMock).scheduleRequest(anyString(), any(Date.class), any(Map.class));
+        }).when(executorServicesMock).scheduleRequest(anyString(), anyString(), any(Date.class), any(Map.class));
 
         quickNewJobPopup.createJob(JOB_NAME, new Date(), JOB_TYPE, JOB_RETRIES, new ArrayList<RequestParameterSummary>());
 
-        verify(executorServicesMock).scheduleRequest(anyString(), any(Date.class), any(HashMap.class));
+        verify(executorServicesMock).scheduleRequest(anyString(),anyString(), any(Date.class), any(HashMap.class));
    }
 
     @Test

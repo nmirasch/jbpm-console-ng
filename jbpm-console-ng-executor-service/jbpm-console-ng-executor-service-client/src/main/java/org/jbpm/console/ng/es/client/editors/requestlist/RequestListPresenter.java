@@ -17,6 +17,7 @@
 package org.jbpm.console.ng.es.client.editors.requestlist;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,8 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.view.client.AsyncDataProvider;
 import com.google.gwt.view.client.Range;
@@ -33,6 +36,8 @@ import org.dashbuilder.dataset.DataSet;
 import org.dashbuilder.dataset.filter.ColumnFilter;
 import org.dashbuilder.dataset.filter.DataSetFilter;
 import org.dashbuilder.dataset.sort.SortOrder;
+import org.gwtbootstrap3.client.ui.AnchorListItem;
+import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
 import org.jbpm.console.ng.df.client.filter.FilterSettings;
@@ -47,6 +52,10 @@ import org.jbpm.console.ng.gc.client.dataset.AbstractDataSetReadyCallback;
 import org.jbpm.console.ng.gc.client.list.base.AbstractListView.ListView;
 import org.jbpm.console.ng.gc.client.list.base.AbstractScreenListPresenter;
 import org.jbpm.console.ng.gc.client.list.base.events.SearchEvent;
+import org.kie.server.controller.api.model.events.ServerTemplateDeleted;
+import org.kie.server.controller.api.model.events.ServerTemplateUpdated;
+import org.kie.server.controller.api.model.spec.ServerTemplate;
+import org.kie.workbench.common.screens.server.management.service.SpecManagementService;
 import org.uberfire.ext.widgets.common.client.menu.RefreshMenuBuilder;
 import org.uberfire.ext.widgets.common.client.menu.RefreshSelectorMenuBuilder;
 import org.jbpm.console.ng.gc.client.menu.RestoreDefaultFiltersMenuBuilder;
@@ -75,6 +84,14 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
         void saveRefreshValue( int newValue );
 
         void applyFilterOnPresenter( String key );
+
+        String getSelectedServer();
+
+        void setSelectedServer(String selected);
+
+        void addServerTemplate(AnchorListItem serverTemplateNavLink);
+
+        void removeServerTemplate(String serverTemplateId);
     }
 
     private Constants constants = Constants.INSTANCE;
@@ -101,6 +118,9 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
 
     @Inject
     private ErrorPopupPresenter errorPopup;
+
+    @Inject
+    private Caller<SpecManagementService> specManagementService;
 
     public RequestListPresenter() {
         super();
@@ -149,7 +169,7 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
                 view.displayNotification( constants.RequestScheduled(requestId) );
 
             }
-        } ).scheduleRequest( "PrintOutCmd", ctx );
+        } ).scheduleRequest( view.getSelectedServer(), "PrintOutCmd", ctx );
     }
 
     @Override
@@ -162,6 +182,7 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
         try {
             if(!isAddingDefaultFilters()) {
                 FilterSettings currentTableSettings = dataSetQueryHelper.getCurrentTableSettings();
+                currentTableSettings.setServerTemplateId(view.getSelectedServer());
                 if ( currentTableSettings != null ) {
                     currentTableSettings.setTablePageSize( view.getListGrid().getPageSize() );
                     ColumnSortList columnSortList = view.getListGrid().getColumnSortList();
@@ -242,7 +263,7 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
                 view.displayNotification( constants.RequestCancelled(requestId) );
                 requestChangedEvent.fire( new RequestChangedEvent( requestId ) );
             }
-        } ).cancelRequest( requestId );
+        } ).cancelRequest( view.getSelectedServer(), requestId );
     }
 
     public void requeueRequest( final Long requestId ) {
@@ -252,7 +273,7 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
                 view.displayNotification( constants.RequestCancelled(requestId) );
                 requestChangedEvent.fire( new RequestChangedEvent( requestId ) );
             }
-        } ).requeueRequest( requestId );
+        } ).requeueRequest( view.getSelectedServer(), requestId );
     }
 
     @WorkbenchMenu
@@ -262,34 +283,11 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
                 .respondsWith(new Command() {
                     @Override
                     public void execute() {
-                        executorServices.call(new RemoteCallback<Boolean>() {
-                            @Override
-                            public void callback(Boolean isDisabled) {
-                                if (isDisabled) {
-                                    view.displayNotification(constants.ExecutorServiceDisabled());
-                                } else {
-                                    quickNewJobPopup.show();
-                                }
-                            }
-                        }).isExecutorDisabled();
-
-                    }
-                })
-                .endMenu()
-                .newTopLevelMenu(constants.Job_Service_Settings())
-                .respondsWith(new Command() {
-                    @Override
-                    public void execute() {
-                        executorServices.call(new RemoteCallback<Boolean>() {
-                            @Override
-                            public void callback(Boolean isDisabled) {
-                                if (isDisabled) {
-                                    view.displayNotification(constants.ExecutorServiceDisabled());
-                                } else {
-                                    jobServiceSettingsPopup.show();
-                                }
-                            }
-                        }).isExecutorDisabled();
+                        if (view.getSelectedServer() == null || view.getSelectedServer().trim().isEmpty()) {
+                            view.displayNotification(constants.SelectServerTemplate());
+                        } else {
+                            quickNewJobPopup.show(view.getSelectedServer());
+                        }
 
                     }
                 })
@@ -316,5 +314,50 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
     public void onUpdateRefreshInterval(boolean enableAutoRefresh, int newInterval) {
         super.onUpdateRefreshInterval(enableAutoRefresh, newInterval);
         view.saveRefreshValue(newInterval);
+    }
+
+    public void loadServerTemplates() {
+        specManagementService.call( new RemoteCallback<Collection<ServerTemplate>>() {
+            @Override
+            public void callback( final Collection<ServerTemplate> serverTemplates ) {
+
+                for (ServerTemplate serverTemplate : serverTemplates) {
+                    if (serverTemplate.getServerInstanceKeys() != null && !serverTemplate.getServerInstanceKeys().isEmpty()) {
+                        AnchorListItem serverTemplateNavLink = new AnchorListItem(serverTemplate.getId());
+                        serverTemplateNavLink.setIcon(IconType.BAN);
+                        serverTemplateNavLink.setIconFixedWidth(true);
+                        serverTemplateNavLink.addClickHandler(new SelectServerTemplateClickHandler(serverTemplate.getId()));
+
+                        view.addServerTemplate(serverTemplateNavLink);
+                    }
+                }
+            }
+        } ).listServerTemplates();
+    }
+
+    private class SelectServerTemplateClickHandler implements ClickHandler {
+
+        private String selected;
+
+        public SelectServerTemplateClickHandler(String selected) {
+            this.selected = selected;
+        }
+
+        @Override
+        public void onClick( ClickEvent event ) {
+            view.setSelectedServer(selected);
+            refreshGrid();
+        }
+    }
+
+    public void onServerTemplateDeleted(@Observes ServerTemplateDeleted serverTemplateDeleted) {
+        view.removeServerTemplate(serverTemplateDeleted.getServerTemplateId());
+    }
+
+    public void onServerTemplateUpdated(@Observes ServerTemplateUpdated serverTemplateUpdated) {
+        ServerTemplate serverTemplate = serverTemplateUpdated.getServerTemplate();
+        if (serverTemplate.getServerInstanceKeys() == null || serverTemplate.getServerInstanceKeys().isEmpty()) {
+            view.removeServerTemplate(serverTemplate.getId());
+        }
     }
 }

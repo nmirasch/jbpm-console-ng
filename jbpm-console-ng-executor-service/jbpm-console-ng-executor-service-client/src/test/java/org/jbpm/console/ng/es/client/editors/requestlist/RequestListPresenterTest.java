@@ -104,7 +104,7 @@ public class RequestListPresenterTest {
         presenter.cancelRequest(REQUESTID_ID);
         verify( requestChangedEvent,
                 times( 1 ) ).fire(any(RequestChangedEvent.class));
-        verify(executorServiceMock).cancelRequest(REQUESTID_ID);
+        verify(executorServiceMock).cancelRequest(anyString(), REQUESTID_ID);
 
     }
 
@@ -114,7 +114,7 @@ public class RequestListPresenterTest {
         presenter.requeueRequest(REQUESTID_ID);
         verify( requestChangedEvent,
                 times( 1 ) ).fire(any(RequestChangedEvent.class));
-        verify(executorServiceMock).requeueRequest(REQUESTID_ID);
+        verify(executorServiceMock).requeueRequest(anyString(), REQUESTID_ID);
 
     }
 

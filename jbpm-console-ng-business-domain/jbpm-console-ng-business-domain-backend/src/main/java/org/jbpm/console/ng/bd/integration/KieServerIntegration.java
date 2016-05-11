@@ -38,6 +38,8 @@ import org.kie.server.client.KieServicesClient;
 import org.kie.server.client.KieServicesConfiguration;
 import org.kie.server.client.KieServicesFactory;
 import org.kie.server.client.balancer.LoadBalancer;
+import org.kie.server.client.credentials.EnteredCredentialsProvider;
+import org.kie.server.client.credentials.EnteredTokenCredentialsProvider;
 import org.kie.server.client.credentials.SubjectCredentialsProvider;
 import org.kie.server.client.impl.AbstractKieServicesClientImpl;
 import org.kie.server.controller.api.model.events.ServerInstanceDeleted;
@@ -52,7 +54,9 @@ import org.kie.server.controller.api.model.spec.ServerTemplate;
 import org.kie.workbench.common.screens.server.management.service.SpecManagementService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.uberfire.commons.services.cdi.Startup;
 
+@Startup
 @ApplicationScoped
 public class KieServerIntegration {
 
@@ -61,6 +65,7 @@ public class KieServerIntegration {
     private KieServices kieServices;
 
     private ConcurrentMap<String, KieServicesClient> serverTemplatesClients = new ConcurrentHashMap<String, KieServicesClient>();
+    private ConcurrentMap<String, KieServicesClient> adminClients = new ConcurrentHashMap<String, KieServicesClient>();
 
     private ConcurrentMap<String, ServerInstanceKey> serverInstancesById = new ConcurrentHashMap<String, ServerInstanceKey>();
 
@@ -87,6 +92,10 @@ public class KieServerIntegration {
 
     public KieServicesClient getServerClient(String serverTemplateId, String containerId) {
         return serverTemplatesClients.get(serverTemplateId + "|" + containerId);
+    }
+
+    public KieServicesClient getAdminServerClient(String serverTemplateId) {
+        return adminClients.get(serverTemplateId);
     }
 
     protected void indexServerInstances(ServerTemplate serverTemplate) {
@@ -122,6 +131,8 @@ public class KieServerIntegration {
                 iterator.remove();
             }
         }
+        // remove admin client
+        adminClients.remove(serverTemplateDeleted.getServerTemplateId());
 
         removeServerInstancesFromIndex(serverTemplateDeleted.getServerTemplateId());
     }
@@ -163,7 +174,7 @@ public class KieServerIntegration {
     }
 
     protected void buildClientsForServer(ServerTemplate serverTemplate) {
-        KieServicesClient kieServicesClient = createClientForTemplate(serverTemplate, null);
+        KieServicesClient kieServicesClient = createClientForTemplate(serverTemplate, null, getCredentialsProvider());
         if (kieServicesClient != null) {
             serverTemplatesClients.put(serverTemplate.getId(), kieServicesClient);
         }
@@ -179,7 +190,7 @@ public class KieServerIntegration {
 
                     KieContainer kieContainer = kieServices.newKieContainer(containerSpec.getReleasedId());
 
-                    KieServicesClient kieServicesClientForContainer = createClientForTemplate(serverTemplate, kieContainer.getClassLoader());
+                    KieServicesClient kieServicesClientForContainer = createClientForTemplate(serverTemplate, kieContainer.getClassLoader(), getCredentialsProvider());
                     if (kieServicesClient != null) {
                         serverTemplatesClients.put(key, kieServicesClientForContainer);
                     }
@@ -188,9 +199,14 @@ public class KieServerIntegration {
                 }
             }
         }
+        // lastly create admin client
+        KieServicesClient adminKieServicesClient = createClientForTemplate(serverTemplate, null, getAdminCredentialsProvider());
+        if (adminKieServicesClient != null) {
+            adminClients.put(serverTemplate.getId(), adminKieServicesClient);
+        }
     }
 
-    protected KieServicesClient createClientForTemplate(ServerTemplate serverTemplate, ClassLoader classLoader) {
+    protected KieServicesClient createClientForTemplate(ServerTemplate serverTemplate, ClassLoader classLoader, CredentialsProvider credentialsProvider) {
 
         if (serverTemplate.getServerInstanceKeys() == null || serverTemplate.getServerInstanceKeys().isEmpty()) {
             return null;
@@ -202,7 +218,7 @@ public class KieServerIntegration {
             }
             endpoints.deleteCharAt(endpoints.length() - 1);
             logger.debug("Creating client that will use following list of endpoints {}", endpoints);
-            KieServicesConfiguration configuration = KieServicesFactory.newRestConfiguration(endpoints.toString(), getCredentialsProvider());
+            KieServicesConfiguration configuration = KieServicesFactory.newRestConfiguration(endpoints.toString(), credentialsProvider);
             configuration.setTimeout(60000);
 
             List<String> mappedCapabilities = new ArrayList<String>();
@@ -243,6 +259,14 @@ public class KieServerIntegration {
             return new KeyCloakTokenCredentialsProvider();
         } catch (UnsupportedOperationException e) {
             return new SubjectCredentialsProvider();
+        }
+    }
+
+    protected CredentialsProvider getAdminCredentialsProvider() {
+        if (System.getProperty(KieServerConstants.CFG_KIE_TOKEN) != null) {
+            return new EnteredTokenCredentialsProvider(System.getProperty(KieServerConstants.CFG_KIE_TOKEN));
+        } else {
+            return new EnteredCredentialsProvider(System.getProperty(KieServerConstants.CFG_KIE_USER, "kieserver"), System.getProperty(KieServerConstants.CFG_KIE_PASSWORD, "kieserver1!"));
         }
     }
 }

@@ -448,12 +448,14 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
         }
 
         final StringBuilder processIdsParam = new StringBuilder();
+        final StringBuilder deploymentIdsParam = new StringBuilder();
         for ( ProcessInstanceSummary selected : processInstances ) {
             if ( selected.getState() != ProcessInstance.STATE_ACTIVE ) {
                 view.displayNotification(Constants.INSTANCE.Signaling_Process_Instance_Not_Allowed(selected.getId()));
                 continue;
             }
             processIdsParam.append( selected.getId() + "," );
+            deploymentIdsParam.append( selected.getDeploymentId() + "," );
         }
 
         if ( processIdsParam.length() == 0 ) {
@@ -461,9 +463,12 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
         } else {
             // remove last ,
             processIdsParam.deleteCharAt( processIdsParam.length() - 1 );
+            deploymentIdsParam.deleteCharAt( deploymentIdsParam.length() - 1 );
         }
         PlaceRequest placeRequestImpl = new DefaultPlaceRequest(ProcessInstanceSignalPresenter.SIGNAL_PROCESS_POPUP);
         placeRequestImpl.addParameter( "processInstanceId", processIdsParam.toString() );
+        placeRequestImpl.addParameter( "deploymentId", deploymentIdsParam.toString() );
+        placeRequestImpl.addParameter( "serverTemplateId", view.getSelectedServer() );
 
         placeManager.goTo( placeRequestImpl );
         view.displayNotification( Constants.INSTANCE.Signaling_Process_Instance() );
