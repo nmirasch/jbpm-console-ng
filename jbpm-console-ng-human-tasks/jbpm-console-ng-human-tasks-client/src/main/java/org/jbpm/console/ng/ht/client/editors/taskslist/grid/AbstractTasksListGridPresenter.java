@@ -159,7 +159,9 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
         try {
             if (!isAddingDefaultFilters()) {
                 FilterSettings currentTableSettings = dataSetQueryHelper.getCurrentTableSettings();
-                if (currentTableSettings != null && view.getSelectedServer() == null ) {
+
+                if (currentTableSettings != null ) {
+                    currentTableSettings.setServerTemplateId(view.getSelectedServer());
                     currentTableSettings.setTablePageSize(view.getListGrid().getPageSize());
                     ColumnSortList columnSortList = view.getListGrid().getColumnSortList();
                     if (columnSortList != null && columnSortList.size() > 0) {

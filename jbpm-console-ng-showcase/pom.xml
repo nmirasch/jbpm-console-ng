@@ -978,7 +978,7 @@
 
     <!-- login module -->
     <dependency>
-      <groupId>org.drools</groupId>
+      <groupId>org.kie</groupId>
       <artifactId>kie-security</artifactId>
     </dependency>
 

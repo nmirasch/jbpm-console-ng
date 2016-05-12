@@ -79,19 +79,19 @@ public class KieServerDataSetProvider implements DataSetProvider {
         // apply filtering
         DataSetFilter filter = dataSetLookup.getFirstFilterOp();
         if (filter != null) {
-            QueryParam[] filterParams = new QueryParam[filter.getColumnFilterList().size()];
+            List<QueryParam> filterParams = new ArrayList<>();
             int index = 0;
             for (ColumnFilter cFilter : filter.getColumnFilterList()) {
                 if (cFilter instanceof CoreFunctionFilter) {
 
                     CoreFunctionFilter coreFunctionFilter = (CoreFunctionFilter) cFilter;
 
-                    filterParams[index] = new QueryParam(coreFunctionFilter.getColumnId(), coreFunctionFilter.getType().toString(), coreFunctionFilter.getParameters());
+                    filterParams.add(new QueryParam(coreFunctionFilter.getColumnId(), coreFunctionFilter.getType().toString(), coreFunctionFilter.getParameters()));
                     index++;
                 }
             }
 
-            filterSpec.setParameters(filterParams);
+            filterSpec.setParameters(filterParams.toArray(new QueryParam[filterParams.size()]));
         }
         // apply sorting
         DataSetSort sort = dataSetLookup.getFirstSortOp();

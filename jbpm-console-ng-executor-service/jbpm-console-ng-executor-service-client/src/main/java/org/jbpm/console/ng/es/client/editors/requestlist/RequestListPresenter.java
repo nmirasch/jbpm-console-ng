@@ -182,8 +182,9 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
         try {
             if(!isAddingDefaultFilters()) {
                 FilterSettings currentTableSettings = dataSetQueryHelper.getCurrentTableSettings();
-                currentTableSettings.setServerTemplateId(view.getSelectedServer());
+
                 if ( currentTableSettings != null ) {
+                    currentTableSettings.setServerTemplateId(view.getSelectedServer());
                     currentTableSettings.setTablePageSize( view.getListGrid().getPageSize() );
                     ColumnSortList columnSortList = view.getListGrid().getColumnSortList();
                     if ( columnSortList != null && columnSortList.size() > 0 ) {
