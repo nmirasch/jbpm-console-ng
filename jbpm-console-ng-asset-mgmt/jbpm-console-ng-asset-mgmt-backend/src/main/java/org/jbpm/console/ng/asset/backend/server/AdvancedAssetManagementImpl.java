@@ -15,19 +15,27 @@
  */
 package org.jbpm.console.ng.asset.backend.server;
 
+import java.util.Map;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
+import javax.enterprise.inject.Instance;
+import javax.inject.Inject;
 
 import org.guvnor.asset.management.model.BuildProjectStructureEvent;
 import org.guvnor.asset.management.model.ConfigureRepositoryEvent;
 import org.guvnor.asset.management.model.ExecuteOperationEvent;
 import org.guvnor.asset.management.model.PromoteChangesEvent;
 import org.guvnor.asset.management.model.ReleaseProjectEvent;
+import org.guvnor.rest.client.JobRequest;
+import org.guvnor.rest.client.JobStatus;
+import org.kie.api.executor.CommandContext;
+import org.kie.api.executor.ExecutorService;
 
 @ApplicationScoped
 public class AdvancedAssetManagementImpl {
 
-    private String deploymentId = "org.guvnor:guvnor-asset-mgmt-project:latest";
+    @Inject
+    private Instance<ExecutorService> executorService;
 
     public AdvancedAssetManagementImpl() {
     }
@@ -49,6 +57,15 @@ public class AdvancedAssetManagementImpl {
     }
 
     public void executeOperation(@Observes ExecuteOperationEvent event) {
+
+        Map<String, Object> parameters = event.getParams();
+
+        String command = (String) parameters.remove("CommandClass");
+        JobRequest request = (JobRequest) parameters.get("JobRequest");
+        request.setStatus(JobStatus.APPROVED);
+        CommandContext ctx = new CommandContext();
+        ctx.setData(parameters);
+        executorService.get().scheduleRequest(command, ctx);
 
     }
 }
