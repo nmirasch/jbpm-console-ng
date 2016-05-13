@@ -78,6 +78,10 @@
       <groupId>org.jbpm</groupId>
       <artifactId>jbpm-console-ng-business-domain-backend</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.jbpm</groupId>
+      <artifactId>jbpm-console-ng-dashboard-backend</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.ocpsoft.prettytime</groupId>
@@ -98,6 +102,11 @@
     <dependency>
       <groupId>org.kie.server</groupId>
       <artifactId>kie-server-client</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.kie.server</groupId>
+      <artifactId>kie-server-controller-api</artifactId>
     </dependency>
 
     <!-- Test dependencies -->

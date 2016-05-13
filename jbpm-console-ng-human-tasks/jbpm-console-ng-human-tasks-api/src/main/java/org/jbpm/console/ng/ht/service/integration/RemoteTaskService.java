@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.jboss.errai.bus.server.annotations.Remote;
 import org.jbpm.console.ng.ht.model.CommentSummary;
+import org.jbpm.console.ng.ht.model.TaskAssignmentSummary;
 import org.jbpm.console.ng.ht.model.TaskEventSummary;
 import org.jbpm.console.ng.ht.model.TaskSummary;
 
@@ -29,10 +30,6 @@ import org.jbpm.console.ng.ht.model.TaskSummary;
 public interface RemoteTaskService {
 
     List<TaskSummary> getActiveTasks(String serverTemplateId, Integer page, Integer pageSize);
-    List<TaskSummary> getPersonalTasks(String serverTemplateId, Integer page, Integer pageSize);
-    List<TaskSummary> getGroupTasks(String serverTemplateId, Integer page, Integer pageSize);
-    List<TaskSummary> getAdminTasks(String serverTemplateId, Integer page, Integer pageSize);
-    List<TaskSummary> getTasks(String serverTemplateId, Integer page, Integer pageSize);
 
     TaskSummary getTask(String serverTemplateId, String containerId, Long taskId);
 
@@ -55,4 +52,8 @@ public interface RemoteTaskService {
     List<CommentSummary> getTaskComments(String serverTemplateId, String containerId, Long taskId);
 
     List<TaskEventSummary> getTaskEvents(String serverTemplateId, String containerId, Long taskId);
+
+    void delegate(String serverTemplateId, String containerId, long taskId, String entity);
+
+    TaskAssignmentSummary getTaskAssignmentDetails(String serverTemplateId, String containerId, long taskId);
 }

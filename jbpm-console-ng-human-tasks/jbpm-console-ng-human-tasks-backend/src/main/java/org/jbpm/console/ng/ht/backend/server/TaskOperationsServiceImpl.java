@@ -67,7 +67,7 @@ public class TaskOperationsServiceImpl implements TaskOperationsService {
     }
   
     @Override
-    public TaskAssignmentSummary getTaskAssignmentDetails(long taskId) {
+    public TaskAssignmentSummary getTaskAssignmentDetails(String serverTemplateId, String containerId, long taskId) {
 
         return null;
     }

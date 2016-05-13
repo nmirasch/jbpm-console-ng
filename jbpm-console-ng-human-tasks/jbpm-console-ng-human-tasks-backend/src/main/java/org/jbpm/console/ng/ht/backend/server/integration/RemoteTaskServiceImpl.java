@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import org.jboss.errai.bus.server.annotations.Service;
 import org.jbpm.console.ng.bd.integration.KieServerIntegration;
 import org.jbpm.console.ng.ht.model.CommentSummary;
+import org.jbpm.console.ng.ht.model.TaskAssignmentSummary;
 import org.jbpm.console.ng.ht.model.TaskEventSummary;
 import org.jbpm.console.ng.ht.model.TaskSummary;
 import org.jbpm.console.ng.ht.service.integration.RemoteTaskService;
@@ -47,90 +48,6 @@ public class RemoteTaskServiceImpl implements RemoteTaskService {
         UserTaskServicesClient client = getClient(serverTemplateId);
 
         List<org.kie.server.api.model.instance.TaskSummary> tasks = client.findTasksAssignedAsPotentialOwner(identityProvider.getName(), page, pageSize);
-
-        for (org.kie.server.api.model.instance.TaskSummary task : tasks) {
-            TaskSummary taskSummary = build(task);
-
-            taskSummaries.add(taskSummary);
-        }
-
-        return taskSummaries;
-    }
-
-    @Override
-    public List<TaskSummary> getPersonalTasks(String serverTemplateId, Integer page, Integer pageSize) {
-        List<TaskSummary> taskSummaries = new ArrayList<TaskSummary>();
-
-        if (serverTemplateId == null || serverTemplateId.isEmpty()) {
-            return taskSummaries;
-        }
-
-        UserTaskServicesClient client = getClient(serverTemplateId);
-
-        List<org.kie.server.api.model.instance.TaskSummary> tasks = client.findTasksOwned(identityProvider.getName(), page, pageSize);
-
-        for (org.kie.server.api.model.instance.TaskSummary task : tasks) {
-            TaskSummary taskSummary = build(task);
-
-            taskSummaries.add(taskSummary);
-        }
-
-        return taskSummaries;
-    }
-
-    @Override
-    public List<TaskSummary> getGroupTasks(String serverTemplateId, Integer page, Integer pageSize) {
-        List<TaskSummary> taskSummaries = new ArrayList<TaskSummary>();
-
-        if (serverTemplateId == null || serverTemplateId.isEmpty()) {
-            return taskSummaries;
-        }
-
-        UserTaskServicesClient client = getClient(serverTemplateId);
-
-        List<org.kie.server.api.model.instance.TaskSummary> tasks = client.findTasksAssignedAsPotentialOwner(identityProvider.getName(), identityProvider.getRoles(), page, pageSize);
-
-        for (org.kie.server.api.model.instance.TaskSummary task : tasks) {
-            TaskSummary taskSummary = build(task);
-
-            taskSummaries.add(taskSummary);
-        }
-
-        return taskSummaries;
-    }
-
-    @Override
-    public List<TaskSummary> getAdminTasks(String serverTemplateId, Integer page, Integer pageSize) {
-        List<TaskSummary> taskSummaries = new ArrayList<TaskSummary>();
-
-        if (serverTemplateId == null || serverTemplateId.isEmpty()) {
-            return taskSummaries;
-        }
-
-        UserTaskServicesClient client = getClient(serverTemplateId);
-
-        List<org.kie.server.api.model.instance.TaskSummary> tasks = client.findTasksAssignedAsBusinessAdministrator(identityProvider.getName(), page, pageSize);
-
-        for (org.kie.server.api.model.instance.TaskSummary task : tasks) {
-            TaskSummary taskSummary = build(task);
-
-            taskSummaries.add(taskSummary);
-        }
-
-        return taskSummaries;
-    }
-
-    @Override
-    public List<TaskSummary> getTasks(String serverTemplateId, Integer page, Integer pageSize) {
-        List<TaskSummary> taskSummaries = new ArrayList<TaskSummary>();
-
-        if (serverTemplateId == null || serverTemplateId.isEmpty()) {
-            return taskSummaries;
-        }
-
-        UserTaskServicesClient client = getClient(serverTemplateId);
-
-        List<org.kie.server.api.model.instance.TaskSummary> tasks = client.findTasks(identityProvider.getName(), page, pageSize);
 
         for (org.kie.server.api.model.instance.TaskSummary task : tasks) {
             TaskSummary taskSummary = build(task);
@@ -239,6 +156,26 @@ public class RemoteTaskServiceImpl implements RemoteTaskService {
         }
 
         return eventSummaries;
+    }
+
+    @Override
+    public void delegate(String serverTemplateId, String containerId, long taskId, String entity) {
+        UserTaskServicesClient client = getClient(serverTemplateId);
+
+        client.delegateTask(containerId, taskId, identityProvider.getName(), entity);
+    }
+
+    @Override
+    public TaskAssignmentSummary getTaskAssignmentDetails(String serverTemplateId, String containerId, long taskId) {
+        UserTaskServicesClient client = getClient(serverTemplateId);
+
+        TaskInstance task = client.getTaskInstance(containerId, taskId, false, false, true);
+        TaskAssignmentSummary summary = new TaskAssignmentSummary();
+        summary.setTaskId(task.getId());
+        summary.setActualOwner(task.getActualOwner());
+        summary.setTaskName(task.getName());
+        summary.setPotOwnersString(task.getPotentialOwners());
+        return summary;
     }
 
     protected UserTaskServicesClient getClient(String serverTemplateId) {

@@ -188,7 +188,8 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
         try {
             if ( !isAddingDefaultFilters() ) {
                 final FilterSettings currentTableSettings = dataSetQueryHelper.getCurrentTableSettings();
-                if ( currentTableSettings != null && view.getSelectedServer() == null ) {
+                if ( currentTableSettings != null) {
+                    currentTableSettings.setServerTemplateId(view.getSelectedServer());
                     currentTableSettings.setTablePageSize( view.getListGrid().getPageSize() );
                     ColumnSortList columnSortList = view.getListGrid().getColumnSortList();
                     if ( columnSortList != null && columnSortList.size() > 0 ) {
@@ -374,6 +375,7 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
 
         final int rowCountNotTrimmed = dataSet.getRowCountNonTrimmed();
         FilterSettings variablesTableSettings = view.getVariablesTableSettings( filterValue );
+        variablesTableSettings.setServerTemplateId(view.getSelectedServer());
         variablesTableSettings.setTablePageSize( -1 );
 
         dataSetQueryHelperDomainSpecific.setDataSetHandler( variablesTableSettings );
@@ -511,7 +513,11 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
                 .respondsWith(new Command() {
                     @Override
                     public void execute() {
-                        newProcessInstancePopup.show();
+                        if (view.getSelectedServer() != null && !view.getSelectedServer().isEmpty()) {
+                            newProcessInstancePopup.show(view.getSelectedServer());
+                        } else {
+                            view.displayNotification(Constants.INSTANCE.SelectServerTemplate());
+                        }
                     }
                 })
                 .endMenu()

@@ -459,7 +459,7 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
             @Override
             public void execute( TaskSummary task ) {
 
-                presenter.claimTask( task.getTaskId(), identity.getIdentifier(), task.getDeploymentId() );
+                presenter.claimTask( selectedServerTemplate, task.getDeploymentId(), task.getTaskId() );
                 taskSelected.fire( new TaskSelectionEvent( selectedServerTemplate, task.getDeploymentId(),task.getTaskId(), task.getTaskName() ) );
                 extendedPagedTable.refresh();
             }
@@ -469,7 +469,7 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
             @Override
             public void execute( TaskSummary task ) {
 
-                presenter.releaseTask( task.getTaskId(), identity.getIdentifier() );
+                presenter.releaseTask( selectedServerTemplate, task.getDeploymentId(), task.getTaskId() );
                 taskSelected.fire( new TaskSelectionEvent( selectedServerTemplate, task.getDeploymentId(),task.getTaskId(), task.getTaskName() ) );
                 extendedPagedTable.refresh();
             }

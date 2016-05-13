@@ -36,6 +36,7 @@ import org.jbpm.console.ng.ht.model.events.TaskRefreshedEvent;
 import org.jbpm.console.ng.ht.model.events.TaskSelectionEvent;
 import org.jbpm.console.ng.ht.service.TaskLifeCycleService;
 import org.jbpm.console.ng.ht.service.TaskOperationsService;
+import org.jbpm.console.ng.ht.service.integration.RemoteTaskService;
 import org.uberfire.ext.widgets.common.client.callbacks.DefaultErrorCallback;
 
 @Dependent
@@ -67,12 +68,14 @@ public class TaskAdminPresenter {
     private User identity;
 
     @Inject
-    protected Caller<TaskLifeCycleService> taskServices;
+    protected Caller<RemoteTaskService> taskServices;
 
     @Inject
     protected Caller<TaskOperationsService> taskOperationsServices;
 
     private long currentTaskId = 0;
+    private String serverTemplateId;
+    private String containerId;
 
     @Inject
     private Event<TaskRefreshedEvent> taskRefreshed;
@@ -98,7 +101,7 @@ public class TaskAdminPresenter {
 
                 },
                 new DefaultErrorCallback()
-        ).delegate(currentTaskId, identity.getIdentifier(), entity);
+        ).delegate(serverTemplateId, containerId, currentTaskId, entity);
     }
 
     public void reminder() {
@@ -117,7 +120,7 @@ public class TaskAdminPresenter {
         List<Long> taskIds = new ArrayList<Long>(1);
         taskIds.add(currentTaskId);
 
-        taskOperationsServices.call(
+        taskServices.call(
                 new RemoteCallback<TaskAssignmentSummary>() {
                     @Override
                     public void callback(TaskAssignmentSummary ts) {
@@ -145,11 +148,13 @@ public class TaskAdminPresenter {
                     }
                 },
                 new DefaultErrorCallback()
-        ).getTaskAssignmentDetails(currentTaskId);
+        ).getTaskAssignmentDetails(serverTemplateId, containerId, currentTaskId);
     }
 
     public void onTaskSelectionEvent( @Observes final TaskSelectionEvent event ) {
         this.currentTaskId = event.getTaskId();
+        serverTemplateId = event.getServerTemplateId();
+        containerId = event.getContainerId();
         refreshTaskPotentialOwners();
     }
 

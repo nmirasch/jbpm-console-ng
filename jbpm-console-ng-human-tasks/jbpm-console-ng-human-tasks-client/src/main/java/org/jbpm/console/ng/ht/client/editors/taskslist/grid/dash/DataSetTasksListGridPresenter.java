@@ -18,14 +18,12 @@ package org.jbpm.console.ng.ht.client.editors.taskslist.grid.dash;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
-import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.security.shared.api.identity.User;
 import org.jbpm.console.ng.df.client.list.base.DataSetQueryHelper;
 import org.jbpm.console.ng.gc.client.menu.RestoreDefaultFiltersMenuBuilder;
 import org.jbpm.console.ng.ht.client.editors.quicknewtask.QuickNewTaskPopup;
 import org.jbpm.console.ng.ht.client.editors.taskslist.grid.AbstractTasksListGridPresenter;
 import org.jbpm.console.ng.ht.client.i18n.Constants;
-import org.jbpm.console.ng.ht.service.TaskLifeCycleService;
 import org.uberfire.client.annotations.WorkbenchMenu;
 import org.uberfire.client.annotations.WorkbenchScreen;
 import org.uberfire.ext.widgets.common.client.menu.RefreshMenuBuilder;
@@ -47,11 +45,10 @@ public class DataSetTasksListGridPresenter extends AbstractTasksListGridPresente
     }
 
     public DataSetTasksListGridPresenter(final DataSetTaskListView view,
-                                         final Caller<TaskLifeCycleService> taskOperationsService,
                                          final DataSetQueryHelper dataSetQueryHelper,
                                          final DataSetQueryHelper dataSetQueryHelperDomainSpecific,
                                          final User identity) {
-        super(view, taskOperationsService, dataSetQueryHelper, dataSetQueryHelperDomainSpecific, identity);
+        super(view, dataSetQueryHelper, dataSetQueryHelperDomainSpecific, identity);
     }
 
     @WorkbenchMenu

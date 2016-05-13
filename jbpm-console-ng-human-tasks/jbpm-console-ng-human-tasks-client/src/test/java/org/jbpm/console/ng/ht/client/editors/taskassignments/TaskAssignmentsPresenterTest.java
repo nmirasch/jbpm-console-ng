@@ -24,8 +24,8 @@ import org.jbpm.console.ng.ht.client.i18n.Constants;
 import org.jbpm.console.ng.ht.model.TaskSummary;
 import org.jbpm.console.ng.ht.model.events.TaskRefreshedEvent;
 import org.jbpm.console.ng.ht.model.events.TaskSelectionEvent;
-import org.jbpm.console.ng.ht.service.TaskLifeCycleService;
 import org.jbpm.console.ng.ht.service.TaskOperationsService;
+import org.jbpm.console.ng.ht.service.integration.RemoteTaskService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,8 +52,8 @@ public class TaskAssignmentsPresenterTest {
     @Mock
     private User userMock;
     @Mock
-    private TaskLifeCycleService lifecycleServiceMock;
-    private Caller<TaskLifeCycleService> lifecycleServiceCallerMock;
+    private RemoteTaskService lifecycleServiceMock;
+    private Caller<RemoteTaskService> lifecycleServiceCallerMock;
     @Mock
     private TaskOperationsService operationsServiceMock;
     private Caller<TaskOperationsService> operationsServiceCallerMock;
@@ -66,7 +66,7 @@ public class TaskAssignmentsPresenterTest {
         when(userMock.getIdentifier())
                 .thenReturn(CURRENT_USER);
 
-        lifecycleServiceCallerMock = new CallerMock<TaskLifeCycleService>(lifecycleServiceMock);
+        lifecycleServiceCallerMock = new CallerMock<RemoteTaskService>(lifecycleServiceMock);
         operationsServiceCallerMock = new CallerMock<TaskOperationsService>(operationsServiceMock);
         final Event<TaskRefreshedEvent> taskRefreshed = spy(new EventSourceMock<TaskRefreshedEvent>());
         doNothing().when(taskRefreshed).fire(any(TaskRefreshedEvent.class));
@@ -105,7 +105,7 @@ public class TaskAssignmentsPresenterTest {
 
         verify(viewMock).setHelpText(Constants.INSTANCE.DelegationUserInputRequired());
         verify(lifecycleServiceMock, never())
-                .delegate(anyLong(), anyString(), anyString());
+                .delegate(anyString(), anyString(), anyLong(), anyString());
     }
 
     @Test
@@ -114,7 +114,7 @@ public class TaskAssignmentsPresenterTest {
 
         verify(viewMock).setHelpText(Constants.INSTANCE.DelegationUserInputRequired());
         verify(lifecycleServiceMock, never())
-                .delegate(anyLong(), anyString(), anyString());
+                .delegate(anyString(), anyString(), anyLong(), anyString());
     }
 
     @Test

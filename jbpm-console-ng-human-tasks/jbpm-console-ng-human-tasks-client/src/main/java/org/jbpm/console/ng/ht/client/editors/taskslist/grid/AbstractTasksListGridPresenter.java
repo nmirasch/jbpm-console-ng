@@ -103,8 +103,6 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
 
     private Constants constants = GWT.create(Constants.class);
 
-    @Inject
-    private Caller<TaskLifeCycleService> taskOperationsService;
 
     @Inject
     private Caller<RemoteTaskService> remoteTaskService;
@@ -138,12 +136,10 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
     }
 
     public AbstractTasksListGridPresenter(DataSetTasksListGridPresenter.DataSetTaskListView view,
-                                          Caller<TaskLifeCycleService> taskOperationsService,
                                           DataSetQueryHelper dataSetQueryHelper,
                                           DataSetQueryHelper dataSetQueryHelperDomainSpecific,
                                           User identity) {
         this.view = view;
-        this.taskOperationsService = taskOperationsService;
         this.dataSetQueryHelper = dataSetQueryHelper;
         this.dataSetQueryHelperDomainSpecific = dataSetQueryHelperDomainSpecific;
         this.identity = identity;
@@ -338,6 +334,7 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
 
         FilterSettings variablesTableSettings = view.getVariablesTableSettings(filterValue);
         variablesTableSettings.setTablePageSize(-1);
+        variablesTableSettings.setServerTemplateId(view.getSelectedServer());
 
         dataSetQueryHelperDomainSpecific.setDataSetHandler(variablesTableSettings);
         dataSetQueryHelperDomainSpecific.setCurrentTableSettings(variablesTableSettings);
@@ -429,8 +426,8 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
         return view;
     }
 
-    public void releaseTask(final Long taskId, final String userId) {
-        taskOperationsService.call(
+    public void releaseTask(final String serverTemplateId, final String deploymentId, final Long taskId) {
+        remoteTaskService.call(
                 new RemoteCallback<Void>() {
                     @Override
                     public void callback(Void nothing) {
@@ -439,11 +436,11 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
                     }
                 },
                 new DefaultErrorCallback()
-        ).release(taskId, userId);
+        ).releaseTask(serverTemplateId, deploymentId, taskId);
     }
 
-    public void claimTask(final Long taskId, final String userId, final String deploymentId) {
-        taskOperationsService.call(
+    public void claimTask(final String serverTemplateId, final String deploymentId, final Long taskId) {
+        remoteTaskService.call(
                 new RemoteCallback<Void>() {
                     @Override
                     public void callback(Void nothing) {
@@ -452,7 +449,7 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
                     }
                 },
                 new DefaultErrorCallback()
-        ).claim(taskId, userId, deploymentId);
+        ).claimTask(serverTemplateId, deploymentId, taskId);
     }
 
     @Override

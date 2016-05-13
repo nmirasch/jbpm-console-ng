@@ -42,7 +42,7 @@ public interface TaskOperationsService {
   
   boolean existInDatabase(long taskId);
   
-  TaskAssignmentSummary getTaskAssignmentDetails(long taskId); 
+  TaskAssignmentSummary getTaskAssignmentDetails(String serverTemplateId, String containerId, long taskId);
   
   void executeReminderForTask(long taskId,String fromUser);
 

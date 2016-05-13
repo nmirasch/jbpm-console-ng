@@ -30,11 +30,13 @@ import org.jboss.errai.common.client.api.RemoteCallback;
 import org.jboss.errai.security.shared.api.Group;
 import org.jboss.errai.security.shared.api.identity.User;
 import org.jbpm.console.ng.ht.client.i18n.Constants;
+import org.jbpm.console.ng.ht.model.TaskAssignmentSummary;
 import org.jbpm.console.ng.ht.model.TaskSummary;
 import org.jbpm.console.ng.ht.model.events.TaskRefreshedEvent;
 import org.jbpm.console.ng.ht.model.events.TaskSelectionEvent;
 import org.jbpm.console.ng.ht.service.TaskLifeCycleService;
 import org.jbpm.console.ng.ht.service.TaskOperationsService;
+import org.jbpm.console.ng.ht.service.integration.RemoteTaskService;
 import org.uberfire.ext.widgets.common.client.callbacks.DefaultErrorCallback;
 
 @Dependent
@@ -62,16 +64,18 @@ public class TaskAssignmentsPresenter {
     private Constants constants = Constants.INSTANCE;
     private TaskAssignmentsView view;
     private User identity;
-    private Caller<TaskLifeCycleService> taskLifecycleService;
+    private Caller<RemoteTaskService> taskLifecycleService;
     private Caller<TaskOperationsService> taskOperationsService;
     private Event<TaskRefreshedEvent> taskRefreshed;
     private long currentTaskId = 0;
+    private String serverTemplateId;
+    private String containerId;
 
     @Inject
     public TaskAssignmentsPresenter(
             TaskAssignmentsView view,
             User identity,
-            Caller<TaskLifeCycleService> taskLifecycleService,
+            Caller<RemoteTaskService> taskLifecycleService,
             Caller<TaskOperationsService> taskOperationsService,
             Event<TaskRefreshedEvent> taskRefreshed
     ) {
@@ -116,7 +120,7 @@ public class TaskAssignmentsPresenter {
                         return super.error(message, throwable);
                     }
                 }
-        ).delegate(currentTaskId, identity.getIdentifier(), entity);
+        ).delegate(serverTemplateId, containerId, currentTaskId, entity);
     }
 
     public void refreshTaskPotentialOwners() {
@@ -125,34 +129,39 @@ public class TaskAssignmentsPresenter {
             view.enableUserOrGroupInput(false);
             view.setPotentialOwnersInfo("");
 
-            taskOperationsService.call(new RemoteCallback<TaskSummary>() {
+            final Set<String> securityContext = new HashSet<String>();
+            for( final Group group : identity.getGroups()){
+                securityContext.add( group.getName() );
+            }
+            securityContext.add(identity.getIdentifier());
+
+            taskLifecycleService.call(new RemoteCallback<TaskAssignmentSummary>() {
                 @Override
-                public void callback(final TaskSummary response) {
+                public void callback(final TaskAssignmentSummary response) {
                     if (response.getPotOwnersString() == null || response.getPotOwnersString().isEmpty()) {
                         view.setPotentialOwnersInfo(constants.No_Potential_Owners());
                     } else {
                         view.setPotentialOwnersInfo(response.getPotOwnersString().toString());
+
+                        for (String entity : securityContext) {
+
+                            if (response.getPotOwnersString().contains(entity)) {
+                                view.enableDelegateButton(true);
+                                view.enableUserOrGroupInput(true);
+                                break;
+                            }
+                        }
                     }
                 }
-            }, new DefaultErrorCallback()).getTaskDetails(currentTaskId);
+            }, new DefaultErrorCallback()).getTaskAssignmentDetails(serverTemplateId, containerId, currentTaskId);
 
-            final Set<String> groups = new HashSet<String>();
-            for( final Group group : identity.getGroups()){
-                groups.add( group.getName() );
-            }
-
-            taskOperationsService.call(new RemoteCallback<Boolean>() {
-                @Override
-                public void callback(final Boolean delegateEnabled) {
-                    view.enableDelegateButton(delegateEnabled);
-                    view.enableUserOrGroupInput(delegateEnabled);
-                }
-            }, new DefaultErrorCallback()).allowDelegate(currentTaskId, identity.getIdentifier(), groups);
         }
     }
 
     public void onTaskSelectionEvent(@Observes final TaskSelectionEvent event) {
         this.currentTaskId = event.getTaskId();
+        serverTemplateId = event.getServerTemplateId();
+        containerId = event.getContainerId();
         view.setHelpText("");
         view.clearUserOrGroupInput();
         refreshTaskPotentialOwners();

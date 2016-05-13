@@ -20,10 +20,8 @@ import com.google.gwtmockito.GwtMockitoTestRunner;
 import org.jboss.errai.security.shared.api.identity.User;
 import org.jbpm.console.ng.df.client.list.base.DataSetQueryHelper;
 import org.jbpm.console.ng.ht.client.editors.taskslist.grid.dash.DataSetTasksListGridViewImpl;
-import org.jbpm.console.ng.ht.service.TaskLifeCycleService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.uberfire.mocks.CallerMock;
 import org.uberfire.workbench.model.menu.Menus;
 
 import static org.junit.Assert.*;
@@ -33,11 +31,10 @@ public class DroolsTasksListGridPresenterTest extends AbstractTasksListGridPrese
 
     @Override
     protected AbstractTasksListGridPresenter createPresenter(final DataSetTasksListGridViewImpl viewMock,
-                                                             final CallerMock<TaskLifeCycleService> callerMockTaskOperationsService,
                                                              final DataSetQueryHelper dataSetQueryHelperMock,
                                                              final DataSetQueryHelper dataSetDomainDataQueryHelperMock,
                                                              final User identity) {
-        return new DroolsTasksListGridPresenter(viewMock, callerMockTaskOperationsService,
+        return new DroolsTasksListGridPresenter(viewMock,
                 dataSetQueryHelperMock, dataSetDomainDataQueryHelperMock, identity);
     }
 

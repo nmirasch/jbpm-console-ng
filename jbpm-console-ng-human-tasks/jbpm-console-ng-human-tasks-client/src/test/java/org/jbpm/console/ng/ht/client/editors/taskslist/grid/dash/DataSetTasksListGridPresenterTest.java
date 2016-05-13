@@ -32,11 +32,10 @@ public class DataSetTasksListGridPresenterTest extends AbstractTasksListGridPres
 
     @Override
     protected DataSetTasksListGridPresenter createPresenter(final DataSetTasksListGridViewImpl viewMock,
-                                                            final CallerMock<TaskLifeCycleService> callerMockTaskOperationsService,
                                                             final DataSetQueryHelper dataSetQueryHelperMock,
                                                             final DataSetQueryHelper dataSetDomainDataQueryHelperMock,
                                                             final User identity) {
-        return new DataSetTasksListGridPresenter(viewMock, callerMockTaskOperationsService,
+        return new DataSetTasksListGridPresenter(viewMock,
                 dataSetQueryHelperMock, dataSetDomainDataQueryHelperMock, identity);
     }
 

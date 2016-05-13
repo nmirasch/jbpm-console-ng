@@ -23,6 +23,7 @@ import javax.inject.Inject;
 
 import org.dashbuilder.dataprovider.DataSetProvider;
 import org.dashbuilder.dataprovider.DataSetProviderType;
+import org.dashbuilder.dataset.ColumnType;
 import org.dashbuilder.dataset.DataColumn;
 import org.dashbuilder.dataset.DataSet;
 import org.dashbuilder.dataset.DataSetFactory;
@@ -40,12 +41,15 @@ import org.dashbuilder.dataset.sort.DataSetSort;
 import org.dashbuilder.dataset.sort.SortOrder;
 import org.jbpm.console.ng.bd.integration.KieServerIntegration;
 import org.jbpm.console.ng.ga.model.dataset.ConsoleDataSetLookup;
+import org.jbpm.dashboard.renderer.model.KieServerDataSetProviderType;
 import org.kie.server.api.model.definition.QueryFilterSpec;
 import org.kie.server.api.model.definition.QueryParam;
 import org.kie.server.client.QueryServicesClient;
 
 @ApplicationScoped
 public class KieServerDataSetProvider implements DataSetProvider {
+
+    public static final DataSetProviderType TYPE = new KieServerDataSetProviderType();
 
     @Inject
     private KieServerIntegration kieServerIntegration;
@@ -54,12 +58,21 @@ public class KieServerDataSetProvider implements DataSetProvider {
 
     @Override
     public DataSetProviderType getType() {
-        return DataSetProviderType.REMOTE;
+        return TYPE;
     }
 
     @Override
     public DataSetMetadata getDataSetMetadata(DataSetDef def) throws Exception {
-        return new DataSetMetadataImpl(def, def.getUUID(), -1, def.getColumns().size(), new ArrayList<>(), new ArrayList<>(), -1);
+        List<String> columnNames = new ArrayList<>();
+        List<ColumnType> columnTypes = new ArrayList<>();
+        List<DataColumnDef> columns = def.getColumns();
+
+        for (DataColumnDef column : columns) {
+            columnNames.add(column.getId());
+            columnTypes.add(column.getColumnType());
+        }
+
+        return new DataSetMetadataImpl(def, def.getUUID(), -1, def.getColumns().size(), columnNames, columnTypes, -1);
     }
 
     @Override

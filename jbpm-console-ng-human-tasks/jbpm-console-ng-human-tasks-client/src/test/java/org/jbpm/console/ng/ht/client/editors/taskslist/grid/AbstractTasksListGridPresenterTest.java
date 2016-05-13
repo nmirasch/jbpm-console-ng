@@ -129,12 +129,11 @@ public abstract class AbstractTasksListGridPresenterTest {
                 return null;
             }
         }).when(dataSetDomainDataQueryHelperMock).lookupDataSet(anyInt(), any(DataSetReadyCallback.class));
-        presenter = createPresenter(viewMock, callerMockTaskOperationsService, dataSetQueryHelperMock, dataSetDomainDataQueryHelperMock, identity);
+        presenter = createPresenter(viewMock, dataSetQueryHelperMock, dataSetDomainDataQueryHelperMock, identity);
 
     }
 
     protected abstract AbstractTasksListGridPresenter createPresenter(final DataSetTasksListGridViewImpl viewMock,
-                                                                      final CallerMock<TaskLifeCycleService> callerMockTaskOperationsService,
                                                                       final DataSetQueryHelper dataSetQueryHelperMock,
                                                                       final DataSetQueryHelper dataSetDomainDataQueryHelperMock,
                                                                       final User identity);
@@ -152,14 +151,14 @@ public abstract class AbstractTasksListGridPresenterTest {
 
     @Test
     public void releaseTaskTest() {
-        presenter.releaseTask(TASK_ID, USR_ID);
+        presenter.releaseTask("", "deploymentId", TASK_ID);
 
         verify(taskLifeCycleServiceMock).release(TASK_ID, USR_ID);
     }
 
     @Test
     public void claimTaskTest() {
-        presenter.claimTask(TASK_ID, USR_ID, "deploymentId");
+        presenter.claimTask("", "deploymentId", TASK_ID);
 
         verify(taskLifeCycleServiceMock).claim(TASK_ID, USR_ID, "deploymentId");
     }

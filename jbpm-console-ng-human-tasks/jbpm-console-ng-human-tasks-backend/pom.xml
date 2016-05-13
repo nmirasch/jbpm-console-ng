@@ -44,6 +44,10 @@
       <artifactId>jbpm-console-ng-business-domain-backend</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.jbpm</groupId>
+      <artifactId>jbpm-console-ng-dashboard-backend</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.kie</groupId>
       <artifactId>kie-api</artifactId>
     </dependency>
@@ -100,6 +104,7 @@
       <groupId>org.dashbuilder</groupId>
       <artifactId>dashbuilder-dataset-api</artifactId>
     </dependency>
+
 
     <!-- kie server dependencies -->
     <dependency>

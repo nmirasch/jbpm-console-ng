@@ -26,6 +26,7 @@ import org.dashbuilder.dataset.def.DataSetDefFactory;
 import org.dashbuilder.dataset.def.DataSetDefRegistry;
 import org.dashbuilder.dataset.def.SQLDataSetDef;
 import org.jbpm.console.ng.bd.integration.KieServerIntegration;
+import org.jbpm.dashboard.dataset.integration.KieServerDataSetProvider;
 import org.kie.server.api.KieServerConstants;
 import org.kie.server.api.model.definition.QueryDefinition;
 import org.kie.server.client.KieServicesException;
@@ -221,13 +222,13 @@ public class DataSetDefsBootstrap {
 
         // Hide all these internal data set from end user view
         humanTasksDef.setPublic(false);
-        humanTasksDef.setProvider(DataSetProviderType.REMOTE);
+        humanTasksDef.setProvider(KieServerDataSetProvider.TYPE);
         humanTasksWithUserDef.setPublic(false);
-        humanTasksWithUserDef.setProvider(DataSetProviderType.REMOTE);
+        humanTasksWithUserDef.setProvider(KieServerDataSetProvider.TYPE);
         humanTaskWithAdminDef.setPublic(false);
-        humanTaskWithAdminDef.setProvider(DataSetProviderType.REMOTE);
+        humanTaskWithAdminDef.setProvider(KieServerDataSetProvider.TYPE);
         humanTasksWithUserDomainDef.setPublic(false);
-        humanTasksWithUserDomainDef.setProvider(DataSetProviderType.REMOTE);
+        humanTasksWithUserDomainDef.setProvider(KieServerDataSetProvider.TYPE);
 
         // Register the data set definitions
         dataSetDefRegistry.registerDataSetDef(humanTasksDef);
@@ -278,7 +279,7 @@ public class DataSetDefsBootstrap {
                             .name(humanTasksWithUserDomainDef.getUUID())
                             .expression(((SQLDataSetDef) humanTasksWithUserDomainDef).getDbSQL())
                             .source(((SQLDataSetDef) humanTasksWithUserDomainDef).getDataSource())
-                            .target("PO_TASK")
+                            .target("CUSTOM")
                             .build();
                     while (elapsed < waitLimit) {
                         try {
