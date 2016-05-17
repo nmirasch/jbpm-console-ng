@@ -45,7 +45,7 @@ public class VariableHelper {
         }
         if (!properties.isEmpty()) {
             for (Entry<String, String> entry : properties.entrySet()) {
-                variablesSummary.add(new ProcessVariableSummary(entry.getKey(), "", processInstanceId, "", "", new Date().getTime(), entry.getValue()));
+                variablesSummary.add(new ProcessVariableSummary(entry.getKey(), "", processInstanceId, "", "", new Date().getTime(), entry.getValue(), deploymentId, serverTemplateId));
             }
         }
 

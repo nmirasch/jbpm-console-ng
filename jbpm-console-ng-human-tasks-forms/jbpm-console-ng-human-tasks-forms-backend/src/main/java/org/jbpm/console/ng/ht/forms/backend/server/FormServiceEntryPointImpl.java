@@ -39,6 +39,7 @@ import org.kie.server.api.model.definition.ProcessDefinition;
 import org.kie.server.api.model.instance.TaskInstance;
 import org.kie.server.client.DocumentServicesClient;
 import org.kie.server.client.KieServicesClient;
+import org.kie.server.client.KieServicesException;
 import org.kie.server.client.ProcessServicesClient;
 import org.kie.server.client.UIServicesClient;
 import org.kie.server.client.UserTaskServicesClient;
@@ -91,7 +92,7 @@ public class FormServiceEntryPointImpl implements FormServiceEntryPoint {
 
         // get form content
         UIServicesClient uiServicesClient = client.getServicesClient(UIServicesClient.class);
-        String formContent = uiServicesClient.getTaskForm(domainId, taskId);
+
 
         // get task with inputs and outputs
         UserTaskServicesClient taskClient = client.getServicesClient(UserTaskServicesClient.class);
@@ -130,12 +131,14 @@ public class FormServiceEntryPointImpl implements FormServiceEntryPoint {
             taskInstance.setOutputIncluded(true);
         }
 
-        if (formContent != null) {
-
-
-            formManagerService.registerForm(registrationKey, task.getFormName() +"-taskform.form", formContent);
+        try {
+            String formContent = uiServicesClient.getTaskForm(domainId, taskId);
+            if (formContent != null) {
+                formManagerService.registerForm(registrationKey, task.getFormName() +"-taskform.form", formContent);
+            }
+        } catch (KieServicesException e) {
+            logger.debug("Unable to find process form in remote server due to {}", e.getMessage());
         }
-
         try {
             for (FormProvider provider : providers) {
                 String template = provider.render(task.getName(), taskInstance, null, renderContext);
@@ -182,13 +185,16 @@ public class FormServiceEntryPointImpl implements FormServiceEntryPoint {
 
         UIServicesClient uiServicesClient = client.getServicesClient(UIServicesClient.class);
 
-        String formContent = uiServicesClient.getProcessForm(domainId, processId);
-        if (formContent != null) {
+        try {
+            String formContent = uiServicesClient.getProcessForm(domainId, processId);
+            if (formContent != null) {
 
-            formManagerService.registerForm(processDesc.getDeploymentId(), processDesc.getId() +"-taskform.form", formContent);
+                formManagerService.registerForm(processDesc.getDeploymentId(), processDesc.getId() + "-taskform.form", formContent);
 
+            }
+        } catch (KieServicesException e) {
+            logger.debug("Unable to find process form in remote server due to {}", e.getMessage());
         }
-
         try {
 
             for (FormProvider provider : providers) {
