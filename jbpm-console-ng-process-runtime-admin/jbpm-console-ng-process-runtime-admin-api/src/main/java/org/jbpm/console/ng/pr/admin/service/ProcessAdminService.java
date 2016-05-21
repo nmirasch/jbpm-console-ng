@@ -16,11 +16,18 @@
 
 package org.jbpm.console.ng.pr.admin.service;
 
+import java.util.Map;
+
 import org.jboss.errai.bus.server.annotations.Remote;
 
 @Remote
-public interface ProcessServiceAdminEntryPoint {
-    void generateMockInstances(String deploymentId, String processId, int amountOfInstances);
-  
+public interface ProcessAdminService {
+
+    void generateMockInstances(String serverTemplateId,
+                               String containerId,
+                               String processId,
+                               String correlationKey,
+                               Map<String, Object> params,
+                               Integer amountOfInstances);
 
 }

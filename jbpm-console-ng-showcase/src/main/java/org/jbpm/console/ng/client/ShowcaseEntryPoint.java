@@ -16,9 +16,7 @@
 package org.jbpm.console.ng.client;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.enterprise.context.ApplicationScoped;
@@ -42,22 +40,22 @@ import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
 import org.jboss.errai.ioc.client.api.AfterInitialization;
 import org.jboss.errai.ioc.client.api.EntryPoint;
-import org.jboss.errai.ioc.client.container.SyncBeanDef;
 import org.jboss.errai.ioc.client.container.SyncBeanManager;
 import org.jboss.errai.security.shared.api.Group;
 import org.jboss.errai.security.shared.api.Role;
 import org.jboss.errai.security.shared.api.identity.User;
 import org.jboss.errai.security.shared.service.AuthenticationService;
 import org.jbpm.console.ng.client.i18n.Constants;
+import org.jbpm.console.ng.client.perspectives.HomePerspective;
 import org.jbpm.console.ng.ga.forms.service.PlaceManagerActivityService;
 import org.jbpm.console.ng.ht.client.perspectives.DroolsTasksListPerspective;
+import org.jbpm.console.ng.pr.admin.client.perspectives.ProcessAdminSettingsPerspective;
 import org.jbpm.dashboard.renderer.service.DashboardURLBuilder;
 import org.kie.workbench.common.screens.search.client.menu.SearchMenuBuilder;
 import org.kie.workbench.common.services.shared.preferences.ApplicationPreferences;
 import org.kie.workbench.common.widgets.client.menu.AboutMenuBuilder;
 import org.kie.workbench.common.widgets.client.menu.ResetPerspectivesMenuBuilder;
 import org.kie.workbench.common.widgets.client.menu.WorkbenchConfigurationMenuBuilder;
-import org.uberfire.client.mvp.AbstractWorkbenchPerspectiveActivity;
 import org.uberfire.client.mvp.ActivityBeansCache;
 import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.client.views.pfly.menu.MainBrand;
@@ -138,9 +136,8 @@ public class ShowcaseEntryPoint {
 
     private void setupMenu() {
 
-        final AbstractWorkbenchPerspectiveActivity defaultPerspective = getDefaultPerspectiveActivity();
         final Menus menus = MenuFactory
-                .newTopLevelMenu( constants.Home() ).place( new DefaultPlaceRequest( defaultPerspective.getIdentifier() ) ).endMenu()
+                .newTopLevelMenu( constants.Home() ).perspective( HomePerspective.PERSPECTIVE_ID ).endMenu()
                 .newTopLevelMenu( constants.Authoring() ).withItems( getAuthoringViews() ).endMenu()
                 .newTopLevelMenu( constants.Deploy() ).withItems( getDeploymentViews() ).endMenu()
                 .newTopLevelMenu( "Case Management" ).withItems( getCaseMGMTViews() ).endMenu()
@@ -213,7 +210,7 @@ public class ShowcaseEntryPoint {
 
         result.add( MenuFactory.newSimpleItem( constants.Process_Instances() ).perspective( "DataSet Process Instances With Variables" ).endMenu().build().getItems().get( 0 ) );
 
-        result.add( MenuFactory.newSimpleItem( constants.Process_Instances_Admin() ).perspective( "Process Admin" ).endMenu().build().getItems().get( 0 ) );
+        result.add( MenuFactory.newSimpleItem( constants.Process_Instances_Admin() ).perspective( ProcessAdminSettingsPerspective.PERSPECTIVE_ID ).endMenu().build().getItems().get( 0 ) );
 
         return result;
     }
@@ -270,27 +267,7 @@ public class ShowcaseEntryPoint {
         return result;
     }
 
-    private AbstractWorkbenchPerspectiveActivity getDefaultPerspectiveActivity() {
-        AbstractWorkbenchPerspectiveActivity defaultPerspective = null;
-        final Collection<SyncBeanDef<AbstractWorkbenchPerspectiveActivity>> perspectives = iocManager
-                .lookupBeans( AbstractWorkbenchPerspectiveActivity.class );
-        final Iterator<SyncBeanDef<AbstractWorkbenchPerspectiveActivity>> perspectivesIterator = perspectives.iterator();
-        outer_loop:
-        while ( perspectivesIterator.hasNext() ) {
-            final SyncBeanDef<AbstractWorkbenchPerspectiveActivity> perspective = perspectivesIterator.next();
-            final AbstractWorkbenchPerspectiveActivity instance = perspective.getInstance();
-            if ( instance.isDefault() ) {
-                defaultPerspective = instance;
-                break outer_loop;
-            } else {
-                iocManager.destroyBean( instance );
-            }
-        }
-        return defaultPerspective;
-    }
-
     // Fade out the "Loading application" pop-up
-
     private void hideLoadingPopup() {
         final Element e = RootPanel.get( "loading" ).getElement();
 
