@@ -32,6 +32,7 @@ import com.google.gwt.cell.client.CompositeCell;
 import com.google.gwt.cell.client.HasCell;
 import com.google.gwt.cell.client.NumberCell;
 import com.google.gwt.cell.client.TextCell;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.BrowserEvents;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.InputElement;
@@ -112,6 +113,10 @@ public class RequestListViewImpl extends AbstractMultiGridView<RequestSummary, R
     private Button serverTemplateButton;
     private ButtonGroup serverTemplates;
 
+    public RequestListViewImpl() {
+        initServerTemplateSelector();
+    }
+
     @Override
     public void init( final RequestListPresenter presenter ) {
         final List<String> bannedColumns = new ArrayList<String>();
@@ -123,7 +128,7 @@ public class RequestListViewImpl extends AbstractMultiGridView<RequestSummary, R
         initColumns.add( COLUMN_BUSINESSKEY );
         initColumns.add( COLUMN_COMMANDNAME );
         initColumns.add( COL_ID_ACTIONS );
-        final Button button = new Button();
+        final Button button = GWT.create(Button.class);
         button.setIcon( IconType.PLUS );
         button.setSize( ButtonSize.SMALL );
         button.addClickHandler( new ClickHandler() {
@@ -157,8 +162,6 @@ public class RequestListViewImpl extends AbstractMultiGridView<RequestSummary, R
         } );
 
         super.init( presenter, new GridGlobalPreferences( REQUEST_LIST_PREFIX, initColumns, bannedColumns ), button );
-
-        initServerTemplateSelector();
     }
 
     public void requestCreated( @Observes RequestChangedEvent event ) {
@@ -184,30 +187,21 @@ public class RequestListViewImpl extends AbstractMultiGridView<RequestSummary, R
         extendedPagedTable.addColumns( columnMetas );
 
         extendedPagedTable.getRightActionsToolbar().add(serverTemplates);
-
     }
 
     private void initServerTemplateSelector() {
+        serverTemplateButton = GWT.create(Button.class);
+        serverTemplateButton.setText(constants.ServerTemplates());
+        serverTemplateButton.setDataToggle(Toggle.DROPDOWN);
+        serverTemplateButton.getElement().getStyle().setMarginRight(5, Style.Unit.PX);
 
-        serverTemplateButton = new Button("Server templates") {{
-            setDataToggle(Toggle.DROPDOWN);
-            getElement().getStyle().setMarginRight(5, Style.Unit.PX);
-        }};
+        dropDownServerTemplates = GWT.create(DropDownMenu.class);
+        dropDownServerTemplates.addStyleName(Styles.DROPDOWN_MENU + "-right");
+        dropDownServerTemplates.getElement().getStyle().setMarginRight(5, Style.Unit.PX);
 
-        dropDownServerTemplates = new DropDownMenu() {{
-            addStyleName(Styles.DROPDOWN_MENU + "-right");
-            getElement().getStyle().setMarginRight(5, Style.Unit.PX);
-
-        }};
-
-        serverTemplates = new ButtonGroup() {{
-            add(serverTemplateButton);
-            add(dropDownServerTemplates);
-        }};
-
-
-        presenter.loadServerTemplates();
-
+        serverTemplates = GWT.create(ButtonGroup.class);
+        serverTemplates.add(serverTemplateButton);
+        serverTemplates.add(dropDownServerTemplates);
     }
 
     @Override
@@ -215,19 +209,26 @@ public class RequestListViewImpl extends AbstractMultiGridView<RequestSummary, R
         return selectedServerTemplate;
     }
 
-    @Override
-    public void setSelectedServer(String selected) {
+    protected void setSelectedServer(String selected) {
         selectedServerTemplate = selected;
         serverTemplateButton.setText(selected);
     }
 
     @Override
-    public void addServerTemplate(AnchorListItem serverTemplateNavLink) {
+    public void addServerTemplate(final String serverTemplateId) {
+        final AnchorListItem serverTemplateNavLink = GWT.create(AnchorListItem.class);
+        serverTemplateNavLink.setText(serverTemplateId);
+        serverTemplateNavLink.setIcon(IconType.SERVER);
+        serverTemplateNavLink.setIconFixedWidth(true);
+        serverTemplateNavLink.addClickHandler(e -> {
+            presenter.onServerTemplateSelected(serverTemplateId);
+            setSelectedServer(serverTemplateId);
+        } );
         dropDownServerTemplates.add(serverTemplateNavLink);
     }
 
     @Override
-    public void removeServerTemplate(String serverTemplateId) {
+    public void removeServerTemplate(final String serverTemplateId) {
         Iterator<Widget> it = dropDownServerTemplates.iterator();
 
         while (it.hasNext()) {

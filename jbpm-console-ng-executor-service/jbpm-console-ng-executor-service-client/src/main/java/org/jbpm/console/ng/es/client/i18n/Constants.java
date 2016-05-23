@@ -181,4 +181,7 @@ public interface Constants extends Messages {
     String ClickToEdit();
 
     String SelectServerTemplate();
+
+    String ServerTemplates();
+
 }

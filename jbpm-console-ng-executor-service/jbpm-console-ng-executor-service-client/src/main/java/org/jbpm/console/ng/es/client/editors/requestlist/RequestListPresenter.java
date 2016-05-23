@@ -21,14 +21,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.view.client.AsyncDataProvider;
 import com.google.gwt.view.client.Range;
@@ -36,8 +35,6 @@ import org.dashbuilder.dataset.DataSet;
 import org.dashbuilder.dataset.filter.ColumnFilter;
 import org.dashbuilder.dataset.filter.DataSetFilter;
 import org.dashbuilder.dataset.sort.SortOrder;
-import org.gwtbootstrap3.client.ui.AnchorListItem;
-import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
 import org.jbpm.console.ng.df.client.filter.FilterSettings;
@@ -87,9 +84,7 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
 
         String getSelectedServer();
 
-        void setSelectedServer(String selected);
-
-        void addServerTemplate(AnchorListItem serverTemplateNavLink);
+        void addServerTemplate(String serverTemplateId);
 
         void removeServerTemplate(String serverTemplateId);
     }
@@ -151,13 +146,9 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
         refreshGrid();
     }
 
+    @PostConstruct
     public void init() {
-        executorServices.call( new RemoteCallback<Void>() {
-            @Override
-            public void callback( Void nothing ) {
-                view.displayNotification( constants.ExecutorServiceStarted() );
-            }
-        } ).init();
+        loadServerTemplates();
     }
 
     public void createRequest() {
@@ -321,34 +312,17 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
         specManagementService.call( new RemoteCallback<Collection<ServerTemplate>>() {
             @Override
             public void callback( final Collection<ServerTemplate> serverTemplates ) {
-
                 for (ServerTemplate serverTemplate : serverTemplates) {
                     if (serverTemplate.getServerInstanceKeys() != null && !serverTemplate.getServerInstanceKeys().isEmpty()) {
-                        AnchorListItem serverTemplateNavLink = new AnchorListItem(serverTemplate.getId());
-                        serverTemplateNavLink.setIcon(IconType.SERVER);
-                        serverTemplateNavLink.setIconFixedWidth(true);
-                        serverTemplateNavLink.addClickHandler(new SelectServerTemplateClickHandler(serverTemplate.getId()));
-
-                        view.addServerTemplate(serverTemplateNavLink);
+                        view.addServerTemplate(serverTemplate.getId());
                     }
                 }
             }
         } ).listServerTemplates();
     }
 
-    private class SelectServerTemplateClickHandler implements ClickHandler {
-
-        private String selected;
-
-        public SelectServerTemplateClickHandler(String selected) {
-            this.selected = selected;
-        }
-
-        @Override
-        public void onClick( ClickEvent event ) {
-            view.setSelectedServer(selected);
-            refreshGrid();
-        }
+    public void onServerTemplateSelected( final String serverTemplateId ) {
+        refreshGrid();
     }
 
     public void onServerTemplateDeleted(@Observes ServerTemplateDeleted serverTemplateDeleted) {
@@ -361,4 +335,5 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
             view.removeServerTemplate(serverTemplate.getId());
         }
     }
+
 }
