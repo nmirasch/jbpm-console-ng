@@ -556,7 +556,7 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
                 for (ServerTemplate serverTemplate : serverTemplates) {
                     if (serverTemplate.getServerInstanceKeys() != null && !serverTemplate.getServerInstanceKeys().isEmpty()) {
                         AnchorListItem serverTemplateNavLink = new AnchorListItem(serverTemplate.getId());
-                        serverTemplateNavLink.setIcon(IconType.BAN);
+                        serverTemplateNavLink.setIcon(IconType.SERVER);
                         serverTemplateNavLink.setIconFixedWidth(true);
                         serverTemplateNavLink.addClickHandler(new SelectServerTemplateClickHandler(serverTemplate.getId()));
 
