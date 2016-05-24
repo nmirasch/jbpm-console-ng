@@ -17,13 +17,10 @@ package org.jbpm.console.ng.pr.client.editors.instance.list.variables.dash;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import javax.enterprise.context.Dependent;
-import javax.enterprise.event.Event;
-import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import com.google.gwt.cell.client.ActionCell.Delegate;
@@ -64,21 +61,13 @@ import org.jbpm.console.ng.gc.client.list.base.AbstractMultiGridView;
 import org.jbpm.console.ng.gc.client.util.DateUtils;
 import org.jbpm.console.ng.pr.client.editors.instance.list.ProcessInstanceSummaryActionCell;
 import org.jbpm.console.ng.pr.client.i18n.Constants;
-import org.jbpm.console.ng.pr.forms.client.editors.quicknewinstance.QuickNewProcessInstancePopup;
 import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
-import org.jbpm.console.ng.pr.model.events.ProcessInstanceSelectionEvent;
-import org.jbpm.console.ng.pr.model.events.ProcessInstancesWithDetailsRequestEvent;
 import org.kie.api.runtime.process.ProcessInstance;
-import org.uberfire.client.mvp.PlaceStatus;
-import org.uberfire.client.workbench.events.BeforeClosePlaceEvent;
 import org.uberfire.ext.services.shared.preferences.GridColumnPreference;
 import org.uberfire.ext.services.shared.preferences.GridGlobalPreferences;
 import org.uberfire.ext.widgets.common.client.tables.popup.NewTabFilterPopup;
-import org.uberfire.ext.widgets.table.client.ColumnChangedHandler;
 import org.uberfire.ext.widgets.table.client.ColumnMeta;
 import org.uberfire.mvp.Command;
-import org.uberfire.mvp.PlaceRequest;
-import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 import static org.dashbuilder.dataset.filter.FilterFactory.*;
 import static org.dashbuilder.dataset.sort.SortOrder.*;
@@ -99,27 +88,12 @@ public class DataSetProcessInstanceWithVariablesListViewImpl extends AbstractMul
     private final Constants constants = Constants.INSTANCE;
 
     @Inject
-    private Event<ProcessInstanceSelectionEvent> processInstanceSelected;
-
-    @Inject
-    private NewTabFilterPopup newTabFilterPopup;
-
-    @Inject
     protected DataSetEditorManager dataSetEditorManager;
 
     private Column actionsColumn;
 
     private AnchorListItem bulkAbortNavLink;
     private AnchorListItem bulkSignalNavLink;
-
-    private DropDownMenu dropDownServerTemplates;
-    private String selectedServerTemplate = "";
-    private Button serverTemplateButton;
-    private ButtonGroup serverTemplates;
-
-
-    @Inject
-    private QuickNewProcessInstancePopup newProcessInstancePopup;
 
     private void controlBulkOperations() {
         if ( selectedProcessInstances != null && selectedProcessInstances.size() > 0 ) {
@@ -183,18 +157,15 @@ public class DataSetProcessInstanceWithVariablesListViewImpl extends AbstractMul
         } );
 
         super.init( presenter, new GridGlobalPreferences( PROCESS_INSTANCES_WITH_VARIABLES_INCLUDED_LIST_PREFIX, initColumns, bannedColumns ), button );
-        initServerTemplateSelector();
     }
 
     @Override
     public void initSelectionModel() {
-
         final ExtendedPagedTable extendedPagedTable = getListGrid();
         extendedPagedTable.setEmptyTableCaption(constants.No_Process_Instances_Found());
         extendedPagedTable.getRightActionsToolbar().clear();
         initExtraButtons( extendedPagedTable );
         initBulkActions( extendedPagedTable );
-        extendedPagedTable.getRightActionsToolbar().add(serverTemplates);
         selectionModel = new NoSelectionModel<ProcessInstanceSummary>();
         selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
             @Override
@@ -216,21 +187,7 @@ public class DataSetProcessInstanceWithVariablesListViewImpl extends AbstractMul
 
                 selectedItem = selectionModel.getLastSelectedObject();
 
-                PlaceStatus status = placeManager.getStatus( new DefaultPlaceRequest( "Process Instance Details Multi" ) );
-
-                if ( status == PlaceStatus.CLOSE ) {
-                    placeManager.goTo( "Process Instance Details Multi" );
-                    processInstanceSelected.fire( new ProcessInstanceSelectionEvent( selectedItem.getDeploymentId(),
-                                                                                     selectedItem.getProcessInstanceId(), selectedItem.getProcessId(),
-                                                                                     selectedItem.getProcessName(), selectedItem.getState(), selectedServerTemplate ) );
-                } else if ( status == PlaceStatus.OPEN && !close ) {
-                    processInstanceSelected.fire( new ProcessInstanceSelectionEvent( selectedItem.getDeploymentId(),
-                                                                                     selectedItem.getProcessInstanceId(), selectedItem.getProcessId(),
-                                                                                     selectedItem.getProcessName(), selectedItem.getState(), selectedServerTemplate ) );
-                } else if ( status == PlaceStatus.OPEN && close ) {
-                    placeManager.closePlace( "Process Instance Details Multi" );
-                }
-
+                presenter.selectProcessInstance(selectedItem, close);
             }
         });
 
@@ -434,28 +391,6 @@ public class DataSetProcessInstanceWithVariablesListViewImpl extends AbstractMul
         controlBulkOperations();
     }
 
-    private void initServerTemplateSelector() {
-
-        serverTemplateButton = new Button("Server templates") {{
-            setDataToggle(Toggle.DROPDOWN);
-            getElement().getStyle().setMarginRight(5, Style.Unit.PX);
-        }};
-
-        dropDownServerTemplates = new DropDownMenu() {{
-            addStyleName(Styles.DROPDOWN_MENU + "-right");
-            getElement().getStyle().setMarginRight(5, Style.Unit.PX);
-
-        }};
-
-        serverTemplates = new ButtonGroup() {{
-            add(serverTemplateButton);
-            add(dropDownServerTemplates);
-        }};
-
-        presenter.loadServerTemplates();
-
-    }
-
     private Column initProcessInstanceIdColumn() {
         // Process Instance Id.
         Column<ProcessInstanceSummary, String> processInstanceIdColumn = new Column<ProcessInstanceSummary, String>( new TextCell() ) {
@@ -567,14 +502,8 @@ public class DataSetProcessInstanceWithVariablesListViewImpl extends AbstractMul
 
         cells.add(new ProcessInstanceSummaryActionCell(constants.Signal(), new Delegate<ProcessInstanceSummary>() {
             @Override
-            public void execute( ProcessInstanceSummary processInstance ) {
-
-                PlaceRequest placeRequestImpl = new DefaultPlaceRequest( "Signal Process Popup" );
-                placeRequestImpl.addParameter( "processInstanceId", Long.toString( processInstance.getProcessInstanceId() ) );
-                placeRequestImpl.addParameter( "deploymentId", processInstance.getDeploymentId() );
-                placeRequestImpl.addParameter( "serverTemplateId", getSelectedServer() );
-
-                placeManager.goTo( placeRequestImpl );
+            public void execute( final ProcessInstanceSummary processInstance ) {
+                presenter.signalProcessInstance(processInstance);
             }
         } ) );
 
@@ -648,20 +577,6 @@ public class DataSetProcessInstanceWithVariablesListViewImpl extends AbstractMul
         descriptionColumn.setSortable( true );
         descriptionColumn.setDataStoreName(COLUMN_PROCESS_INSTANCE_DESCRIPTION);
         return descriptionColumn;
-    }
-
-    public void onProcessInstanceSelectionEvent( @Observes ProcessInstancesWithDetailsRequestEvent event ) {
-        placeManager.goTo( "Process Instance Details Multi" );
-        processInstanceSelected.fire( new ProcessInstanceSelectionEvent( event.getDeploymentId(),
-                                                                         event.getProcessInstanceId(), event.getProcessDefId(),
-                                                                         event.getProcessDefName(), event.getProcessInstanceStatus(),
-                                                                         event.getServerTemplateId()) );
-    }
-
-    public void formClosed( @Observes BeforeClosePlaceEvent closed ) {
-        if ( "Signal Process Popup".equals( closed.getPlace().getIdentifier() ) ) {
-            presenter.refreshGrid();
-        }
     }
 
     public void initDefaultFilters( GridGlobalPreferences preferences,
@@ -850,34 +765,6 @@ public class DataSetProcessInstanceWithVariablesListViewImpl extends AbstractMul
         applyFilterOnPresenter( filterPagedTable.getMultiGridPreferencesStore().getGridSettings( key ) );
     }
 
-    @Override
-    public String getSelectedServer() {
-        return selectedServerTemplate;
-    }
-
-    @Override
-    public void setSelectedServer(String selected) {
-        selectedServerTemplate = selected;
-        serverTemplateButton.setText(selected);
-    }
-
-    @Override
-    public void addServerTemplate(AnchorListItem serverTemplateNavLink) {
-        dropDownServerTemplates.add(serverTemplateNavLink);
-    }
-
-    @Override
-    public void removeServerTemplate(String serverTemplateId) {
-        Iterator<Widget> it = dropDownServerTemplates.iterator();
-
-        while (it.hasNext()) {
-            AnchorListItem item = (AnchorListItem) it.next();
-            if (item.getText().equals(serverTemplateId)) {
-                it.remove();
-            }
-        }
-    }
-
     /*-------------------------------------------------*/
     /*---              DashBuilder                   --*/
     /*-------------------------------------------------*/
@@ -945,4 +832,5 @@ public class DataSetProcessInstanceWithVariablesListViewImpl extends AbstractMul
         }
 
     }
+
 }

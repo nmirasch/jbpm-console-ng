@@ -16,16 +16,14 @@
 package org.jbpm.console.ng.pr.client.editors.instance.list.variables.dash;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.enterprise.context.Dependent;
+import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.view.client.Range;
 import org.dashbuilder.dataset.DataSet;
@@ -37,8 +35,6 @@ import org.dashbuilder.dataset.filter.CoreFunctionFilter;
 import org.dashbuilder.dataset.filter.CoreFunctionType;
 import org.dashbuilder.dataset.filter.DataSetFilter;
 import org.dashbuilder.dataset.sort.SortOrder;
-import org.gwtbootstrap3.client.ui.AnchorListItem;
-import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
 import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
@@ -50,26 +46,28 @@ import org.jbpm.console.ng.gc.client.list.base.AbstractListView.ListView;
 import org.jbpm.console.ng.gc.client.list.base.AbstractScreenListPresenter;
 import org.jbpm.console.ng.gc.client.list.base.events.SearchEvent;
 import org.jbpm.console.ng.gc.client.menu.RestoreDefaultFiltersMenuBuilder;
+import org.jbpm.console.ng.gc.client.menu.ServerTemplateSelected;
+import org.jbpm.console.ng.gc.client.menu.ServerTemplateSelectorMenuBuilder;
 import org.jbpm.console.ng.pr.client.editors.instance.signal.ProcessInstanceSignalPresenter;
 import org.jbpm.console.ng.pr.client.i18n.Constants;
 import org.jbpm.console.ng.pr.client.perspectives.DataSetProcessInstancesWithVariablesPerspective;
 import org.jbpm.console.ng.pr.forms.client.editors.quicknewinstance.QuickNewProcessInstancePopup;
 import org.jbpm.console.ng.pr.model.events.NewProcessInstanceEvent;
+import org.jbpm.console.ng.pr.model.events.ProcessInstanceSelectionEvent;
 import org.jbpm.console.ng.pr.model.events.ProcessInstancesUpdateEvent;
+import org.jbpm.console.ng.pr.model.events.ProcessInstancesWithDetailsRequestEvent;
 import org.jbpm.console.ng.pr.service.ProcessInstanceService;
 import org.jbpm.console.ng.pr.service.integration.RemoteProcessService;
 import org.jbpm.console.ng.pr.service.integration.RemoteRuntimeDataService;
 import org.kie.api.runtime.process.ProcessInstance;
-import org.kie.server.controller.api.model.events.ServerTemplateDeleted;
-import org.kie.server.controller.api.model.events.ServerTemplateUpdated;
-import org.kie.server.controller.api.model.spec.ServerTemplate;
-import org.kie.workbench.common.screens.server.management.service.SpecManagementService;
 import org.uberfire.client.annotations.WorkbenchMenu;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
 import org.uberfire.client.mvp.PlaceManager;
+import org.uberfire.client.mvp.PlaceStatus;
 import org.uberfire.client.mvp.UberView;
+import org.uberfire.client.workbench.events.BeforeClosePlaceEvent;
 import org.uberfire.client.workbench.widgets.common.ErrorPopupPresenter;
 import org.uberfire.ext.widgets.common.client.callbacks.DefaultErrorCallback;
 import org.uberfire.ext.widgets.common.client.menu.RefreshMenuBuilder;
@@ -86,7 +84,6 @@ import org.uberfire.workbench.model.menu.Menus;
 
 import static org.dashbuilder.dataset.filter.FilterFactory.*;
 import static org.jbpm.console.ng.bd.model.ProcessInstanceDataSetConstants.*;
-
 
 @Dependent
 @WorkbenchScreen( identifier = DataSetProcessInstanceWithVariablesListPresenter.SCREEN_ID)
@@ -106,14 +103,6 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
                                      Set<String> columns );
 
         void applyFilterOnPresenter( String key );
-
-        String getSelectedServer();
-
-        void setSelectedServer(String selected);
-
-        void addServerTemplate(AnchorListItem serverTemplateNavLink);
-
-        void removeServerTemplate(String serverTemplateId);
 
     }
 
@@ -140,11 +129,18 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
     protected final List<ProcessInstanceSummary> myProcessInstancesFromDataSet = new ArrayList<ProcessInstanceSummary>();
 
     @Inject
-    private Caller<SpecManagementService> specManagementService;
+    private ServerTemplateSelectorMenuBuilder serverTemplateSelectorMenuBuilder;
+
     @Inject
     private Caller<RemoteRuntimeDataService> remoteRuntimeDataService;
+
     @Inject
     private Caller<RemoteProcessService> remoteProcessService;
+
+    @Inject
+    private Event<ProcessInstanceSelectionEvent> processInstanceSelected;
+
+    private String selectedServerTemplate = "";
 
     public DataSetProcessInstanceWithVariablesListPresenter() {
         super();
@@ -189,7 +185,7 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
             if ( !isAddingDefaultFilters() ) {
                 final FilterSettings currentTableSettings = dataSetQueryHelper.getCurrentTableSettings();
                 if ( currentTableSettings != null) {
-                    currentTableSettings.setServerTemplateId(view.getSelectedServer());
+                    currentTableSettings.setServerTemplateId( selectedServerTemplate );
                     currentTableSettings.setTablePageSize( view.getListGrid().getPageSize() );
                     ColumnSortList columnSortList = view.getListGrid().getColumnSortList();
                     if ( columnSortList != null && columnSortList.size() > 0 ) {
@@ -241,7 +237,7 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
 
                             view.hideBusyIndicator();
                         }
-                    }).getProcessInstances(view.getSelectedServer(), statuses, visibleRange.getStart()/visibleRange.getLength(), visibleRange.getLength());
+                    }).getProcessInstances(selectedServerTemplate, statuses, visibleRange.getStart()/visibleRange.getLength(), visibleRange.getLength());
 
                 }
             }
@@ -375,7 +371,7 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
 
         final int rowCountNotTrimmed = dataSet.getRowCountNonTrimmed();
         FilterSettings variablesTableSettings = view.getVariablesTableSettings( filterValue );
-        variablesTableSettings.setServerTemplateId(view.getSelectedServer());
+        variablesTableSettings.setServerTemplateId( selectedServerTemplate );
         variablesTableSettings.setTablePageSize( -1 );
 
         dataSetQueryHelperDomainSpecific.setDataSetHandler( variablesTableSettings );
@@ -432,7 +428,7 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
             public void callback( Void v ) {
                 refreshGrid();
             }
-        }, new DefaultErrorCallback() ).abortProcessInstance( view.getSelectedServer(), containerId, processInstanceId );
+        }, new DefaultErrorCallback() ).abortProcessInstance( selectedServerTemplate, containerId, processInstanceId );
     }
 
     public void abortProcessInstance( List<String> containers, List<Long> processInstanceIds ) {
@@ -441,7 +437,7 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
             public void callback( Void v ) {
                 refreshGrid();
             }
-        }, new DefaultErrorCallback() ).abortProcessInstances( view.getSelectedServer(),containers, processInstanceIds );
+        }, new DefaultErrorCallback() ).abortProcessInstances( selectedServerTemplate,containers, processInstanceIds );
     }
 
     public void bulkSignal( List<ProcessInstanceSummary> processInstances ) {
@@ -470,7 +466,7 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
         PlaceRequest placeRequestImpl = new DefaultPlaceRequest(ProcessInstanceSignalPresenter.SIGNAL_PROCESS_POPUP);
         placeRequestImpl.addParameter( "processInstanceId", processIdsParam.toString() );
         placeRequestImpl.addParameter( "deploymentId", deploymentIdsParam.toString() );
-        placeRequestImpl.addParameter( "serverTemplateId", view.getSelectedServer() );
+        placeRequestImpl.addParameter( "serverTemplateId", selectedServerTemplate );
 
         placeManager.goTo( placeRequestImpl );
         view.displayNotification( Constants.INSTANCE.Signaling_Process_Instance() );
@@ -513,14 +509,15 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
                 .respondsWith(new Command() {
                     @Override
                     public void execute() {
-                        if (view.getSelectedServer() != null && !view.getSelectedServer().isEmpty()) {
-                            newProcessInstancePopup.show(view.getSelectedServer());
+                        if (selectedServerTemplate != null && !selectedServerTemplate.isEmpty()) {
+                            newProcessInstancePopup.show(selectedServerTemplate);
                         } else {
                             view.displayNotification(Constants.INSTANCE.SelectServerTemplate());
                         }
                     }
                 })
                 .endMenu()
+                .newTopLevelCustomMenu(serverTemplateSelectorMenuBuilder).endMenu()
                 .newTopLevelCustomMenu(new RefreshMenuBuilder(this)).endMenu()
                 .newTopLevelCustomMenu(refreshSelectorMenuBuilder).endMenu()
                 .newTopLevelCustomMenu(new RestoreDefaultFiltersMenuBuilder( this )).endMenu()
@@ -548,48 +545,49 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
         return  myProcessInstancesFromDataSet;
     }
 
-    public void loadServerTemplates() {
-        specManagementService.call( new RemoteCallback<Collection<ServerTemplate>>() {
-            @Override
-            public void callback( final Collection<ServerTemplate> serverTemplates ) {
-
-                for (ServerTemplate serverTemplate : serverTemplates) {
-                    if (serverTemplate.getServerInstanceKeys() != null && !serverTemplate.getServerInstanceKeys().isEmpty()) {
-                        AnchorListItem serverTemplateNavLink = new AnchorListItem(serverTemplate.getId());
-                        serverTemplateNavLink.setIcon(IconType.BAN);
-                        serverTemplateNavLink.setIconFixedWidth(true);
-                        serverTemplateNavLink.addClickHandler(new SelectServerTemplateClickHandler(serverTemplate.getId()));
-
-                        view.addServerTemplate(serverTemplateNavLink);
-                    }
-                }
-            }
-        } ).listServerTemplates();
+    public void onServerTemplateSelected(@Observes final ServerTemplateSelected serverTemplateSelected ) {
+        selectedServerTemplate = serverTemplateSelected.getServerTemplateId();
+        refreshGrid();
     }
 
-    private class SelectServerTemplateClickHandler implements ClickHandler {
+    public void signalProcessInstance(final ProcessInstanceSummary processInstance) {
+        PlaceRequest placeRequestImpl = new DefaultPlaceRequest( "Signal Process Popup" );
+        placeRequestImpl.addParameter( "processInstanceId", Long.toString( processInstance.getProcessInstanceId() ) );
+        placeRequestImpl.addParameter( "deploymentId", processInstance.getDeploymentId() );
+        placeRequestImpl.addParameter( "serverTemplateId", selectedServerTemplate );
 
-        private String selected;
+        placeManager.goTo( placeRequestImpl );
+    }
 
-        public SelectServerTemplateClickHandler(String selected) {
-            this.selected = selected;
+    public void selectProcessInstance(final ProcessInstanceSummary summary, final Boolean close) {
+        PlaceStatus status = placeManager.getStatus( new DefaultPlaceRequest( "Process Instance Details Multi" ) );
+
+        if ( status == PlaceStatus.CLOSE ) {
+            placeManager.goTo( "Process Instance Details Multi" );
+            processInstanceSelected.fire( new ProcessInstanceSelectionEvent( summary.getDeploymentId(),
+                    summary.getProcessInstanceId(), summary.getProcessId(),
+                    summary.getProcessName(), summary.getState(), selectedServerTemplate ) );
+        } else if ( status == PlaceStatus.OPEN && !close ) {
+            processInstanceSelected.fire( new ProcessInstanceSelectionEvent( summary.getDeploymentId(),
+                    summary.getProcessInstanceId(), summary.getProcessId(),
+                    summary.getProcessName(), summary.getState(), selectedServerTemplate ) );
+        } else if ( status == PlaceStatus.OPEN && close ) {
+            placeManager.closePlace( "Process Instance Details Multi" );
         }
+    }
 
-        @Override
-        public void onClick( ClickEvent event ) {
-            view.setSelectedServer(selected);
+    public void onProcessInstanceSelectionEvent( @Observes ProcessInstancesWithDetailsRequestEvent event ) {
+        placeManager.goTo( "Process Instance Details Multi" );
+        processInstanceSelected.fire( new ProcessInstanceSelectionEvent( event.getDeploymentId(),
+                event.getProcessInstanceId(), event.getProcessDefId(),
+                event.getProcessDefName(), event.getProcessInstanceStatus(),
+                event.getServerTemplateId()) );
+    }
+
+    public void formClosed( @Observes BeforeClosePlaceEvent closed ) {
+        if ( "Signal Process Popup".equals( closed.getPlace().getIdentifier() ) ) {
             refreshGrid();
         }
     }
 
-    public void onServerTemplateDeleted(@Observes ServerTemplateDeleted serverTemplateDeleted) {
-        view.removeServerTemplate(serverTemplateDeleted.getServerTemplateId());
-    }
-
-    public void onServerTemplateUpdated(@Observes ServerTemplateUpdated serverTemplateUpdated) {
-        ServerTemplate serverTemplate = serverTemplateUpdated.getServerTemplate();
-        if (serverTemplate.getServerInstanceKeys() == null || serverTemplate.getServerInstanceKeys().isEmpty()) {
-            view.removeServerTemplate(serverTemplate.getId());
-        }
-    }
 }

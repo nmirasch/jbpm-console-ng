@@ -151,14 +151,14 @@ public abstract class AbstractTasksListGridPresenterTest {
 
     @Test
     public void releaseTaskTest() {
-        presenter.releaseTask("", "deploymentId", TASK_ID);
+        presenter.releaseTask(new TaskSummary(TASK_ID, ""));
 
         verify(taskLifeCycleServiceMock).release(TASK_ID, USR_ID);
     }
 
     @Test
     public void claimTaskTest() {
-        presenter.claimTask("", "deploymentId", TASK_ID);
+        presenter.claimTask(new TaskSummary(TASK_ID, ""));
 
         verify(taskLifeCycleServiceMock).claim(TASK_ID, USR_ID, "deploymentId");
     }

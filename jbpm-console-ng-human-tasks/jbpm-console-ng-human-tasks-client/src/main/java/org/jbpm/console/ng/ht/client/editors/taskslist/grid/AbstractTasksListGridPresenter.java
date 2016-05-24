@@ -17,16 +17,13 @@
 package org.jbpm.console.ng.ht.client.editors.taskslist.grid;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.view.client.AsyncDataProvider;
 import com.google.gwt.view.client.HasData;
@@ -41,8 +38,6 @@ import org.dashbuilder.dataset.filter.CoreFunctionType;
 import org.dashbuilder.dataset.filter.DataSetFilter;
 import org.dashbuilder.dataset.filter.FilterFactory;
 import org.dashbuilder.dataset.sort.SortOrder;
-import org.gwtbootstrap3.client.ui.AnchorListItem;
-import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
 import org.jboss.errai.security.shared.api.Group;
@@ -54,21 +49,24 @@ import org.jbpm.console.ng.gc.client.experimental.grid.base.ExtendedPagedTable;
 import org.jbpm.console.ng.gc.client.list.base.AbstractListView;
 import org.jbpm.console.ng.gc.client.list.base.AbstractScreenListPresenter;
 import org.jbpm.console.ng.gc.client.list.base.events.SearchEvent;
+import org.jbpm.console.ng.gc.client.menu.ServerTemplateSelected;
+import org.jbpm.console.ng.gc.client.menu.ServerTemplateSelectorMenuBuilder;
 import org.jbpm.console.ng.ht.client.editors.taskslist.grid.dash.DataSetTasksListGridPresenter;
 import org.jbpm.console.ng.ht.client.i18n.Constants;
 import org.jbpm.console.ng.ht.model.TaskSummary;
-import org.jbpm.console.ng.ht.service.TaskLifeCycleService;
+import org.jbpm.console.ng.ht.model.events.NewTaskEvent;
+import org.jbpm.console.ng.ht.model.events.TaskRefreshedEvent;
+import org.jbpm.console.ng.ht.model.events.TaskSelectionEvent;
 import org.jbpm.console.ng.ht.service.integration.RemoteTaskService;
-import org.kie.server.controller.api.model.events.ServerTemplateDeleted;
-import org.kie.server.controller.api.model.events.ServerTemplateUpdated;
-import org.kie.server.controller.api.model.spec.ServerTemplate;
 import org.kie.workbench.common.screens.server.management.service.SpecManagementService;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
+import org.uberfire.client.mvp.PlaceStatus;
 import org.uberfire.client.mvp.UberView;
 import org.uberfire.client.workbench.widgets.common.ErrorPopupPresenter;
 import org.uberfire.ext.widgets.common.client.callbacks.DefaultErrorCallback;
 import org.uberfire.ext.widgets.common.client.menu.RefreshSelectorMenuBuilder;
+import org.uberfire.mvp.impl.DefaultPlaceRequest;
 import org.uberfire.paging.PageResponse;
 import org.uberfire.workbench.model.menu.Menus;
 
@@ -89,20 +87,14 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
 
         FilterSettings getVariablesTableSettings(String processName);
 
-        String getSelectedServer();
+        void setSelectedTask(TaskSummary selectedTask);
 
-        void setSelectedServer(String selected);
-
-        void addServerTemplate(AnchorListItem serverTemplateNavLink);
-
-        void removeServerTemplate(String serverTemplateId);
     }
 
     @Inject
     private DataSetTasksListGridPresenter.DataSetTaskListView view;
 
-    private Constants constants = GWT.create(Constants.class);
-
+    private Constants constants = Constants.INSTANCE;
 
     @Inject
     private Caller<RemoteTaskService> remoteTaskService;
@@ -118,6 +110,14 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
 
     @Inject
     private Caller<SpecManagementService> specManagementService;
+
+    @Inject
+    protected ServerTemplateSelectorMenuBuilder serverTemplateSelectorMenuBuilder;
+
+    private String selectedServerTemplate = "";
+
+    @Inject
+    private Event<TaskSelectionEvent> taskSelected;
 
     protected RefreshSelectorMenuBuilder refreshSelectorMenuBuilder = new RefreshSelectorMenuBuilder(this);
 
@@ -157,7 +157,7 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
                 FilterSettings currentTableSettings = dataSetQueryHelper.getCurrentTableSettings();
 
                 if (currentTableSettings != null ) {
-                    currentTableSettings.setServerTemplateId(view.getSelectedServer());
+                    currentTableSettings.setServerTemplateId(selectedServerTemplate);
                     currentTableSettings.setTablePageSize(view.getListGrid().getPageSize());
                     ColumnSortList columnSortList = view.getListGrid().getColumnSortList();
                     if (columnSortList != null && columnSortList.size() > 0) {
@@ -213,7 +213,7 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
 
                             view.hideBusyIndicator();
                         }
-                    }).getActiveTasks(view.getSelectedServer(), visibleRange.getStart()/visibleRange.getLength(), visibleRange.getLength());
+                    }).getActiveTasks(selectedServerTemplate, visibleRange.getStart()/visibleRange.getLength(), visibleRange.getLength());
                 }
             }
         } catch (Exception e) {
@@ -334,7 +334,7 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
 
         FilterSettings variablesTableSettings = view.getVariablesTableSettings(filterValue);
         variablesTableSettings.setTablePageSize(-1);
-        variablesTableSettings.setServerTemplateId(view.getSelectedServer());
+        variablesTableSettings.setServerTemplateId(selectedServerTemplate);
 
         dataSetQueryHelperDomainSpecific.setDataSetHandler(variablesTableSettings);
         dataSetQueryHelperDomainSpecific.setCurrentTableSettings(variablesTableSettings);
@@ -426,30 +426,32 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
         return view;
     }
 
-    public void releaseTask(final String serverTemplateId, final String deploymentId, final Long taskId) {
+    public void releaseTask(final TaskSummary task) {
         remoteTaskService.call(
                 new RemoteCallback<Void>() {
                     @Override
                     public void callback(Void nothing) {
-                        view.displayNotification(Constants.INSTANCE.TaskReleased(String.valueOf(taskId)));
+                        view.displayNotification(Constants.INSTANCE.TaskReleased(String.valueOf(task.getTaskId())));
                         refreshGrid();
                     }
                 },
                 new DefaultErrorCallback()
-        ).releaseTask(serverTemplateId, deploymentId, taskId);
+        ).releaseTask(selectedServerTemplate, task.getDeploymentId(), task.getTaskId());
+        taskSelected.fire( new TaskSelectionEvent( selectedServerTemplate, task.getDeploymentId(),task.getTaskId(), task.getTaskName() ) );
     }
 
-    public void claimTask(final String serverTemplateId, final String deploymentId, final Long taskId) {
+    public void claimTask(final TaskSummary task) {
         remoteTaskService.call(
                 new RemoteCallback<Void>() {
                     @Override
                     public void callback(Void nothing) {
-                        view.displayNotification(Constants.INSTANCE.TaskClaimed(String.valueOf(taskId)));
+                        view.displayNotification(Constants.INSTANCE.TaskClaimed(String.valueOf(task.getTaskId())));
                         refreshGrid();
                     }
                 },
                 new DefaultErrorCallback()
-        ).claimTask(serverTemplateId, deploymentId, taskId);
+        ).claimTask(selectedServerTemplate, task.getDeploymentId(), task.getTaskId());
+        taskSelected.fire( new TaskSelectionEvent( selectedServerTemplate, task.getDeploymentId(),task.getTaskId(), task.getTaskName() ) );
     }
 
     @Override
@@ -471,48 +473,43 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
 
     public abstract Menus getMenus();
 
-    public void loadServerTemplates() {
-        specManagementService.call( new RemoteCallback<Collection<ServerTemplate>>() {
-            @Override
-            public void callback( final Collection<ServerTemplate> serverTemplates ) {
-
-                for (ServerTemplate serverTemplate : serverTemplates) {
-                    if (serverTemplate.getServerInstanceKeys() != null && !serverTemplate.getServerInstanceKeys().isEmpty()) {
-                        AnchorListItem serverTemplateNavLink = new AnchorListItem(serverTemplate.getId());
-                        serverTemplateNavLink.setIcon(IconType.BAN);
-                        serverTemplateNavLink.setIconFixedWidth(true);
-                        serverTemplateNavLink.addClickHandler(new SelectServerTemplateClickHandler(serverTemplate.getId()));
-
-                        view.addServerTemplate(serverTemplateNavLink);
-                    }
-                }
-            }
-        } ).listServerTemplates();
+    public void onServerTemplateSelected(@Observes final ServerTemplateSelected serverTemplateSelected ) {
+        selectedServerTemplate = serverTemplateSelected.getServerTemplateId();
+        refreshGrid();
     }
 
-    private class SelectServerTemplateClickHandler implements ClickHandler {
-
-        private String selected;
-
-        public SelectServerTemplateClickHandler(String selected) {
-            this.selected = selected;
+    public void selectTask(final TaskSummary summary, final Boolean close) {
+        final DefaultPlaceRequest defaultPlaceRequest = new DefaultPlaceRequest( "Task Details Multi" );
+        final PlaceStatus status = placeManager.getStatus( defaultPlaceRequest );
+        boolean logOnly = false;
+        if ( summary.getStatus().equals( "Completed" ) && summary.isLogOnly() ) {
+            logOnly = true;
         }
-
-        @Override
-        public void onClick( ClickEvent event ) {
-            view.setSelectedServer(selected);
-            refreshGrid();
+        if ( status == PlaceStatus.CLOSE ) {
+            placeManager.goTo( defaultPlaceRequest );
+            taskSelected.fire( new TaskSelectionEvent( selectedServerTemplate, summary.getDeploymentId(), summary.getTaskId(), summary.getTaskName(), summary.isForAdmin(), logOnly ) );
+        } else if ( status == PlaceStatus.OPEN && !close ) {
+            taskSelected.fire( new TaskSelectionEvent( selectedServerTemplate, summary.getDeploymentId(),summary.getTaskId(), summary.getTaskName(), summary.isForAdmin(), logOnly ) );
+        } else if ( status == PlaceStatus.OPEN && close ) {
+            placeManager.closePlace( "Task Details Multi" );
         }
     }
 
-    public void onServerTemplateDeleted(@Observes ServerTemplateDeleted serverTemplateDeleted) {
-        view.removeServerTemplate(serverTemplateDeleted.getServerTemplateId());
+    public void refreshNewTask( @Observes NewTaskEvent newTask ) {
+        refreshGrid();
+        PlaceStatus status = placeManager.getStatus( new DefaultPlaceRequest( "Task Details Multi" ) );
+        if ( status == PlaceStatus.OPEN ) {
+            taskSelected.fire( new TaskSelectionEvent( selectedServerTemplate, null, newTask.getNewTaskId(), newTask.getNewTaskName() ) );
+        } else {
+            placeManager.goTo( "Task Details Multi" );
+            taskSelected.fire( new TaskSelectionEvent( selectedServerTemplate, null, newTask.getNewTaskId(), newTask.getNewTaskName() ) );
+        }
+
+        view.setSelectedTask(new TaskSummary( newTask.getNewTaskId(), newTask.getNewTaskName() ));
     }
 
-    public void onServerTemplateUpdated(@Observes ServerTemplateUpdated serverTemplateUpdated) {
-        ServerTemplate serverTemplate = serverTemplateUpdated.getServerTemplate();
-        if (serverTemplate.getServerInstanceKeys() == null || serverTemplate.getServerInstanceKeys().isEmpty()) {
-            view.removeServerTemplate(serverTemplate.getId());
-        }
+    public void onTaskRefreshedEvent( @Observes TaskRefreshedEvent event ) {
+        refreshGrid();
     }
+
 }

@@ -15,20 +15,15 @@
  */
 package org.jbpm.console.ng.pr.client.editors.definition.list;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import javax.enterprise.context.Dependent;
+import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.view.client.Range;
-import org.gwtbootstrap3.client.ui.AnchorListItem;
-import org.gwtbootstrap3.client.ui.constants.IconType;
 import org.jboss.errai.bus.client.api.messaging.Message;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.ErrorCallback;
@@ -36,24 +31,27 @@ import org.jboss.errai.common.client.api.RemoteCallback;
 import org.jbpm.console.ng.ga.model.PortableQueryFilter;
 import org.jbpm.console.ng.gc.client.list.base.AbstractListView.ListView;
 import org.jbpm.console.ng.gc.client.list.base.AbstractScreenListPresenter;
+import org.jbpm.console.ng.gc.client.menu.ServerTemplateSelected;
+import org.jbpm.console.ng.gc.client.menu.ServerTemplateSelectorMenuBuilder;
 import org.jbpm.console.ng.pr.client.i18n.Constants;
 import org.jbpm.console.ng.pr.forms.client.display.providers.StartProcessFormDisplayProviderImpl;
 import org.jbpm.console.ng.pr.forms.client.display.views.PopupFormDisplayerView;
 import org.jbpm.console.ng.pr.forms.display.process.api.ProcessDisplayerConfig;
 import org.jbpm.console.ng.bd.model.ProcessDefinitionKey;
 import org.jbpm.console.ng.bd.model.ProcessSummary;
+import org.jbpm.console.ng.pr.model.events.NewProcessInstanceEvent;
+import org.jbpm.console.ng.pr.model.events.ProcessDefSelectionEvent;
+import org.jbpm.console.ng.pr.model.events.ProcessInstanceSelectionEvent;
 import org.jbpm.console.ng.pr.service.ProcessDefinitionService;
 import org.jbpm.console.ng.pr.service.integration.RemoteRuntimeDataService;
-import org.kie.server.controller.api.model.events.ServerTemplateDeleted;
-import org.kie.server.controller.api.model.events.ServerTemplateUpdated;
-import org.kie.server.controller.api.model.spec.ServerTemplate;
-import org.kie.workbench.common.screens.server.management.service.SpecManagementService;
 import org.uberfire.client.annotations.WorkbenchMenu;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
+import org.uberfire.client.mvp.PlaceStatus;
 import org.uberfire.client.mvp.UberView;
 import org.uberfire.ext.widgets.common.client.menu.RefreshMenuBuilder;
+import org.uberfire.mvp.impl.DefaultPlaceRequest;
 import org.uberfire.paging.PageResponse;
 import org.uberfire.workbench.model.menu.MenuFactory;
 import org.uberfire.workbench.model.menu.Menus;
@@ -68,16 +66,8 @@ public class ProcessDefinitionListPresenter extends AbstractScreenListPresenter<
     @Inject
     StartProcessFormDisplayProviderImpl startProcessDisplayProvider;
 
-
-
     public interface ProcessDefinitionListView extends ListView<ProcessSummary, ProcessDefinitionListPresenter> {
-        String getSelectedServer();
 
-        void setSelectedServer(String selected);
-
-        void addServerTemplate(AnchorListItem serverTemplateNavLink);
-
-        void removeServerTemplate(String serverTemplateId);
     }
 
     @Inject
@@ -87,11 +77,22 @@ public class ProcessDefinitionListPresenter extends AbstractScreenListPresenter<
     private Caller<ProcessDefinitionService> processDefinitionService;
 
     @Inject
-    private Caller<SpecManagementService> specManagementService;
-    @Inject
     private Caller<RemoteRuntimeDataService> remoteRuntimeDataService;
 
-    private Constants constants = GWT.create( Constants.class );
+    @Inject
+    private ServerTemplateSelectorMenuBuilder serverTemplateSelectorMenuBuilder;
+
+    @Inject
+    private Event<ProcessInstanceSelectionEvent> processInstanceSelected;
+
+    @Inject
+    private Event<ProcessDefSelectionEvent> processDefSelected;
+
+    private Constants constants = Constants.INSTANCE;
+
+    private String selectedServerTemplate = "";
+
+    private String placeIdentifier;
 
     public ProcessDefinitionListPresenter() {
         super();
@@ -111,7 +112,7 @@ public class ProcessDefinitionListPresenter extends AbstractScreenListPresenter<
                                  final String deploymentId,
                                  final String processDefName ) {
 
-        ProcessDisplayerConfig config = new ProcessDisplayerConfig(new ProcessDefinitionKey(view.getSelectedServer(), deploymentId, processDefId), processDefName);
+        ProcessDisplayerConfig config = new ProcessDisplayerConfig(new ProcessDefinitionKey(selectedServerTemplate, deploymentId, processDefId), processDefName);
 
         formDisplayPopUp.setTitle(processDefName);
 
@@ -177,60 +178,57 @@ public class ProcessDefinitionListPresenter extends AbstractScreenListPresenter<
                 GWT.log( throwable.toString() );
                 return true;
             }
-        } ).getProcesses(view.getSelectedServer(), currentFilter.getOffset() / currentFilter.getCount(), currentFilter.getCount());
+        } ).getProcesses(selectedServerTemplate, currentFilter.getOffset() / currentFilter.getCount(), currentFilter.getCount());
     }
 
     @WorkbenchMenu
     public Menus buildMenu() {
         return MenuFactory
+                .newTopLevelCustomMenu(serverTemplateSelectorMenuBuilder)
+                .endMenu()
                 .newTopLevelCustomMenu(new RefreshMenuBuilder(this))
                 .endMenu()
                 .build();
     }
 
-    public void loadServerTemplates() {
-        specManagementService.call( new RemoteCallback<Collection<ServerTemplate>>() {
-            @Override
-            public void callback( final Collection<ServerTemplate> serverTemplates ) {
-
-                for (ServerTemplate serverTemplate : serverTemplates) {
-                    if (serverTemplate.getServerInstanceKeys() != null && !serverTemplate.getServerInstanceKeys().isEmpty()) {
-                        AnchorListItem serverTemplateNavLink = new AnchorListItem(serverTemplate.getId());
-                        serverTemplateNavLink.setIcon(IconType.BAN);
-                        serverTemplateNavLink.setIconFixedWidth(true);
-                        serverTemplateNavLink.addClickHandler(new SelectServerTemplateClickHandler(serverTemplate.getId()));
-
-                        view.addServerTemplate(serverTemplateNavLink);
-                    }
-                }
-            }
-        } ).listServerTemplates();
+    public void onServerTemplateSelected(@Observes final ServerTemplateSelected serverTemplateSelected ) {
+        selectedServerTemplate = serverTemplateSelected.getServerTemplateId();
+        refreshGrid();
     }
 
-    private class SelectServerTemplateClickHandler implements ClickHandler {
+    protected void selectProcessDefinition(final ProcessSummary processSummary, final Boolean close) {
+        PlaceStatus instanceDetailsStatus = placeManager.getStatus( new DefaultPlaceRequest( "Process Instance Details Multi" ) );
 
-        private String selected;
-
-        public SelectServerTemplateClickHandler(String selected) {
-            this.selected = selected;
+        if ( instanceDetailsStatus == PlaceStatus.OPEN ) {
+            placeManager.closePlace( "Process Instance Details Multi" );
         }
 
-        @Override
-        public void onClick( ClickEvent event ) {
-            view.setSelectedServer(selected);
-            refreshGrid();
+        placeIdentifier = "Advanced Process Details Multi";
+        PlaceStatus status = placeManager.getStatus( new DefaultPlaceRequest( placeIdentifier ) );
+
+        if ( status == PlaceStatus.CLOSE ) {
+            placeManager.goTo( placeIdentifier );
+            processDefSelected.fire( new ProcessDefSelectionEvent( processSummary.getProcessDefId(), processSummary.getDeploymentId(), selectedServerTemplate ) );
+        } else if ( status == PlaceStatus.OPEN && !close ) {
+            processDefSelected.fire( new ProcessDefSelectionEvent( processSummary.getProcessDefId(), processSummary.getDeploymentId(), selectedServerTemplate ) );
+        } else if ( status == PlaceStatus.OPEN && close ) {
+            placeManager.closePlace( placeIdentifier );
         }
     }
 
-    public void onServerTemplateDeleted(@Observes ServerTemplateDeleted serverTemplateDeleted) {
-        view.removeServerTemplate(serverTemplateDeleted.getServerTemplateId());
-    }
+    public void refreshNewProcessInstance( @Observes NewProcessInstanceEvent newProcessInstance ) {
+        placeIdentifier = "Advanced Process Details Multi";
 
-    public void onServerTemplateUpdated(@Observes ServerTemplateUpdated serverTemplateUpdated) {
-        ServerTemplate serverTemplate = serverTemplateUpdated.getServerTemplate();
-        if (serverTemplate.getServerInstanceKeys() == null || serverTemplate.getServerInstanceKeys().isEmpty()) {
-            view.removeServerTemplate(serverTemplate.getId());
+        PlaceStatus definitionDetailsStatus = placeManager.getStatus( new DefaultPlaceRequest( placeIdentifier ) );
+        if ( definitionDetailsStatus == PlaceStatus.OPEN ) {
+            placeManager.closePlace( placeIdentifier );
         }
+        placeManager.goTo( "Process Instance Details Multi" );
+        processInstanceSelected.fire( new ProcessInstanceSelectionEvent( newProcessInstance.getDeploymentId(),
+                newProcessInstance.getNewProcessInstanceId(),
+                newProcessInstance.getNewProcessDefId(), newProcessInstance.getProcessDefName(),
+                newProcessInstance.getNewProcessInstanceStatus(), newProcessInstance.getServerTemplateId() ) );
+
     }
 
 }

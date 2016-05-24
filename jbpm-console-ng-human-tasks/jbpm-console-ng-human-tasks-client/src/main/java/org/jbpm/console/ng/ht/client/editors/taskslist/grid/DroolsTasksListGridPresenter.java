@@ -47,6 +47,7 @@ public class DroolsTasksListGridPresenter extends AbstractTasksListGridPresenter
     @Override
     public Menus getMenus() {
         return MenuFactory
+                .newTopLevelCustomMenu(serverTemplateSelectorMenuBuilder).endMenu()
                 .newTopLevelCustomMenu(new RefreshMenuBuilder(this)).endMenu()
                 .newTopLevelCustomMenu(refreshSelectorMenuBuilder).endMenu()
                 .newTopLevelCustomMenu(new RestoreDefaultFiltersMenuBuilder(this)).endMenu()
