@@ -16,50 +16,31 @@
 package org.jbpm.console.ng.pr.client.editors.definition.list;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import javax.enterprise.context.Dependent;
-import javax.enterprise.event.Event;
-import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import com.google.gwt.cell.client.ActionCell.Delegate;
 import com.google.gwt.cell.client.CompositeCell;
 import com.google.gwt.cell.client.HasCell;
 import com.google.gwt.cell.client.TextCell;
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.BrowserEvents;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.dom.client.Style;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.cellview.client.Column;
-import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.CellPreviewEvent;
 import com.google.gwt.view.client.DefaultSelectionEventManager;
 import com.google.gwt.view.client.NoSelectionModel;
 import com.google.gwt.view.client.SelectionChangeEvent;
-import org.gwtbootstrap3.client.ui.AnchorListItem;
-import org.gwtbootstrap3.client.ui.Button;
-import org.gwtbootstrap3.client.ui.ButtonGroup;
-import org.gwtbootstrap3.client.ui.DropDownMenu;
-import org.gwtbootstrap3.client.ui.constants.IconType;
-import org.gwtbootstrap3.client.ui.constants.Styles;
-import org.gwtbootstrap3.client.ui.constants.Toggle;
+import org.jbpm.console.ng.bd.model.ProcessSummary;
 import org.jbpm.console.ng.gc.client.experimental.grid.base.ExtendedPagedTable;
 import org.jbpm.console.ng.gc.client.list.base.AbstractListView;
 import org.jbpm.console.ng.gc.client.util.ButtonActionCell;
 import org.jbpm.console.ng.pr.client.i18n.Constants;
-import org.jbpm.console.ng.bd.model.ProcessSummary;
-import org.jbpm.console.ng.pr.model.events.NewProcessInstanceEvent;
-import org.jbpm.console.ng.pr.model.events.ProcessDefSelectionEvent;
-import org.jbpm.console.ng.pr.model.events.ProcessInstanceSelectionEvent;
 import org.kie.workbench.common.widgets.client.workbench.configuration.ContextualView;
-import org.uberfire.client.mvp.PlaceStatus;
 import org.uberfire.ext.services.shared.preferences.GridGlobalPreferences;
 import org.uberfire.ext.widgets.table.client.ColumnMeta;
-import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 @Dependent
 public class ProcessDefinitionListViewImpl extends AbstractListView<ProcessSummary, ProcessDefinitionListPresenter>
@@ -69,50 +50,37 @@ public class ProcessDefinitionListViewImpl extends AbstractListView<ProcessSumma
     public static final String COL_ID_PROCESSVERSION = "ProcessVersion";
     public static final String COL_ID_PROJECT = "Project";
     public static final String COL_ID_ACTIONS = "Actions";
-    private Constants constants = GWT.create( Constants.class );
 
-    @Inject
-    private Event<ProcessDefSelectionEvent> processDefSelected;
-
-    @Inject
-    private Event<ProcessInstanceSelectionEvent> processInstanceSelected;
+    private Constants constants = Constants.INSTANCE;
 
     @Inject
     private ContextualView contextualView;
 
-    private String placeIdentifier;
-
-    private DropDownMenu dropDownServerTemplates;
-    private String selectedServerTemplate = "";
-    private Button serverTemplateButton;
-    private ButtonGroup serverTemplates;
-
     @Override
-    public void init( final ProcessDefinitionListPresenter presenter ) {
+    public void init(final ProcessDefinitionListPresenter presenter) {
 
         List<String> bannedColumns = new ArrayList<String>();
-        bannedColumns.add( COL_ID_PROCESSNAME );
-        bannedColumns.add( COL_ID_ACTIONS );
+        bannedColumns.add(COL_ID_PROCESSNAME);
+        bannedColumns.add(COL_ID_ACTIONS);
         List<String> initColumns = new ArrayList<String>();
-        initColumns.add( COL_ID_PROCESSNAME );
-        initColumns.add( COL_ID_PROCESSVERSION );
-        initColumns.add( COL_ID_PROJECT );
-        initColumns.add( COL_ID_ACTIONS );
-        super.init( presenter, new GridGlobalPreferences( "ProcessDefinitionsGrid", initColumns, bannedColumns ) );
+        initColumns.add(COL_ID_PROCESSNAME);
+        initColumns.add(COL_ID_PROCESSVERSION);
+        initColumns.add(COL_ID_PROJECT);
+        initColumns.add(COL_ID_ACTIONS);
+        super.init(presenter, new GridGlobalPreferences("ProcessDefinitionsGrid", initColumns, bannedColumns));
 
         selectionModel = new NoSelectionModel<ProcessSummary>();
-        selectionModel.addSelectionChangeHandler( new SelectionChangeEvent.Handler() {
+        selectionModel.addSelectionChangeHandler(new SelectionChangeEvent.Handler() {
             @Override
-            public void onSelectionChange( SelectionChangeEvent event ) {
+            public void onSelectionChange(SelectionChangeEvent event) {
 
                 boolean close = false;
-                if ( selectedRow == -1 ) {
-                    listGrid.setRowStyles( selectedStyles );
+                if (selectedRow == -1) {
+                    listGrid.setRowStyles(selectedStyles);
                     selectedRow = listGrid.getKeyboardSelectedRow();
                     listGrid.redraw();
-                } else if ( listGrid.getKeyboardSelectedRow() != selectedRow ) {
-
-                    listGrid.setRowStyles( selectedStyles );
+                } else if (listGrid.getKeyboardSelectedRow() != selectedRow) {
+                    listGrid.setRowStyles(selectedStyles);
                     selectedRow = listGrid.getKeyboardSelectedRow();
                     listGrid.redraw();
                 } else {
@@ -121,110 +89,90 @@ public class ProcessDefinitionListViewImpl extends AbstractListView<ProcessSumma
 
                 selectedItem = selectionModel.getLastSelectedObject();
 
-                PlaceStatus instanceDetailsStatus = placeManager.getStatus( new DefaultPlaceRequest( "Process Instance Details Multi" ) );
-
-                if ( instanceDetailsStatus == PlaceStatus.OPEN ) {
-                    placeManager.closePlace( "Process Instance Details Multi" );
-                }
-                placeIdentifier = "Advanced Process Details Multi";
-                PlaceStatus status = placeManager.getStatus( new DefaultPlaceRequest( placeIdentifier ) );
-
-                if ( status == PlaceStatus.CLOSE ) {
-                    placeManager.goTo( placeIdentifier );
-                    processDefSelected.fire( new ProcessDefSelectionEvent( selectedItem.getProcessDefId(), selectedItem.getDeploymentId(), selectedServerTemplate ) );
-                } else if ( status == PlaceStatus.OPEN && !close ) {
-                    processDefSelected.fire( new ProcessDefSelectionEvent( selectedItem.getProcessDefId(), selectedItem.getDeploymentId(), selectedServerTemplate ) );
-                } else if ( status == PlaceStatus.OPEN && close ) {
-                    placeManager.closePlace( placeIdentifier );
-                }
-
+                presenter.selectProcessDefinition(selectedItem, close);
             }
-        } );
+        });
 
         noActionColumnManager = DefaultSelectionEventManager
-                .createCustomManager( new DefaultSelectionEventManager.EventTranslator<ProcessSummary>() {
+                .createCustomManager(new DefaultSelectionEventManager.EventTranslator<ProcessSummary>() {
 
                     @Override
-                    public boolean clearCurrentSelection( CellPreviewEvent<ProcessSummary> event ) {
+                    public boolean clearCurrentSelection(CellPreviewEvent<ProcessSummary> event) {
                         return false;
                     }
 
                     @Override
-                    public DefaultSelectionEventManager.SelectAction translateSelectionEvent( CellPreviewEvent<ProcessSummary> event ) {
+                    public DefaultSelectionEventManager.SelectAction translateSelectionEvent(CellPreviewEvent<ProcessSummary> event) {
                         NativeEvent nativeEvent = event.getNativeEvent();
-                        if ( BrowserEvents.CLICK.equals( nativeEvent.getType() ) ) {
+                        if (BrowserEvents.CLICK.equals(nativeEvent.getType())) {
                             // Ignore if the event didn't occur in the correct column.
-                            if ( listGrid.getColumnIndex( actionsColumn ) == event.getColumn() ) {
+                            if (listGrid.getColumnIndex(actionsColumn) == event.getColumn()) {
                                 return DefaultSelectionEventManager.SelectAction.IGNORE;
                             }
                         }
                         return DefaultSelectionEventManager.SelectAction.DEFAULT;
                     }
 
-                } );
+                });
 
-        listGrid.setSelectionModel( selectionModel, noActionColumnManager );
-        listGrid.setEmptyTableCaption( constants.No_Process_Definitions_Found() );
-        listGrid.setRowStyles( selectedStyles );
+        listGrid.setSelectionModel(selectionModel, noActionColumnManager);
+        listGrid.setEmptyTableCaption(constants.No_Process_Definitions_Found());
+        listGrid.setRowStyles(selectedStyles);
 
-        listGrid.getElement().getStyle().setPaddingRight( 20, Style.Unit.PX );
-        listGrid.getElement().getStyle().setPaddingLeft( 20, Style.Unit.PX );
-
-        initServerTemplateSelector();
+        listGrid.getElement().getStyle().setPaddingRight(20, Style.Unit.PX);
+        listGrid.getElement().getStyle().setPaddingLeft(20, Style.Unit.PX);
     }
 
     @Override
-    public void initColumns( ExtendedPagedTable extendedPagedTable ) {
+    public void initColumns(ExtendedPagedTable extendedPagedTable) {
         Column processNameColumn = initProcessNameColumn();
         Column versionColumn = initVersionColumn();
         Column projectColumn = initProjectColumn();
         actionsColumn = initActionsColumn();
 
         List<ColumnMeta<ProcessSummary>> columnMetas = new ArrayList<ColumnMeta<ProcessSummary>>();
-        columnMetas.add( new ColumnMeta<ProcessSummary>( processNameColumn, constants.Name() ) );
-        columnMetas.add( new ColumnMeta<ProcessSummary>( versionColumn, constants.Version() ) );
-        columnMetas.add( new ColumnMeta<ProcessSummary>( projectColumn, constants.Project() ) );
-        columnMetas.add( new ColumnMeta<ProcessSummary>( actionsColumn, constants.Actions() ) );
+        columnMetas.add(new ColumnMeta<ProcessSummary>(processNameColumn, constants.Name()));
+        columnMetas.add(new ColumnMeta<ProcessSummary>(versionColumn, constants.Version()));
+        columnMetas.add(new ColumnMeta<ProcessSummary>(projectColumn, constants.Project()));
+        columnMetas.add(new ColumnMeta<ProcessSummary>(actionsColumn, constants.Actions()));
 
-        extendedPagedTable.addColumns( columnMetas );
-
-        extendedPagedTable.getRightActionsToolbar().add(serverTemplates);
+        extendedPagedTable.addColumns(columnMetas);
     }
 
     private Column initProcessNameColumn() {
         // Process Name String.
-        Column<ProcessSummary, String> processNameColumn = new Column<ProcessSummary, String>( new TextCell() ) {
+        Column<ProcessSummary, String> processNameColumn = new Column<ProcessSummary, String>(new TextCell()) {
             @Override
-            public String getValue( ProcessSummary object ) {
+            public String getValue(ProcessSummary object) {
                 return object.getProcessDefName();
             }
         };
-        processNameColumn.setSortable( true );
-        processNameColumn.setDataStoreName( COL_ID_PROCESSNAME );
+        processNameColumn.setSortable(true);
+        processNameColumn.setDataStoreName(COL_ID_PROCESSNAME);
         return processNameColumn;
     }
 
     private Column initVersionColumn() {
-        Column<ProcessSummary, String> versionColumn = new Column<ProcessSummary, String>( new TextCell() ) {
+        Column<ProcessSummary, String> versionColumn = new Column<ProcessSummary, String>(new TextCell()) {
             @Override
-            public String getValue( ProcessSummary object ) {
+            public String getValue(ProcessSummary object) {
                 return object.getVersion();
             }
         };
-        versionColumn.setSortable( true );
-        versionColumn.setDataStoreName( COL_ID_PROCESSVERSION );
+        versionColumn.setSortable(true);
+        versionColumn.setDataStoreName(COL_ID_PROCESSVERSION);
         return versionColumn;
     }
 
     private Column initProjectColumn() {
-        Column<ProcessSummary, String> projectColumn = new Column<ProcessSummary, String>( new TextCell() ) {
+        Column<ProcessSummary, String> projectColumn = new Column<ProcessSummary, String>(new TextCell()) {
             @Override
-            public String getValue( ProcessSummary object ) {
+            public String getValue(ProcessSummary object) {
                 return object.getDeploymentId();
             }
         };
-        projectColumn.setSortable( true );
-        projectColumn.setDataStoreName( COL_ID_PROJECT );
+        projectColumn.setSortable(true);
+        projectColumn.setDataStoreName(COL_ID_PROJECT);
         return projectColumn;
     }
 
@@ -232,88 +180,22 @@ public class ProcessDefinitionListViewImpl extends AbstractListView<ProcessSumma
         // actions (icons)
         List<HasCell<ProcessSummary, ?>> cells = new LinkedList<HasCell<ProcessSummary, ?>>();
 
-        cells.add( new ButtonActionCell<ProcessSummary>( constants.Start(), new Delegate<ProcessSummary>() {
+        cells.add(new ButtonActionCell<ProcessSummary>(constants.Start(), new Delegate<ProcessSummary>() {
             @Override
-            public void execute( ProcessSummary process ) {
-                presenter.openGenericForm( process.getProcessDefId(), process.getDeploymentId(), process.getProcessDefName() );
+            public void execute(ProcessSummary process) {
+                presenter.openGenericForm(process.getProcessDefId(), process.getDeploymentId(), process.getProcessDefName());
             }
-        } ) );
+        }));
 
-        CompositeCell<ProcessSummary> cell = new CompositeCell<ProcessSummary>( cells );
-        Column<ProcessSummary, ProcessSummary> actionsColumn = new Column<ProcessSummary, ProcessSummary>( cell ) {
+        CompositeCell<ProcessSummary> cell = new CompositeCell<ProcessSummary>(cells);
+        Column<ProcessSummary, ProcessSummary> actionsColumn = new Column<ProcessSummary, ProcessSummary>(cell) {
             @Override
-            public ProcessSummary getValue( ProcessSummary object ) {
+            public ProcessSummary getValue(ProcessSummary object) {
                 return object;
             }
         };
-        actionsColumn.setDataStoreName( COL_ID_ACTIONS );
+        actionsColumn.setDataStoreName(COL_ID_ACTIONS);
         return actionsColumn;
-    }
-
-    public void refreshNewProcessInstance( @Observes NewProcessInstanceEvent newProcessInstance ) {
-        placeIdentifier = "Advanced Process Details Multi";
-
-        PlaceStatus definitionDetailsStatus = placeManager.getStatus( new DefaultPlaceRequest( placeIdentifier ) );
-        if ( definitionDetailsStatus == PlaceStatus.OPEN ) {
-            placeManager.closePlace( placeIdentifier );
-        }
-        placeManager.goTo( "Process Instance Details Multi" );
-        processInstanceSelected.fire( new ProcessInstanceSelectionEvent( newProcessInstance.getDeploymentId(),
-                                                                         newProcessInstance.getNewProcessInstanceId(),
-                                                                         newProcessInstance.getNewProcessDefId(), newProcessInstance.getProcessDefName(),
-                newProcessInstance.getNewProcessInstanceStatus(), newProcessInstance.getServerTemplateId() ) );
-
-    }
-
-    private void initServerTemplateSelector() {
-
-        serverTemplateButton = new Button("Server templates") {{
-            setDataToggle(Toggle.DROPDOWN);
-            getElement().getStyle().setMarginRight(5, Style.Unit.PX);
-        }};
-
-        dropDownServerTemplates = new DropDownMenu() {{
-            addStyleName(Styles.DROPDOWN_MENU + "-right");
-            getElement().getStyle().setMarginRight(5, Style.Unit.PX);
-
-        }};
-
-        serverTemplates = new ButtonGroup() {{
-            add(serverTemplateButton);
-            add(dropDownServerTemplates);
-        }};
-
-
-        presenter.loadServerTemplates();
-
-    }
-
-    @Override
-    public String getSelectedServer() {
-        return selectedServerTemplate;
-    }
-
-    @Override
-    public void setSelectedServer(String selected) {
-        selectedServerTemplate = selected;
-        serverTemplateButton.setText(selected);
-    }
-
-    @Override
-    public void addServerTemplate(AnchorListItem serverTemplateNavLink) {
-        dropDownServerTemplates.add(serverTemplateNavLink);
-    }
-
-    @Override
-    public void removeServerTemplate(String serverTemplateId) {
-        Iterator<Widget> it = dropDownServerTemplates.iterator();
-
-        while (it.hasNext()) {
-            AnchorListItem item = (AnchorListItem) it.next();
-            if (item.getText().equals(serverTemplateId)) {
-                it.remove();
-            }
-        }
     }
 
 }

@@ -18,7 +18,6 @@ package org.jbpm.console.ng.es.client.editors.requestlist;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import javax.enterprise.context.Dependent;
@@ -37,29 +36,21 @@ import com.google.gwt.dom.client.BrowserEvents;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.InputElement;
 import com.google.gwt.dom.client.NativeEvent;
-import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.CellPreviewEvent;
 import com.google.gwt.view.client.DefaultSelectionEventManager;
 import com.google.gwt.view.client.NoSelectionModel;
 import com.google.gwt.view.client.SelectionChangeEvent;
-import org.gwtbootstrap3.client.ui.AnchorListItem;
 import org.gwtbootstrap3.client.ui.Button;
-import org.gwtbootstrap3.client.ui.ButtonGroup;
-import org.gwtbootstrap3.client.ui.DropDownMenu;
 import org.gwtbootstrap3.client.ui.constants.ButtonSize;
 import org.gwtbootstrap3.client.ui.constants.IconType;
-import org.gwtbootstrap3.client.ui.constants.Styles;
-import org.gwtbootstrap3.client.ui.constants.Toggle;
 import org.jbpm.console.ng.df.client.filter.FilterSettings;
 import org.jbpm.console.ng.df.client.filter.FilterSettingsBuilderHelper;
 import org.jbpm.console.ng.df.client.list.base.DataSetEditorManager;
-import org.jbpm.console.ng.es.client.editors.jobdetails.JobDetailsPopup;
 import org.jbpm.console.ng.es.client.editors.quicknewjob.QuickNewJobPopup;
 import org.jbpm.console.ng.es.client.editors.servicesettings.JobServiceSettingsPopup;
 import org.jbpm.console.ng.es.client.i18n.Constants;
@@ -94,9 +85,6 @@ public class RequestListViewImpl extends AbstractMultiGridView<RequestSummary, R
     private List<RequestSummary> selectedRequestSummary = new ArrayList<RequestSummary>();
 
     @Inject
-    private JobDetailsPopup jobDetailsPopup;
-
-    @Inject
     private QuickNewJobPopup quickNewJobPopup;
 
     @Inject
@@ -107,15 +95,6 @@ public class RequestListViewImpl extends AbstractMultiGridView<RequestSummary, R
 
     @Inject
     private JobServiceSettingsPopup jobServiceSettingsPopup;
-
-    private DropDownMenu dropDownServerTemplates;
-    private String selectedServerTemplate = "";
-    private Button serverTemplateButton;
-    private ButtonGroup serverTemplates;
-
-    public RequestListViewImpl() {
-        initServerTemplateSelector();
-    }
 
     @Override
     public void init( final RequestListPresenter presenter ) {
@@ -185,58 +164,6 @@ public class RequestListViewImpl extends AbstractMultiGridView<RequestSummary, R
         columnMetas.add(new ColumnMeta<RequestSummary>(dueDateColumn, constants.Due_On()));
         columnMetas.add(new ColumnMeta<RequestSummary>(actionsColumn, constants.Actions()));
         extendedPagedTable.addColumns( columnMetas );
-
-        extendedPagedTable.getRightActionsToolbar().add(serverTemplates);
-    }
-
-    private void initServerTemplateSelector() {
-        serverTemplateButton = GWT.create(Button.class);
-        serverTemplateButton.setText(constants.ServerTemplates());
-        serverTemplateButton.setDataToggle(Toggle.DROPDOWN);
-        serverTemplateButton.getElement().getStyle().setMarginRight(5, Style.Unit.PX);
-
-        dropDownServerTemplates = GWT.create(DropDownMenu.class);
-        dropDownServerTemplates.addStyleName(Styles.DROPDOWN_MENU + "-right");
-        dropDownServerTemplates.getElement().getStyle().setMarginRight(5, Style.Unit.PX);
-
-        serverTemplates = GWT.create(ButtonGroup.class);
-        serverTemplates.add(serverTemplateButton);
-        serverTemplates.add(dropDownServerTemplates);
-    }
-
-    @Override
-    public String getSelectedServer() {
-        return selectedServerTemplate;
-    }
-
-    protected void setSelectedServer(String selected) {
-        selectedServerTemplate = selected;
-        serverTemplateButton.setText(selected);
-    }
-
-    @Override
-    public void addServerTemplate(final String serverTemplateId) {
-        final AnchorListItem serverTemplateNavLink = GWT.create(AnchorListItem.class);
-        serverTemplateNavLink.setText(serverTemplateId);
-        serverTemplateNavLink.setIcon(IconType.SERVER);
-        serverTemplateNavLink.setIconFixedWidth(true);
-        serverTemplateNavLink.addClickHandler(e -> {
-            presenter.onServerTemplateSelected(serverTemplateId);
-            setSelectedServer(serverTemplateId);
-        } );
-        dropDownServerTemplates.add(serverTemplateNavLink);
-    }
-
-    @Override
-    public void removeServerTemplate(final String serverTemplateId) {
-        Iterator<Widget> it = dropDownServerTemplates.iterator();
-
-        while (it.hasNext()) {
-            AnchorListItem item = (AnchorListItem) it.next();
-            if (item.getText().equals(serverTemplateId)) {
-                it.remove();
-            }
-        }
     }
 
     public void initSelectionModel() {
@@ -269,8 +196,6 @@ public class RequestListViewImpl extends AbstractMultiGridView<RequestSummary, R
 
         extendedPagedTable.setSelectionModel( selectionModel, noActionColumnManager );
         extendedPagedTable.setRowStyles( selectedStyles );
-
-        extendedPagedTable.getRightActionsToolbar().add(serverTemplates);
     }
 
     private void initNoActionColumnManager( final ExtendedPagedTable extendedPagedTable ) {
@@ -402,7 +327,7 @@ public class RequestListViewImpl extends AbstractMultiGridView<RequestSummary, R
         cells.add( new ActionHasCell( constants.Details(), allStatuses, new Delegate<RequestSummary>() {
             @Override
             public void execute( RequestSummary job ) {
-                jobDetailsPopup.show( getSelectedServer(), String.valueOf( job.getJobId() ) );
+                presenter.showJobDetails( job );
             }
         } ) );
 

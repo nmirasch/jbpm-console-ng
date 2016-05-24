@@ -182,6 +182,4 @@ public interface Constants extends Messages {
 
     String SelectServerTemplate();
 
-    String ServerTemplates();
-
 }

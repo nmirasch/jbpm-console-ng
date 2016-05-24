@@ -17,11 +17,9 @@
 package org.jbpm.console.ng.es.client.editors.requestlist;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
@@ -39,6 +37,7 @@ import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
 import org.jbpm.console.ng.df.client.filter.FilterSettings;
 import org.jbpm.console.ng.df.client.list.base.DataSetQueryHelper;
+import org.jbpm.console.ng.es.client.editors.jobdetails.JobDetailsPopup;
 import org.jbpm.console.ng.es.client.editors.quicknewjob.QuickNewJobPopup;
 import org.jbpm.console.ng.es.client.editors.servicesettings.JobServiceSettingsPopup;
 import org.jbpm.console.ng.es.client.i18n.Constants;
@@ -49,10 +48,8 @@ import org.jbpm.console.ng.gc.client.dataset.AbstractDataSetReadyCallback;
 import org.jbpm.console.ng.gc.client.list.base.AbstractListView.ListView;
 import org.jbpm.console.ng.gc.client.list.base.AbstractScreenListPresenter;
 import org.jbpm.console.ng.gc.client.list.base.events.SearchEvent;
-import org.kie.server.controller.api.model.events.ServerTemplateDeleted;
-import org.kie.server.controller.api.model.events.ServerTemplateUpdated;
-import org.kie.server.controller.api.model.spec.ServerTemplate;
-import org.kie.workbench.common.screens.server.management.service.SpecManagementService;
+import org.jbpm.console.ng.gc.client.menu.ServerTemplateSelected;
+import org.jbpm.console.ng.gc.client.menu.ServerTemplateSelectorMenuBuilder;
 import org.uberfire.ext.widgets.common.client.menu.RefreshMenuBuilder;
 import org.uberfire.ext.widgets.common.client.menu.RefreshSelectorMenuBuilder;
 import org.jbpm.console.ng.gc.client.menu.RestoreDefaultFiltersMenuBuilder;
@@ -82,11 +79,6 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
 
         void applyFilterOnPresenter( String key );
 
-        String getSelectedServer();
-
-        void addServerTemplate(String serverTemplateId);
-
-        void removeServerTemplate(String serverTemplateId);
     }
 
     private Constants constants = Constants.INSTANCE;
@@ -115,7 +107,12 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
     private ErrorPopupPresenter errorPopup;
 
     @Inject
-    private Caller<SpecManagementService> specManagementService;
+    private ServerTemplateSelectorMenuBuilder serverTemplateSelectorMenuBuilder;
+
+    private String selectedServerTemplate = "";
+
+    @Inject
+    private JobDetailsPopup jobDetailsPopup;
 
     public RequestListPresenter() {
         super();
@@ -146,11 +143,6 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
         refreshGrid();
     }
 
-    @PostConstruct
-    public void init() {
-        loadServerTemplates();
-    }
-
     public void createRequest() {
         Map<String, String> ctx = new HashMap<String, String>();
         ctx.put( "businessKey", "1234" );
@@ -160,7 +152,7 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
                 view.displayNotification( constants.RequestScheduled(requestId) );
 
             }
-        } ).scheduleRequest( view.getSelectedServer(), "PrintOutCmd", ctx );
+        } ).scheduleRequest( selectedServerTemplate, "PrintOutCmd", ctx );
     }
 
     @Override
@@ -175,7 +167,7 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
                 FilterSettings currentTableSettings = dataSetQueryHelper.getCurrentTableSettings();
 
                 if ( currentTableSettings != null ) {
-                    currentTableSettings.setServerTemplateId(view.getSelectedServer());
+                    currentTableSettings.setServerTemplateId(selectedServerTemplate);
                     currentTableSettings.setTablePageSize( view.getListGrid().getPageSize() );
                     ColumnSortList columnSortList = view.getListGrid().getColumnSortList();
                     if ( columnSortList != null && columnSortList.size() > 0 ) {
@@ -255,7 +247,7 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
                 view.displayNotification( constants.RequestCancelled(requestId) );
                 requestChangedEvent.fire( new RequestChangedEvent( requestId ) );
             }
-        } ).cancelRequest( view.getSelectedServer(), requestId );
+        } ).cancelRequest( selectedServerTemplate, requestId );
     }
 
     public void requeueRequest( final Long requestId ) {
@@ -265,7 +257,7 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
                 view.displayNotification( constants.RequestCancelled(requestId) );
                 requestChangedEvent.fire( new RequestChangedEvent( requestId ) );
             }
-        } ).requeueRequest( view.getSelectedServer(), requestId );
+        } ).requeueRequest( selectedServerTemplate, requestId );
     }
 
     @WorkbenchMenu
@@ -275,14 +267,16 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
                 .respondsWith(new Command() {
                     @Override
                     public void execute() {
-                        if (view.getSelectedServer() == null || view.getSelectedServer().trim().isEmpty()) {
+                        if (selectedServerTemplate == null || selectedServerTemplate.trim().isEmpty()) {
                             view.displayNotification(constants.SelectServerTemplate());
                         } else {
-                            quickNewJobPopup.show(view.getSelectedServer());
+                            quickNewJobPopup.show(selectedServerTemplate);
                         }
 
                     }
                 })
+                .endMenu()
+                .newTopLevelCustomMenu(serverTemplateSelectorMenuBuilder)
                 .endMenu()
                 .newTopLevelCustomMenu(new RefreshMenuBuilder(this)).endMenu()
                 .newTopLevelCustomMenu(refreshSelectorMenuBuilder).endMenu()
@@ -308,32 +302,13 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
         view.saveRefreshValue(newInterval);
     }
 
-    public void loadServerTemplates() {
-        specManagementService.call( new RemoteCallback<Collection<ServerTemplate>>() {
-            @Override
-            public void callback( final Collection<ServerTemplate> serverTemplates ) {
-                for (ServerTemplate serverTemplate : serverTemplates) {
-                    if (serverTemplate.getServerInstanceKeys() != null && !serverTemplate.getServerInstanceKeys().isEmpty()) {
-                        view.addServerTemplate(serverTemplate.getId());
-                    }
-                }
-            }
-        } ).listServerTemplates();
-    }
-
-    public void onServerTemplateSelected( final String serverTemplateId ) {
+    public void onServerTemplateSelected(@Observes final ServerTemplateSelected serverTemplateSelected ) {
+        selectedServerTemplate = serverTemplateSelected.getServerTemplateId();
         refreshGrid();
     }
 
-    public void onServerTemplateDeleted(@Observes ServerTemplateDeleted serverTemplateDeleted) {
-        view.removeServerTemplate(serverTemplateDeleted.getServerTemplateId());
-    }
-
-    public void onServerTemplateUpdated(@Observes ServerTemplateUpdated serverTemplateUpdated) {
-        ServerTemplate serverTemplate = serverTemplateUpdated.getServerTemplate();
-        if (serverTemplate.getServerInstanceKeys() == null || serverTemplate.getServerInstanceKeys().isEmpty()) {
-            view.removeServerTemplate(serverTemplate.getId());
-        }
+    public void showJobDetails(final RequestSummary job){
+        jobDetailsPopup.show( selectedServerTemplate, String.valueOf( job.getJobId() ) );
     }
 
 }
