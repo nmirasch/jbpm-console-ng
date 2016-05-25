@@ -30,6 +30,7 @@ import org.kie.server.api.KieServerConstants;
 import org.kie.server.api.model.definition.QueryDefinition;
 import org.kie.server.client.KieServicesException;
 import org.kie.server.client.QueryServicesClient;
+import org.kie.server.controller.api.model.events.ServerInstanceConnected;
 import org.kie.server.controller.api.model.events.ServerInstanceUpdated;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,13 +133,13 @@ public class DataSetDefsBootstrap {
         logger.info("Process instance datasets registered");
     }
 
-    public void registerInKieServer(@Observes final ServerInstanceUpdated serverInstanceUpdated) {
+    public void registerInKieServer(@Observes final ServerInstanceConnected serverInstanceConnected) {
         SimpleAsyncExecutorService.getDefaultInstance().execute(new Runnable() {
             @Override
             public void run() {
 
-                String serverTemplateId = serverInstanceUpdated.getServerInstance().getServerTemplateId();
-                String serverInstanceId = serverInstanceUpdated.getServerInstance().getServerInstanceId();
+                String serverTemplateId = serverInstanceConnected.getServerInstance().getServerTemplateId();
+                String serverInstanceId = serverInstanceConnected.getServerInstance().getServerInstanceId();
                 try {
                     long waitLimit = 5 * 60 * 1000;   // default 5 min
                     long elapsed = 0;

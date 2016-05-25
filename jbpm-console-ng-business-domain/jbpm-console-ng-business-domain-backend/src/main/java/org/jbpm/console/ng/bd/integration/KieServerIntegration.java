@@ -42,7 +42,9 @@ import org.kie.server.client.credentials.EnteredCredentialsProvider;
 import org.kie.server.client.credentials.EnteredTokenCredentialsProvider;
 import org.kie.server.client.credentials.SubjectCredentialsProvider;
 import org.kie.server.client.impl.AbstractKieServicesClientImpl;
+import org.kie.server.controller.api.model.events.ServerInstanceConnected;
 import org.kie.server.controller.api.model.events.ServerInstanceDeleted;
+import org.kie.server.controller.api.model.events.ServerInstanceDisconnected;
 import org.kie.server.controller.api.model.events.ServerInstanceUpdated;
 import org.kie.server.controller.api.model.events.ServerTemplateDeleted;
 import org.kie.server.controller.api.model.events.ServerTemplateUpdated;
@@ -137,8 +139,8 @@ public class KieServerIntegration {
         removeServerInstancesFromIndex(serverTemplateDeleted.getServerTemplateId());
     }
 
-    public void onServerInstanceDeleted(@Observes ServerInstanceDeleted serverInstanceDeleted) {
-        ServerInstanceKey serverInstanceKey = serverInstancesById.get(serverInstanceDeleted.getServerInstanceId());
+    public void onServerInstanceDeleted(@Observes ServerInstanceDisconnected serverInstanceDisconnected) {
+        ServerInstanceKey serverInstanceKey = serverInstancesById.get(serverInstanceDisconnected.getServerInstanceId());
 
         if (serverInstanceKey != null) {
             KieServicesClient client = serverTemplatesClients.get(serverInstanceKey.getServerTemplateId());
@@ -154,9 +156,9 @@ public class KieServerIntegration {
         }
     }
 
-    public void onServerInstanceUpdated(@Observes ServerInstanceUpdated serverInstanceUpdated) {
+    public void onServerInstanceUpdated(@Observes ServerInstanceConnected serverInstanceConnected) {
 
-        ServerInstance serverInstance = serverInstanceUpdated.getServerInstance();
+        ServerInstance serverInstance = serverInstanceConnected.getServerInstance();
         KieServicesClient client = serverTemplatesClients.get(serverInstance.getServerTemplateId());
 
         if (client != null) {
