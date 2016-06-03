@@ -184,7 +184,7 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
                             if ( taskSummaries.size() < visibleRange.getLength() ) {
                                 lastPage = true;
                             }
-                            updateDataOnCallback(taskSummaries,visibleRange.getStart(),lastPage);
+                            updateDataOnCallback(taskSummaries,visibleRange.getStart(), visibleRange.getStart() + taskSummaries.size(), lastPage);
 
                         }
                     }).getActiveTasks(selectedServerTemplate, visibleRange.getStart()/visibleRange.getLength(), visibleRange.getLength());
@@ -253,15 +253,15 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
                     List<DataSetOp> ops = tableSettings.getDataSetLookup().getOperationList();
                     String filterValue = isFilteredByTaskName(ops); //Add here the check to add the domain data columns taskName?
 
-                    boolean lastPage=false;
+                    boolean lastPageExactCount = false;
                     if( dataSet.getRowCount() < view.getListGrid().getPageSize()) {
-                        lastPage=true;
+                        lastPageExactCount = true;
                     }
 
                     if (filterValue != null) {
-                        getDomainSpecifDataForTasks(startRange, filterValue, myTasksFromDataSet, lastPage);
+                        getDomainSpecifDataForTasks(startRange, filterValue, myTasksFromDataSet, lastPageExactCount);
                     } else {
-                        updateDataOnCallback(myTasksFromDataSet,startRange,lastPage);
+                        updateDataOnCallback(myTasksFromDataSet, startRange,startRange + myTasksFromDataSet.size(), lastPageExactCount);
                     }
 
                 }
@@ -297,7 +297,7 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
 
     }
 
-    public void getDomainSpecifDataForTasks(final int startRange, String filterValue, final List<TaskSummary> myTasksFromDataSet, boolean lastPage) {
+    public void getDomainSpecifDataForTasks(final int startRange, String filterValue, final List<TaskSummary> myTasksFromDataSet, boolean lastPageExactCount) {
 
         FilterSettings variablesTableSettings = view.getVariablesTableSettings(filterValue);
         variablesTableSettings.setTablePageSize(-1);
@@ -317,11 +317,11 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
         filter.addFilterColumn(filter1);
         variablesTableSettings.getDataSetLookup().addOperation(filter);
 
-        dataSetQueryHelperDomainSpecific.lookupDataSet(0, createDataSetDomainSpecificCallback(startRange, myTasksFromDataSet, variablesTableSettings.getDataSet(),lastPage));
+        dataSetQueryHelperDomainSpecific.lookupDataSet(0, createDataSetDomainSpecificCallback(startRange, myTasksFromDataSet, variablesTableSettings.getDataSet(),lastPageExactCount));
 
     }
 
-    protected DataSetReadyCallback createDataSetDomainSpecificCallback(final int startRange, final List<TaskSummary> instances, final DataSet dataset, boolean lastPage) {
+    protected DataSetReadyCallback createDataSetDomainSpecificCallback(final int startRange, final List<TaskSummary> instances, final DataSet dataset, boolean lastPageExactCount) {
         return new AbstractDataSetReadyCallback(errorPopup, view, dataset) {
             @Override
             public void callback(DataSet dataSet) {
@@ -341,7 +341,7 @@ public abstract class AbstractTasksListGridPresenter extends AbstractScreenListP
                     }
                     view.addDomainSpecifColumns(view.getListGrid(), columns);
                 }
-                updateDataOnCallback(instances,startRange,lastPage);
+                updateDataOnCallback(instances, startRange, startRange + instances.size(), lastPageExactCount);
             }
 
         };

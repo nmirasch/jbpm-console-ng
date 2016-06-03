@@ -135,7 +135,7 @@ public class AbstractListPresenterTest {
 
         int startRange = 0;
         testListPresenter.setDataProvider(dataProviderMock);
-        testListPresenter.updateDataOnCallback(instanceSummaries, startRange, false);
+        testListPresenter.updateDataOnCallback(instanceSummaries, startRange, startRange + instanceSummaries.size(), false);
 
         verify(dataProviderMock).updateRowCount(2, false);
         verify(dataProviderMock).updateRowData(0, instanceSummaries);
@@ -150,7 +150,7 @@ public class AbstractListPresenterTest {
 
         int startRange = 10;
         testListPresenter.setDataProvider(dataProviderMock);
-        testListPresenter.updateDataOnCallback(instanceSummaries, startRange, true);
+        testListPresenter.updateDataOnCallback(instanceSummaries, startRange,startRange + instanceSummaries.size(), true);
 
         verify(dataProviderMock).updateRowCount(startRange + instanceSummaries.size(), true);
         verify(dataProviderMock).updateRowData(startRange, instanceSummaries);

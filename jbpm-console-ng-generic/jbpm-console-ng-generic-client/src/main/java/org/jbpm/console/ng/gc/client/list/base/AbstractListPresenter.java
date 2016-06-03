@@ -93,7 +93,7 @@ public abstract class AbstractListPresenter<T> implements RefreshMenuBuilder.Sup
         if (refreshTimer == null) {
             refreshTimer = new Timer() {
                 public void run() {
-                    getData(dataProvider.getDataDisplays().iterator().next().getVisibleRange());
+                    getData(getListView().getListGrid().getVisibleRange());
                 }
             };
         }else{
@@ -130,11 +130,11 @@ public abstract class AbstractListPresenter<T> implements RefreshMenuBuilder.Sup
         updateRefreshTimer();
     }
 
-    public void updateDataOnCallback(List<T> instanceSummaries, int startRange, boolean lastPage){
+    public void updateDataOnCallback(List<T> instanceSummaries, int startRange, int totalRowCount, boolean isExact){
 
         getListView().hideBusyIndicator();
-        dataProvider.updateRowCount(instanceSummaries.size() + startRange,
-                lastPage);
+        dataProvider.updateRowCount(totalRowCount,
+                isExact);
         dataProvider.updateRowData(startRange,
                 instanceSummaries);
 

@@ -189,11 +189,11 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
                     remoteRuntimeDataService.call(new RemoteCallback<List<ProcessInstanceSummary>>() {
                         @Override
                         public void callback(List<ProcessInstanceSummary> processInstanceSummaries) {
-                            boolean lastPage=false;
+                            boolean lastPageExactCount=false;
                             if ( processInstanceSummaries.size() < visibleRange.getLength() ) {
-                                lastPage = true;
+                                lastPageExactCount = true;
                             }
-                            updateDataOnCallback(processInstanceSummaries,visibleRange.getStart(),lastPage);
+                            updateDataOnCallback(processInstanceSummaries, visibleRange.getStart(), visibleRange.getStart()+processInstanceSummaries.size(), lastPageExactCount);
 
                         }
                     }).getProcessInstances(selectedServerTemplate, statuses, visibleRange.getStart()/visibleRange.getLength(), visibleRange.getLength());
@@ -242,7 +242,7 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
                 }
                 view.addDomainSpecifColumns(view.getListGrid(), columns);
 
-                updateDataOnCallback(myProcessInstancesFromDataSet, startRange, lastPage);
+                updateDataOnCallback(myProcessInstancesFromDataSet, startRange, startRange+myProcessInstancesFromDataSet.size(), lastPage);
             }
 
         };
@@ -272,7 +272,7 @@ public class DataSetProcessInstanceWithVariablesListPresenter extends AbstractSc
                     if ( filterValue != null ) {
                         getDomainSpecifDataForProcessInstances( startRange, filterValue, lastPage );
                     } else {
-                        updateDataOnCallback(myProcessInstancesFromDataSet, startRange, lastPage);
+                        updateDataOnCallback(myProcessInstancesFromDataSet, startRange, startRange+myProcessInstancesFromDataSet.size(), lastPage);
                     }
 
                 }
