@@ -92,7 +92,7 @@ public interface Constants extends Messages {
 
     String Group();
 
-    String Server_Management();
+    String Execution_Servers();
 
     String Case_Management();
 
