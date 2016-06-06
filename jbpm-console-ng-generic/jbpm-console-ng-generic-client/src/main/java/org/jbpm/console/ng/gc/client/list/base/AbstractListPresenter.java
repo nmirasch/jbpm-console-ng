@@ -155,7 +155,9 @@ public abstract class AbstractListPresenter<T> implements RefreshMenuBuilder.Sup
     }
 
     public void refreshGrid() {
-        getListView().getListGrid().setVisibleRangeAndClearData(getListView().getListGrid().getVisibleRange(),true);
+        if(getListView().getListGrid()!=null) {
+            getListView().getListGrid().setVisibleRangeAndClearData(getListView().getListGrid().getVisibleRange(), true);
+        }
     }
 
     protected void onSearchEvent(@Observes SearchEvent searchEvent) {

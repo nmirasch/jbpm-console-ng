@@ -25,7 +25,7 @@ import com.google.gwt.view.client.HasData;
 import com.google.gwt.view.client.Range;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.drools.core.spi.DataProvider;
+import org.jbpm.console.ng.gc.client.experimental.grid.base.ExtendedPagedTable;
 import org.jbpm.console.ng.gc.client.list.base.events.SearchEvent;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,6 +45,9 @@ public class AbstractListPresenterTest {
 
     @Mock
     private AbstractListView.ListView viewMock;
+
+    @Mock
+    ExtendedPagedTable extendedPagedTable;
 
     @Mock
     HasData next;
@@ -156,5 +159,20 @@ public class AbstractListPresenterTest {
         verify(dataProviderMock).updateRowData(startRange, instanceSummaries);
 
     }
+
+    @Test
+    public void testRefreshGrid() {
+
+        Range range = new Range(0,5);
+
+        when(viewMock.getListGrid()).thenReturn(extendedPagedTable);
+        when(extendedPagedTable.getVisibleRange()).thenReturn(range);
+
+        testListPresenter.refreshGrid();
+
+        verify(extendedPagedTable).setVisibleRangeAndClearData(range, true);
+
+    }
+
 
 }
