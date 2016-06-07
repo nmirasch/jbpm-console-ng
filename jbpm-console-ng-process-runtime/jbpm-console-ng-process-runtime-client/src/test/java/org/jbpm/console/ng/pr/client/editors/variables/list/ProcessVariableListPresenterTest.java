@@ -22,6 +22,7 @@ import java.util.List;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import org.jboss.errai.common.client.api.Caller;
 import org.jbpm.console.ng.bd.model.ProcessVariableSummary;
+import org.jbpm.console.ng.gc.client.experimental.grid.base.ExtendedPagedTable;
 import org.jbpm.console.ng.pr.model.events.ProcessInstanceSelectionEvent;
 import org.jbpm.console.ng.pr.service.ProcessVariablesService;
 import org.junit.Before;
@@ -38,6 +39,9 @@ public class ProcessVariableListPresenterTest {
 
     @Mock
     ProcessVariableListPresenter.ProcessVariableListView view;
+
+    @Mock
+    ExtendedPagedTable extendedPagedTable;
 
     Caller<ProcessVariablesService> variablesServicesCaller;
 
@@ -61,6 +65,7 @@ public class ProcessVariableListPresenterTest {
         final ProcessVariableSummary summary = new ProcessVariableSummary(variableName, "variableInstanceId", processInstanceId, "oldValue", "newValue", System.currentTimeMillis(), "type");
         final List<ProcessVariableSummary> summaries = Arrays.asList(summary);
         when(processVariablesService.getVariableHistory(anyString(), eq(deploymentId), eq(processInstanceId), eq(variableName))).thenReturn(summaries);
+        when(view.getListGrid()).thenReturn(extendedPagedTable);
 
         final ProcessInstanceSelectionEvent event = new ProcessInstanceSelectionEvent(deploymentId, processInstanceId, "processDefId", "processDefName", 1);
 

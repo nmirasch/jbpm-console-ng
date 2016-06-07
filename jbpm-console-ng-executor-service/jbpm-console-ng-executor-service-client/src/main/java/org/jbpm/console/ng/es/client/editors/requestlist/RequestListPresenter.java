@@ -212,17 +212,12 @@ public class RequestListPresenter extends AbstractScreenListPresenter<RequestSum
                                             dataSetQueryHelper.getColumnStringValue(dataSet, COLUMN_BUSINESSKEY, i)));
 
                                 }
-                                PageResponse<RequestSummary> requestSummaryPageResponse = new PageResponse<RequestSummary>();
-                                requestSummaryPageResponse.setPageRowList(myRequestSumaryFromDataSet);
-                                requestSummaryPageResponse.setStartRowIndex(visibleRange.getStart());
-                                requestSummaryPageResponse.setTotalRowSize(dataSet.getRowCountNonTrimmed());
-                                requestSummaryPageResponse.setTotalRowSizeExact(true);
-                                if (visibleRange.getStart() + dataSet.getRowCount() == dataSet.getRowCountNonTrimmed()) {
-                                    requestSummaryPageResponse.setLastPage(true);
-                                } else {
-                                    requestSummaryPageResponse.setLastPage(false);
+                                boolean lastPageExactCount=false;
+                                if( dataSet.getRowCount() < view.getListGrid().getPageSize()) {
+                                    lastPageExactCount=true;
                                 }
-                                updateDataOnCallback(requestSummaryPageResponse);
+                                updateDataOnCallback(myRequestSumaryFromDataSet,visibleRange.getStart(),visibleRange.getStart()+ myRequestSumaryFromDataSet.size(), lastPageExactCount);
+
                             }
                         }
                     });

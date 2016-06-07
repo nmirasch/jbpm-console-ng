@@ -124,7 +124,7 @@ public class DataSetDefsBootstrap {
                             "t.status, " +
                             "t.taskId, " +
                             "t.workItemId, " +
-                            "oe.id as OEID " +
+                            "oe.id " +
                         "from " +
                             "AuditTaskImpl t, " +
                             "PeopleAssignments_PotOwners po, " +
@@ -172,7 +172,7 @@ public class DataSetDefsBootstrap {
                             "t.status, " +
                             "t.taskId, " +
                             "t.workItemId, " +
-                            "oe.id as OEID " +
+                            "oe.id " +
                         "from " +
                             "AuditTaskImpl t, " +
                             "PeopleAssignments_BAs bas, " +
