@@ -24,14 +24,18 @@ public class TaskDefSummary implements Serializable {
     private long id;
     private String name;
 
-    public TaskDefSummary(long id, String name) {
-        super();
+    public TaskDefSummary(long id, final String name) {
+        this(name);
         this.id = id;
-        this.name = name;
+    }
 
+    public TaskDefSummary(final String name) {
+        super();
+        this.name = name;
     }
 
     public TaskDefSummary() {
+        super();
     }
 
     public long getId() {

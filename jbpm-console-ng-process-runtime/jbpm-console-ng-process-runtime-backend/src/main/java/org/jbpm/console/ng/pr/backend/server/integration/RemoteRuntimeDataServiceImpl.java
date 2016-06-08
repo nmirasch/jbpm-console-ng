@@ -18,6 +18,7 @@ package org.jbpm.console.ng.pr.backend.server.integration;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -29,10 +30,11 @@ import org.jbpm.console.ng.bd.model.ProcessInstanceKey;
 import org.jbpm.console.ng.bd.model.ProcessInstanceSummary;
 import org.jbpm.console.ng.bd.model.ProcessSummary;
 import org.jbpm.console.ng.bd.model.RuntimeLogSummary;
+import org.jbpm.console.ng.bd.model.TaskDefSummary;
 import org.jbpm.console.ng.bd.model.UserTaskSummary;
 import org.jbpm.console.ng.pr.service.integration.RemoteRuntimeDataService;
-import org.kie.internal.query.QueryFilter;
 import org.kie.server.api.model.definition.ProcessDefinition;
+import org.kie.server.api.model.definition.UserTaskDefinitionList;
 import org.kie.server.api.model.instance.NodeInstance;
 import org.kie.server.api.model.instance.ProcessInstance;
 import org.kie.server.api.model.instance.TaskEventInstance;
@@ -234,6 +236,15 @@ public class RemoteRuntimeDataServiceImpl implements RemoteRuntimeDataService {
         summary.setServiceTasks(definition.getServiceTasks());
 
         return summary;
+    }
+
+    @Override
+    public List<TaskDefSummary> getProcessUserTasks(final String serverTemplateId, final String containerId, final String processId){
+        ProcessServicesClient processServicesClient = getClient(serverTemplateId, ProcessServicesClient.class);
+
+        final UserTaskDefinitionList userTaskDefinitionList = processServicesClient.getUserTaskDefinitions(containerId, processId);
+
+        return userTaskDefinitionList.getItems().stream().map(t -> new TaskDefSummary(t.getName())).collect(Collectors.toList());
     }
 
     @Override

@@ -24,7 +24,6 @@ import javax.inject.Inject;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.IsWidget;
-import org.jboss.errai.bus.client.api.messaging.Message;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
 import org.jbpm.console.ng.bd.model.ProcessDefinitionKey;
@@ -173,27 +172,37 @@ public class AdvancedViewProcessDefDetailsPresenter extends
         }
     }
 
-    private void refreshTaskDef( List<TaskDefSummary> tasks ) {
-        view.getNroOfHumanTasksText().setText(
-                String.valueOf( tasks.size() ) );
+    private void refreshTaskDef( final String serverTemplateId, final String deploymentId, final String processId ) {
+        view.getNroOfHumanTasksText().setText( "" );
         view.getHumanTasksListBox().setText( "" );
-        SafeHtmlBuilder safeHtmlBuilder = new SafeHtmlBuilder();
-        if (tasks.isEmpty()) {
-            safeHtmlBuilder.appendEscapedLines(constants.NoUserTasksDefinedInThisProcess());
-            view.getHumanTasksListBox().setStyleName( "muted" );
-            view.getHumanTasksListBox().setHTML(
-                    safeHtmlBuilder.toSafeHtml() );
-        } else {
-            for (TaskDefSummary t : tasks) {
-                safeHtmlBuilder.appendEscapedLines( t.getName() + "\n" );
+
+        processDefService.call(new RemoteCallback<List<TaskDefSummary>>() {
+
+            @Override
+            public void callback(final List<TaskDefSummary> userTaskSummaries) {
+                view.getNroOfHumanTasksText().setText( String.valueOf(userTaskSummaries.size()) );
+
+                SafeHtmlBuilder safeHtmlBuilder = new SafeHtmlBuilder();
+                if (userTaskSummaries.isEmpty()) {
+                    safeHtmlBuilder.appendEscapedLines(constants.NoUserTasksDefinedInThisProcess());
+                    view.getHumanTasksListBox().setStyleName( "muted" );
+                    view.getHumanTasksListBox().setHTML(
+                            safeHtmlBuilder.toSafeHtml() );
+                } else {
+                    for (TaskDefSummary t : userTaskSummaries) {
+                        safeHtmlBuilder.appendEscapedLines( t.getName() + "\n" );
+                    }
+                    view.getHumanTasksListBox().setHTML(
+                            safeHtmlBuilder.toSafeHtml() );
+                }
             }
-            view.getHumanTasksListBox().setHTML(
-                    safeHtmlBuilder.toSafeHtml() );
-        }
+
+        }, new DefaultErrorCallback()).getProcessUserTasks(serverTemplateId, deploymentId, processId);
+
     }
 
     @Override
-    protected void refreshProcessDef( String serverTemplateId, final String deploymentId, final String processId ) {
+    protected void refreshProcessDef( final String serverTemplateId, final String deploymentId, final String processId ) {
 
         processDefService.call( new RemoteCallback<ProcessSummary>() {
 
@@ -201,7 +210,7 @@ public class AdvancedViewProcessDefDetailsPresenter extends
             public void callback( ProcessSummary process ) {
                 if (process != null) {
 
-//                    refreshTaskDef( process. );
+                    refreshTaskDef( serverTemplateId, deploymentId, processId );
 
                     refreshAssociatedEntities( process.getAssociatedEntities() );
 
