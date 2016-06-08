@@ -31,7 +31,7 @@ import org.kie.server.api.model.definition.QueryDefinition;
 import org.kie.server.client.KieServicesException;
 import org.kie.server.client.QueryServicesClient;
 import org.kie.server.controller.api.model.events.ServerInstanceConnected;
-import org.kie.server.controller.api.model.events.ServerInstanceUpdated;
+import org.kie.server.controller.api.model.runtime.ServerInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uberfire.commons.async.SimpleAsyncExecutorService;
@@ -134,12 +134,15 @@ public class DataSetDefsBootstrap {
     }
 
     public void registerInKieServer(@Observes final ServerInstanceConnected serverInstanceConnected) {
+        final ServerInstance serverInstance = serverInstanceConnected.getServerInstance();
+        final String serverInstanceId = serverInstance.getServerInstanceId();
+        logger.debug("Server instance '{}' connected, registering process related data sets", serverInstanceId);
+
         SimpleAsyncExecutorService.getDefaultInstance().execute(new Runnable() {
+
             @Override
             public void run() {
-
-                String serverTemplateId = serverInstanceConnected.getServerInstance().getServerTemplateId();
-                String serverInstanceId = serverInstanceConnected.getServerInstance().getServerInstanceId();
+                final String serverTemplateId = serverInstance.getServerTemplateId();
                 try {
                     long waitLimit = 5 * 60 * 1000;   // default 5 min
                     long elapsed = 0;
@@ -180,7 +183,6 @@ public class DataSetDefsBootstrap {
                     logger.warn("Timeout while trying to register process instance query definition on '{}'", serverInstanceId);
                 } catch (Exception e) {
                     logger.warn("Unable to register process instance queries on '{}' due to {}", serverInstanceId, e.getMessage(), e);
-
                 }
             }
         });

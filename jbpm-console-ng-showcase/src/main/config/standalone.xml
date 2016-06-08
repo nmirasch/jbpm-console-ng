@@ -82,7 +82,7 @@
     <profile>
         <subsystem xmlns="urn:jboss:domain:logging:2.0">
             <console-handler name="CONSOLE">
-                <level name="INFO"/>
+                <level name="DEBUG"/>
                 <formatter>
                     <named-formatter name="COLOR-PATTERN"/>
                 </formatter>
@@ -112,6 +112,12 @@
             </logger>
             <logger category="jacorb.config">
                 <level name="ERROR"/>
+            </logger>
+            <logger category="org.kie">
+                <level name="DEBUG"/>
+            </logger>
+            <logger category="org.jbpm">
+                <level name="DEBUG"/>
             </logger>
             <root-logger>
                 <level name="INFO"/>
