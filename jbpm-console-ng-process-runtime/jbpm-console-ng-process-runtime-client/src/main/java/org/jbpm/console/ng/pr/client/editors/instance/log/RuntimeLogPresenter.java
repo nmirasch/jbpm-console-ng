@@ -27,7 +27,6 @@ import com.google.gwt.user.client.ui.IsWidget;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
 import org.jbpm.console.ng.bd.model.RuntimeLogSummary;
-import org.jbpm.console.ng.pr.client.i18n.Constants;
 import org.jbpm.console.ng.pr.client.util.LogUtils.LogOrder;
 import org.jbpm.console.ng.pr.client.util.LogUtils.LogType;
 import org.jbpm.console.ng.pr.model.events.ProcessInstanceSelectionEvent;
@@ -46,12 +45,8 @@ public class RuntimeLogPresenter {
 
         void init( final RuntimeLogPresenter presenter );
 
-        void displayNotification( final String text );
-
         void setLogs( List<String> logs );
     }
-
-    private Constants constants = Constants.INSTANCE;
 
     @Inject
     private RuntimeLogView view;
@@ -85,7 +80,6 @@ public class RuntimeLogPresenter {
                         logsLine.add( rls.getTime() + ": " + rls.getLogLine() + " - " + rls.getType() );
                     }
 
-
                     view.setLogs( logsLine );
                 }
             }, new DefaultErrorCallback() ).getRuntimeLogs(currentServerTemplateId, currentProcessInstanceId);
@@ -101,6 +95,7 @@ public class RuntimeLogPresenter {
                     for ( RuntimeLogSummary rls : logs ) {
                         logsLine.add( rls.getTime() + ": " + rls.getLogLine() );
                     }
+
                     view.setLogs( logsLine );
                 }
             }, new DefaultErrorCallback() ).getBusinessLogs(currentServerTemplateId, currentProcessName, currentProcessInstanceId );

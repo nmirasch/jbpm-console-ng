@@ -41,11 +41,10 @@ import org.uberfire.paging.PageResponse;
 @Dependent
 public class ProcessDocumentListPresenter extends AbstractListPresenter<DocumentSummary> {
 
-    private Constants constants = GWT.create( Constants.class );
+    private Constants constants = Constants.INSTANCE;
 
     public interface ProcessDocumentListView extends AbstractListView.ListView<DocumentSummary, ProcessDocumentListPresenter> {
 
-        void init( final ProcessDocumentListPresenter presenter );
     }
 
     @Inject
@@ -57,16 +56,10 @@ public class ProcessDocumentListPresenter extends AbstractListPresenter<Document
     private String processInstanceId;
     private String processDefId;
     private String deploymentId;
-    private String documentId;
     private String serverTemplateId;
-
-    public ProcessDocumentListPresenter() {
-        super();
-    }
 
     @PostConstruct
     public void init() {
-
         view.init( this );
     }
 

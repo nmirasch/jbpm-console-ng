@@ -48,8 +48,6 @@ public class ProcessVariableListPresenter extends AbstractListPresenter<ProcessV
 
     public interface ProcessVariableListView extends AbstractListView.ListView<ProcessVariableSummary, ProcessVariableListPresenter> {
 
-        void init( ProcessVariableListPresenter presenter );
-
     }
 
     private ProcessVariableListView view;
