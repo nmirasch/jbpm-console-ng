@@ -29,7 +29,6 @@ import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.CompositeCell;
 import com.google.gwt.cell.client.HasCell;
 import com.google.gwt.cell.client.TextCell;
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.BrowserEvents;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
@@ -63,7 +62,7 @@ public class ProcessVariableListViewImpl extends AbstractListView<ProcessVariabl
     public static final String COL_ID_LASTMOD = "lastMod";
     public static final String COL_ID_ACTIONS = "Actions";
 
-    private Constants constants = GWT.create( Constants.class );
+    private Constants constants = Constants.INSTANCE;
 
     private Column actionsColumn;
 
@@ -283,8 +282,5 @@ public class ProcessVariableListViewImpl extends AbstractListView<ProcessVariabl
                 super.render( context, value, sb );
         }
     }
-
-
-
 
 }

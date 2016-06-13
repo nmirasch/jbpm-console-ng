@@ -22,7 +22,6 @@ import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.IsWidget;
@@ -35,12 +34,8 @@ import org.jbpm.console.ng.bd.model.UserTaskSummary;
 import org.jbpm.console.ng.pr.client.i18n.Constants;
 import org.jbpm.console.ng.pr.model.events.ProcessInstanceSelectionEvent;
 import org.jbpm.console.ng.pr.model.events.ProcessInstanceStyleEvent;
-import org.jbpm.console.ng.pr.model.events.ProcessInstancesUpdateEvent;
-import org.jbpm.console.ng.pr.service.ProcessInstanceService;
 import org.jbpm.console.ng.pr.service.integration.RemoteRuntimeDataService;
 import org.kie.api.runtime.process.ProcessInstance;
-import org.uberfire.backend.vfs.Path;
-import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.ext.widgets.common.client.callbacks.DefaultErrorCallback;
 
 @Dependent
@@ -53,8 +48,7 @@ public class ProcessInstanceDetailsPresenter {
 
     public interface ProcessInstanceDetailsView extends IsWidget {
 
-        void displayNotification( String text );
-
+//      TODO Review interface to not expose GWT components
         HTML getCurrentActivitiesListBox();
 
         HTML getActiveTasksListBox();
@@ -62,8 +56,6 @@ public class ProcessInstanceDetailsPresenter {
         HTML getProcessDefinitionIdText();
 
         HTML getStateText();
-
-        void setProcessInstance( ProcessInstanceSummary processInstance );
 
         HTML getProcessDeploymentText();
 
@@ -73,42 +65,18 @@ public class ProcessInstanceDetailsPresenter {
 
         HTML getParentProcessInstanceIdText();
 
-        void setProcessAssetPath( Path processAssetPath );
-
-        void setCurrentActiveNodes( List<NodeInstanceSummary> activeNodes );
-
-        void setCurrentCompletedNodes( List<NodeInstanceSummary> completedNodes );
-
-        void setEncodedProcessSource( String encodedProcessSource );
-
-        List<NodeInstanceSummary> getCompletedNodes();
-
-        Path getProcessAssetPath();
-
-        String getEncodedProcessSource();
-
-        List<NodeInstanceSummary> getActiveNodes();
     }
-
-    @Inject
-    private PlaceManager placeManager;
 
     @Inject
     private ProcessInstanceDetailsView view;
 
     @Inject
-    private Caller<ProcessInstanceService> processInstanceService;
-
-    @Inject
     private Event<ProcessInstanceStyleEvent> processInstanceStyleEvent;
-
-    @Inject
-    private Event<ProcessInstancesUpdateEvent> processInstancesUpdatedEvent;
 
     @Inject
     private Caller<RemoteRuntimeDataService> remoteRuntimeDataService;
 
-    private Constants constants = GWT.create(Constants.class);
+    private Constants constants = Constants.INSTANCE;
 
     private ProcessInstanceSummary processSelected = null;
 
@@ -121,7 +89,6 @@ public class ProcessInstanceDetailsPresenter {
                                  String processDefVersion,
                                  Date startTime ) {
         processInstanceStyleEvent.fire( new ProcessInstanceStyleEvent( processInstanceId, processDefName, processDefVersion, startTime ) );
-
     }
 
     public void onProcessInstanceSelectionEvent( @Observes ProcessInstanceSelectionEvent event ) {
@@ -129,21 +96,28 @@ public class ProcessInstanceDetailsPresenter {
         this.currentProcessInstanceId = String.valueOf( event.getProcessInstanceId() );
         this.currentProcessDefId = event.getProcessDefId();
         this.currentServerTemplateId = event.getServerTemplateId();
-        refreshProcessInstanceDataRemote(currentDeploymentId, currentProcessInstanceId, currentProcessDefId, currentServerTemplateId);
 
+        refreshProcessInstanceDataRemote(currentDeploymentId, currentProcessInstanceId, currentProcessDefId, currentServerTemplateId);
     }
 
-    public void refreshProcessInstanceDataRemote( final String deploymentId,
-            final String processId,
-            final String processDefId,
-            final String serverTemplateId) {
+    public void refreshProcessInstanceDataRemote(final String deploymentId,
+                                                 final String processId,
+                                                 final String processDefId,
+                                                 final String serverTemplateId) {
         processSelected = null;
 
-        view.getProcessDefinitionIdText().setText( processId );
+        view.getProcessDefinitionIdText().setText("");
+        view.getProcessVersionText().setText("");
+        view.getProcessDeploymentText().setText("");
+        view.getCorrelationKeyText().setText("");
+        view.getParentProcessInstanceIdText().setText("");
+        view.getActiveTasksListBox().setText("");
+        view.getStateText().setText("");
+        view.getCurrentActivitiesListBox().setText( "" );
 
         remoteRuntimeDataService.call( new RemoteCallback<ProcessInstanceSummary>() {
             @Override
-            public void callback( ProcessInstanceSummary process ) {
+            public void callback( final ProcessInstanceSummary process ) {
                 view.getProcessDefinitionIdText().setText( process.getProcessId() );
                 view.getProcessVersionText().setText( process.getProcessVersion() );
                 view.getProcessDeploymentText().setText( process.getDeploymentId() );
@@ -153,8 +127,6 @@ public class ProcessInstanceDetailsPresenter {
                 }else{
                     view.getParentProcessInstanceIdText().setText(constants.No_Parent_Process_Instance());
                 }
-
-                view.setProcessInstance( process );
 
                 String statusStr = constants.Unknown();
                 switch ( process.getState() ) {
@@ -176,7 +148,7 @@ public class ProcessInstanceDetailsPresenter {
                     default:
                         break;
                 }
-                view.getActiveTasksListBox().setText( "" );
+
                 if (process.getActiveTasks() != null && !process.getActiveTasks().isEmpty()) {
                     SafeHtmlBuilder safeHtmlBuilder = new SafeHtmlBuilder();
 
@@ -196,10 +168,8 @@ public class ProcessInstanceDetailsPresenter {
 
         remoteRuntimeDataService.call( new RemoteCallback<List<NodeInstanceSummary>>() {
             @Override
-            public void callback( List<NodeInstanceSummary> details ) {
-                view.setCurrentActiveNodes( details );
-                view.getCurrentActivitiesListBox().setText( "" );
-                SafeHtmlBuilder safeHtmlBuilder = new SafeHtmlBuilder();
+            public void callback( final List<NodeInstanceSummary> details ) {
+                final SafeHtmlBuilder safeHtmlBuilder = new SafeHtmlBuilder();
                 for ( NodeInstanceSummary nis : details ) {
                     safeHtmlBuilder.appendEscapedLines( nis.getTimestamp() + ": "
                             + nis.getId() + " - " + nis.getNodeName() + " (" + nis.getType() + ") \n" );
@@ -208,4 +178,5 @@ public class ProcessInstanceDetailsPresenter {
             }
         }, new DefaultErrorCallback() ).getProcessInstanceActiveNodes( serverTemplateId, Long.parseLong( processId ) );
     }
+
 }
