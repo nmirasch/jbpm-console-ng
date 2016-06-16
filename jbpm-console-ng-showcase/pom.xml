@@ -1310,7 +1310,7 @@
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>${project.build.directory}/wildfly-${as.version}/standalone/configuration</outputDirectory>
+              <outputDirectory>${errai.jboss.home}/standalone/configuration</outputDirectory>
               <overwrite>true</overwrite>
               <resources>
                 <resource>
