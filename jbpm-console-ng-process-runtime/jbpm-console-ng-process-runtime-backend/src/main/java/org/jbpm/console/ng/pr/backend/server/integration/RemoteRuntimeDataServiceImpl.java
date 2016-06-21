@@ -145,7 +145,7 @@ public class RemoteRuntimeDataServiceImpl implements RemoteRuntimeDataService {
     }
 
     @Override
-    public List<ProcessSummary> getProcesses(String serverTemplateId, Integer page, Integer pageSize) {
+    public List<ProcessSummary> getProcesses(String serverTemplateId, Integer page, Integer pageSize, String sort, boolean sortOrder) {
         List<ProcessSummary> summaries = new ArrayList<ProcessSummary>();
 
         if (serverTemplateId == null || serverTemplateId.isEmpty()) {
@@ -154,7 +154,7 @@ public class RemoteRuntimeDataServiceImpl implements RemoteRuntimeDataService {
 
         QueryServicesClient queryServicesClient = getClient(serverTemplateId, QueryServicesClient.class);
 
-        List<ProcessDefinition> processes = queryServicesClient.findProcesses(page, pageSize);
+        List<ProcessDefinition> processes = queryServicesClient.findProcesses(page, pageSize, sort, sortOrder);
 
         summaries = processes
                 .stream()
@@ -195,11 +195,11 @@ public class RemoteRuntimeDataServiceImpl implements RemoteRuntimeDataService {
     }
 
     @Override
-    public List<ProcessSummary> getProcessesByFilter(String serverTemplateId, String textSearch, Integer page, Integer pageSize) {
+    public List<ProcessSummary> getProcessesByFilter(String serverTemplateId, String textSearch, Integer page, Integer pageSize, String sort, boolean sortOrder) {
 
         QueryServicesClient queryServicesClient = getClient(serverTemplateId, QueryServicesClient.class);
 
-        List<ProcessDefinition> processes = queryServicesClient.findProcesses(textSearch, page, pageSize);
+        List<ProcessDefinition> processes = queryServicesClient.findProcesses(textSearch, page, pageSize, sort, sortOrder);
 
         List<ProcessSummary> summaries = processes
                 .stream()

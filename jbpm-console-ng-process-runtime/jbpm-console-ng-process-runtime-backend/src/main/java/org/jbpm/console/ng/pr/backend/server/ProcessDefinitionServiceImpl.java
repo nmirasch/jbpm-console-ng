@@ -72,9 +72,9 @@ public class ProcessDefinitionServiceImpl implements ProcessDefinitionService {
                 filter.getOrderBy(), filter.isAscending());
         List<ProcessSummary> processDefsSums = null;
         if((String)filter.getParams().get("textSearch") != null && !((String)filter.getParams().get("textSearch")).equals("")){
-            processDefsSums = dataService.getProcessesByFilter(serverTemplateId, ((String)filter.getParams().get("textSearch")), qf.getOffset(), qf.getCount());
+            processDefsSums = dataService.getProcessesByFilter(serverTemplateId, ((String)filter.getParams().get("textSearch")), qf.getOffset(), qf.getCount(), qf.getOrderBy(), qf.isAscending());
         }else{
-            processDefsSums = dataService.getProcesses(serverTemplateId, qf.getOffset(), qf.getCount());
+            processDefsSums = dataService.getProcesses(serverTemplateId, qf.getOffset(), qf.getCount(), qf.getOrderBy(), qf.isAscending());
         }
 
         return processDefsSums;

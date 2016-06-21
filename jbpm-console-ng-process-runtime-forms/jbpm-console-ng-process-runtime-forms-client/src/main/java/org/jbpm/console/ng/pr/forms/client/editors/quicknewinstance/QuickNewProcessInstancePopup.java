@@ -201,7 +201,7 @@ public class QuickNewProcessInstancePopup extends BaseModal implements FormDispl
                 }
 
             }
-        }).getProcesses(serverTemplateId, 0, 1000 );
+        }).getProcesses(serverTemplateId, 0, 1000, "", true );
 
         processDeploymentIdListBox.addChangeHandler( new ChangeHandler() {
             @Override

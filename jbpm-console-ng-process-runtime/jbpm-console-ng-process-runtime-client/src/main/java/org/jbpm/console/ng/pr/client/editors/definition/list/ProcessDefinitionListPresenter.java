@@ -171,7 +171,8 @@ public class ProcessDefinitionListPresenter extends AbstractScreenListPresenter<
                 GWT.log( throwable.toString() );
                 return true;
             }
-        } ).getProcesses(selectedServerTemplate, currentFilter.getOffset() / currentFilter.getCount(), currentFilter.getCount());
+        } ).getProcesses(selectedServerTemplate, currentFilter.getOffset() / currentFilter.getCount(), currentFilter.getCount(),
+                currentFilter.getOrderBy(), currentFilter.isAscending());
     }
 
     @WorkbenchMenu

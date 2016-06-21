@@ -106,7 +106,7 @@ public class ProcessAdminSettingsPresenter {
                     view.addProcessList(pid);
                 },
                 new DefaultErrorCallback())
-                .getProcesses(serverTemplateId, 0, Integer.MAX_VALUE);
+                .getProcesses(serverTemplateId, 0, Integer.MAX_VALUE, "", true);
     }
 
     public interface ProcessAdminSettingsView extends UberView<ProcessAdminSettingsPresenter> {
