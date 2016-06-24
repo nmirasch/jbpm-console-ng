@@ -46,10 +46,6 @@ public class DataSetDefsBootstrapTest {
 
     @Mock
     IdentityProvider identityProvider;
-
-    @Spy
-    DeploymentIdsPreprocessor deploymentIdsPreprocessor;
-
     @Spy
     DataSetDefRegistry dataSetRegistry = DataSetCore.get().getDataSetDefRegistry();
 
@@ -65,7 +61,6 @@ public class DataSetDefsBootstrapTest {
     public void setUp() {
         // The two lines below is Mockito's issue work-around:
         // Can not use @_InjectMocks together with a @Spy annotation => https://github.com/mockito/mockito/issues/169
-        deploymentIdsPreprocessor.identityProvider = identityProvider;
 
         dataSetsBootstrap.registerDataSetDefinitions();
 //        when(deploymentRolesManager.getDeploymentsForUser(identityProvider)).thenReturn(deploymentIds);
@@ -93,7 +88,6 @@ public class DataSetDefsBootstrapTest {
         dataSetManager.lookupDataSet(lookup);
         ArgumentCaptor<DataSetLookup> argument = ArgumentCaptor.forClass(DataSetLookup.class);
 
-        verify(deploymentIdsPreprocessor).preprocess(lookup);
         verify(dataSetManager).lookupDataSet(argument.capture());
         assertEquals(argument.getValue(), DataSetLookupFactory.newDataSetLookupBuilder()
                 .dataset(PROCESSES_MONITORING_DATASET)
@@ -111,7 +105,6 @@ public class DataSetDefsBootstrapTest {
         dataSetManager.lookupDataSet(lookup);
         ArgumentCaptor<DataSetLookup> argument = ArgumentCaptor.forClass(DataSetLookup.class);
 
-        verify(deploymentIdsPreprocessor).preprocess(lookup);
         verify(dataSetManager).lookupDataSet(argument.capture());
         assertEquals(argument.getValue(), DataSetLookupFactory.newDataSetLookupBuilder()
                 .dataset(TASKS_MONITORING_DATASET)

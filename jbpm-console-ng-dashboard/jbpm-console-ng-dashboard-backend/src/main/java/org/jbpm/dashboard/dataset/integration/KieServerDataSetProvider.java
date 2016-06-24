@@ -17,6 +17,7 @@
 package org.jbpm.dashboard.dataset.integration;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -34,6 +35,8 @@ import org.dashbuilder.dataset.def.DataSetDef;
 import org.dashbuilder.dataset.filter.ColumnFilter;
 import org.dashbuilder.dataset.filter.CoreFunctionFilter;
 import org.dashbuilder.dataset.filter.DataSetFilter;
+import org.dashbuilder.dataset.group.DataSetGroup;
+import org.dashbuilder.dataset.group.GroupFunction;
 import org.dashbuilder.dataset.impl.DataColumnImpl;
 import org.dashbuilder.dataset.impl.DataSetMetadataImpl;
 import org.dashbuilder.dataset.sort.ColumnSort;
@@ -82,30 +85,55 @@ public class KieServerDataSetProvider implements DataSetProvider {
         }
         ConsoleDataSetLookup dataSetLookup = (ConsoleDataSetLookup) lookup;
         if (dataSetLookup.getServerTemplateId() == null || dataSetLookup.getServerTemplateId().isEmpty()) {
-            DataSet result = buildDataSet(def, new ArrayList<>());
+            DataSet result = buildDataSet(def, new ArrayList<>(), new ArrayList<>());
             return result;
         }
 
         QueryServicesClient queryClient = kieServerIntegration.getServerClient(dataSetLookup.getServerTemplateId()).getServicesClient(QueryServicesClient.class);
 
+        List<QueryParam> filterParams = new ArrayList<>();
         QueryFilterSpec filterSpec = new QueryFilterSpec();
         // apply filtering
-        DataSetFilter filter = dataSetLookup.getFirstFilterOp();
-        if (filter != null) {
-            List<QueryParam> filterParams = new ArrayList<>();
-            int index = 0;
-            for (ColumnFilter cFilter : filter.getColumnFilterList()) {
-                if (cFilter instanceof CoreFunctionFilter) {
 
-                    CoreFunctionFilter coreFunctionFilter = (CoreFunctionFilter) cFilter;
+        for (DataSetFilter filter : dataSetLookup.getOperationList(DataSetFilter.class)) {
+            if (filter != null) {
 
-                    filterParams.add(new QueryParam(coreFunctionFilter.getColumnId(), coreFunctionFilter.getType().toString(), coreFunctionFilter.getParameters()));
-                    index++;
+                for (ColumnFilter cFilter : filter.getColumnFilterList()) {
+                    if (cFilter instanceof CoreFunctionFilter) {
+
+                        CoreFunctionFilter coreFunctionFilter = (CoreFunctionFilter) cFilter;
+
+                        filterParams.add(new QueryParam(coreFunctionFilter.getColumnId(), coreFunctionFilter.getType().toString(), coreFunctionFilter.getParameters()));
+                    }
                 }
             }
+        }
+        List<DataColumn> extraColumns = new ArrayList<DataColumn>();
+        DataSetGroup dataSetGroup = dataSetLookup.getLastGroupOp();
+        if (dataSetGroup != null) {
+            if (dataSetGroup.getColumnGroup() != null) {
+                // handle group
+                filterParams.add(new QueryParam(dataSetGroup.getColumnGroup().getSourceId(), "group", Arrays.asList(dataSetGroup.getColumnGroup().getColumnId())));
+            }
 
+            // handle additional columns
+            for (GroupFunction groupFunction : dataSetGroup.getGroupFunctions()) {
+                if (groupFunction.getFunction() != null) {
+                    filterParams.add(new QueryParam(groupFunction.getSourceId(), groupFunction.getFunction().toString(), Arrays.asList(groupFunction.getColumnId())));
+                    extraColumns.add(new DataColumnImpl(groupFunction.getSourceId(), ColumnType.NUMBER));
+                } else {
+                    filterParams.add(new QueryParam(groupFunction.getSourceId(), null, Arrays.asList(groupFunction.getColumnId())));
+                    extraColumns.add(new DataColumnImpl(groupFunction.getSourceId(), ColumnType.LABEL));
+                }
+
+            }
+
+        }
+
+        if (!filterParams.isEmpty()) {
             filterSpec.setParameters(filterParams.toArray(new QueryParam[filterParams.size()]));
         }
+
         // apply sorting
         DataSetSort sort = dataSetLookup.getFirstSortOp();
         if (sort != null) {
@@ -124,7 +152,8 @@ public class KieServerDataSetProvider implements DataSetProvider {
 
         final List<List> instances = queryClient.query(dataSetLookup.getDataSetUUID(), QueryServicesClient.QUERY_MAP_RAW, filterSpec, dataSetLookup.getRowOffset()/dataSetLookup.getNumberOfRows(), dataSetLookup.getNumberOfRows(), List.class);
 
-        DataSet result = buildDataSet(def, instances);
+        DataSet result = buildDataSet(def, instances, extraColumns);
+
 
         return result;
     }
@@ -134,17 +163,23 @@ public class KieServerDataSetProvider implements DataSetProvider {
         return false;
     }
 
-    protected DataSet buildDataSet(DataSetDef def, List<List> instances) throws Exception {
+    protected DataSet buildDataSet(DataSetDef def, List<List> instances, List<DataColumn> extraColumns) throws Exception {
         DataSet dataSet = DataSetFactory.newEmptyDataSet();
         dataSet.setUUID(def.getUUID());
         dataSet.setDefinition(def);
 
+        if (extraColumns != null && !extraColumns.isEmpty()) {
 
-        for (DataColumnDef column : def.getColumns()) {
-            DataColumn numRows = new DataColumnImpl(column.getId(), column.getColumnType());
-            dataSet.addColumn(numRows);
+            for (DataColumn extraColumn : extraColumns) {
+                dataSet.addColumn(extraColumn);
+            }
+        } else {
+
+            for (DataColumnDef column : def.getColumns()) {
+                DataColumn numRows = new DataColumnImpl(column.getId(), column.getColumnType());
+                dataSet.addColumn(numRows);
+            }
         }
-
 
         for(List<Object> row : instances ) {
 
@@ -157,8 +192,8 @@ public class KieServerDataSetProvider implements DataSetProvider {
             }
         }
         // set size of the results to allow paging to be more then the actual size
-        dataSet.setRowCountNonTrimmed(instances.size() == 0 ? 0 : instances.size() + 1);
-
+//        dataSet.setRowCountNonTrimmed(instances.size() == 0 ? 0 : instances.size() + 1);
+        dataSet.setRowCountNonTrimmed(instances.size());
         return dataSet;
     }
 

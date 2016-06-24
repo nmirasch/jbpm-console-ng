@@ -505,7 +505,7 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
 
         builder.filter(COLUMN_ACTUAL_OWNER, OR(equalsTo(""), isNull()) );
 
-        builder.group(COLUMN_TASK_ID);
+//        builder.group(COLUMN_TASK_ID);
 
         addCommonColumnSettings(builder);
 
@@ -526,7 +526,7 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
         List<Comparable> names = new ArrayList<>(states);
         builder.filter( COLUMN_STATUS, equalsTo( COLUMN_STATUS, names ) );
 
-        builder.group(COLUMN_TASK_ID);
+//        builder.group(COLUMN_TASK_ID);
 
         addCommonColumnSettings(builder);
 
@@ -564,7 +564,7 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
         List<Comparable> names = new ArrayList<>(states);
         builder.filter( COLUMN_STATUS, equalsTo( COLUMN_STATUS, names ) );
 
-        builder.group(COLUMN_TASK_ID);
+//        builder.group(COLUMN_TASK_ID);
 
         addCommonColumnSettings(builder);
 
@@ -641,7 +641,7 @@ public class DataSetTasksListGridViewImpl extends AbstractMultiGridView<TaskSumm
         builder.initBuilder();
 
         builder.dataset(HUMAN_TASKS_WITH_USER_DATASET);
-        builder.group(COLUMN_TASK_ID);
+//        builder.group(COLUMN_TASK_ID);
 
         addCommonColumnSettings(builder);
 

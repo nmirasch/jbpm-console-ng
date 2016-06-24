@@ -21,11 +21,18 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
 import com.google.gwt.user.client.ui.IsWidget;
+import org.jbpm.console.ng.gc.client.menu.RestoreDefaultFiltersMenuBuilder;
+import org.jbpm.console.ng.gc.client.menu.ServerTemplateSelectorMenuBuilder;
 import org.jbpm.dashboard.renderer.client.panel.i18n.DashboardConstants;
+import org.uberfire.client.annotations.WorkbenchMenu;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
 import org.uberfire.client.mvp.UberView;
+import org.uberfire.ext.widgets.common.client.menu.RefreshMenuBuilder;
+import org.uberfire.mvp.Command;
+import org.uberfire.workbench.model.menu.MenuFactory;
+import org.uberfire.workbench.model.menu.Menus;
 
 @Dependent
 @WorkbenchScreen(identifier = "DashboardScreen")
@@ -33,6 +40,9 @@ public class DashboardScreen {
 
     public interface View extends UberView<DashboardScreen> {
     }
+
+    @Inject
+    private ServerTemplateSelectorMenuBuilder serverTemplateSelectorMenuBuilder;
 
     @Inject
     ProcessDashboard processDashboard;
@@ -64,6 +74,14 @@ public class DashboardScreen {
 
     public IsWidget getTaskDashboard() {
         return taskDashboard;
+    }
+
+    @WorkbenchMenu
+    public Menus getMenus() {
+        return MenuFactory
+                .newTopLevelCustomMenu(serverTemplateSelectorMenuBuilder)
+                .endMenu()
+                .build();
     }
 }
 

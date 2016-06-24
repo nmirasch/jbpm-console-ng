@@ -15,11 +15,14 @@
  */
 package org.jbpm.console.ng.pr.backend.server;
 
+import java.util.HashMap;
+import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import org.dashbuilder.dataset.def.DataColumnDef;
 import org.dashbuilder.dataset.def.DataSetDef;
 import org.dashbuilder.dataset.def.DataSetDefFactory;
 import org.dashbuilder.dataset.def.DataSetDefRegistry;
@@ -187,4 +190,5 @@ public class DataSetDefsBootstrap {
             }
         });
     }
+
 }

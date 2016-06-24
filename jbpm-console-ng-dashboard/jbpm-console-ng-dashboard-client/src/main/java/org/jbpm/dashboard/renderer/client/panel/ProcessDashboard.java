@@ -37,6 +37,7 @@ import org.dashbuilder.displayer.client.DisplayerListener;
 import org.dashbuilder.displayer.client.DisplayerLocator;
 import org.dashbuilder.renderer.client.metric.MetricDisplayer;
 import org.dashbuilder.renderer.client.table.TableDisplayer;
+import org.jbpm.console.ng.gc.client.menu.ServerTemplateSelected;
 import org.jbpm.console.ng.pr.model.events.ProcessInstanceSelectionEvent;
 import org.jbpm.dashboard.renderer.client.panel.events.ProcessDashboardFocusEvent;
 import org.jbpm.dashboard.renderer.client.panel.events.TaskDashboardFocusEvent;
@@ -111,6 +112,12 @@ public class ProcessDashboard extends AbstractDashboard implements IsWidget {
         this.processDashboardFocusEvent = processDashboardFocusEvent;
 
         this.init();
+    }
+
+
+    public void onServerTemplateSelected(@Observes final ServerTemplateSelected serverTemplateSelected ) {
+        selectedServerTemplate = serverTemplateSelected.getServerTemplateId();
+        showDashboard();
     }
 
     protected void init() {
