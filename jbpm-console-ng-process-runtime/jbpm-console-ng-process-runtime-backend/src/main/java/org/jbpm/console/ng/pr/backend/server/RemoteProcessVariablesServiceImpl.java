@@ -21,32 +21,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import org.jboss.errai.bus.server.annotations.Service;
 import org.jbpm.console.ng.bd.backend.server.VariableHelper;
-import org.jbpm.console.ng.bd.integration.KieServerIntegration;
-import org.jbpm.console.ng.bd.model.ProcessVariableKey;
+import org.jbpm.console.ng.bd.integration.AbstractKieServerService;
 import org.jbpm.console.ng.bd.model.ProcessVariableSummary;
 import org.jbpm.console.ng.ga.model.QueryFilter;
 import org.jbpm.console.ng.pr.service.ProcessVariablesService;
 import org.kie.server.api.model.definition.VariablesDefinition;
 import org.kie.server.api.model.instance.VariableInstance;
-import org.kie.server.client.KieServicesClient;
 import org.kie.server.client.ProcessServicesClient;
 import org.kie.server.client.QueryServicesClient;
 import org.uberfire.paging.PageResponse;
 
-/**
- * @author salaboy
- */
 @Service
 @ApplicationScoped
-public class ProcessVariablesServiceImpl implements ProcessVariablesService {
-
-
-    @Inject
-    private KieServerIntegration kieServerIntegration;
+public class RemoteProcessVariablesServiceImpl extends AbstractKieServerService implements ProcessVariablesService {
 
     @Override
     public PageResponse<ProcessVariableSummary> getData(QueryFilter filter) {
@@ -92,10 +82,9 @@ public class ProcessVariablesServiceImpl implements ProcessVariablesService {
         }
 
         Map<String, String> properties = new HashMap<String, String>();
-        KieServicesClient client = kieServerIntegration.getServerClient(serverTemplateId);
 
-        QueryServicesClient queryClient = client.getServicesClient(QueryServicesClient.class);
-        ProcessServicesClient processClient = client.getServicesClient(ProcessServicesClient.class);
+        QueryServicesClient queryClient = getClient(serverTemplateId, QueryServicesClient.class);
+        ProcessServicesClient processClient = getClient(serverTemplateId, ProcessServicesClient.class);
 
         VariablesDefinition vars = processClient.getProcessVariableDefinitions(deploymentId, processId);
         properties.putAll(vars.getVariables());
@@ -117,25 +106,12 @@ public class ProcessVariablesServiceImpl implements ProcessVariablesService {
     }
 
     @Override
-    public ProcessVariableSummary getItem(ProcessVariableKey key) {
-        return null;
-    }
-
-    @Override
-    public List<ProcessVariableSummary> getAll(QueryFilter filter) {
-        return getProcessVariables(filter);
-    }
-
-    @Override
     public List<ProcessVariableSummary> getVariableHistory(String serverTemplateId, String deploymentId, Long processInstanceId, String variableName) {
-        KieServicesClient client = kieServerIntegration.getServerClient(serverTemplateId);
-
-        QueryServicesClient queryClient = client.getServicesClient(QueryServicesClient.class);
+        QueryServicesClient queryClient = getClient(serverTemplateId, QueryServicesClient.class);
 
         List<VariableInstance> variables = queryClient.findVariableHistory(processInstanceId, variableName, 0, 100);
 
-        List<ProcessVariableSummary> processVariables = VariableHelper.adaptCollection(variables, new HashMap<String, String>(), processInstanceId, deploymentId, serverTemplateId);
-
-        return processVariables;
+        return VariableHelper.adaptCollection(variables, new HashMap<String, String>(), processInstanceId, deploymentId, serverTemplateId);
     }
+
 }
