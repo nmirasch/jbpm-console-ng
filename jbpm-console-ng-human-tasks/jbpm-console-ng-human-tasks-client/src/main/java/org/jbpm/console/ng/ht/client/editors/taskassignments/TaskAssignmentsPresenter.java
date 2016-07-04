@@ -131,50 +131,13 @@ public class TaskAssignmentsPresenter {
                         view.setPotentialOwnersInfo(constants.No_Potential_Owners());
                     } else {
                         view.setPotentialOwnersInfo(response.getPotOwnersString().toString());
-
-                        boolean allowDelegate = isDelegateAllowed(response);
-                        view.enableDelegateButton(allowDelegate);
-                        view.enableUserOrGroupInput(allowDelegate);
+                        view.enableDelegateButton(response.isDelegationAllowed());
+                        view.enableUserOrGroupInput(response.isDelegationAllowed());
                     }
                 }
             }, new DefaultErrorCallback()).getTaskAssignmentDetails(serverTemplateId, containerId, currentTaskId);
 
         }
-    }
-
-    protected Boolean isDelegateAllowed(final TaskAssignmentSummary task) {
-        if (task == null) {
-            return false;
-        }
-
-        if ("Completed".equals(task.getStatus())) {
-            return false;
-        }
-
-        final String actualOwner = task.getActualOwner();
-        if (actualOwner != null && actualOwner.equals(identity.getIdentifier())) {
-            return true;
-        }
-
-        final String initiator = task.getCreatedBy();
-        if (initiator != null && initiator.equals(identity.getIdentifier())) {
-            return true;
-        }
-
-        final Set<String> roles = FluentIterable.from(identity.getGroups()).transform(g -> g.getName()).append(identity.getIdentifier()).toSet();
-
-        //TODO Needs to check if po or ba string is a group or a user
-        final List<String> potentialOwners = task.getPotOwnersString();
-        if (potentialOwners != null && Collections.disjoint(potentialOwners, roles) == false) {
-            return true;
-        }
-
-        final List<String> businessAdministrators = task.getBusinessAdmins();
-        if (businessAdministrators != null && Collections.disjoint(businessAdministrators, roles) == false) {
-            return true;
-        }
-
-        return false;
     }
 
     public void onTaskSelectionEvent(@Observes final TaskSelectionEvent event) {

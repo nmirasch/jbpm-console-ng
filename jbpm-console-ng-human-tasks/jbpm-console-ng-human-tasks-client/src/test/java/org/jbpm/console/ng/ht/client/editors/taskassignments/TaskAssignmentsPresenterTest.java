@@ -85,6 +85,8 @@ public class TaskAssignmentsPresenterTest {
         task.setTaskId(TASK_ID);
         task.setStatus("InProgress");
         task.setPotOwnersString(Arrays.asList(CURRENT_USER));
+        task.setDelegationAllowed(true);
+
         when(taskService.getTaskAssignmentDetails(anyString(), anyString(), eq(TASK_ID))).thenReturn(task);
 
         presenter.onTaskSelectionEvent(new TaskSelectionEvent(1L));
@@ -139,6 +141,7 @@ public class TaskAssignmentsPresenterTest {
         task.setStatus("Ready");
         task.setActualOwner(OTHER_USER);
         task.setPotOwnersString(Arrays.asList(OTHER_USER));
+        task.setDelegationAllowed(false);
         when(taskService.getTaskAssignmentDetails(anyString(), anyString(), eq(TASK_OWNED_BY_SOMEONE_ELSE_ID))).thenReturn(task);
 
         // When task not owned by Current user
@@ -159,6 +162,7 @@ public class TaskAssignmentsPresenterTest {
         task.setStatus("Ready");
         task.setActualOwner(CURRENT_USER);
         task.setPotOwnersString(Arrays.asList(CURRENT_USER));
+        task.setDelegationAllowed(true);
         when(taskService.getTaskAssignmentDetails(anyString(), anyString(), eq(TASK_OWNED_BY_CURRENT_USER))).thenReturn(task);
 
         // When task not owned by Current user
@@ -169,78 +173,6 @@ public class TaskAssignmentsPresenterTest {
         inOrder.verify(viewMock).enableUserOrGroupInput(false);
         inOrder.verify(viewMock).enableDelegateButton(true);
         inOrder.verify(viewMock).enableUserOrGroupInput(true);
-    }
-
-    @Test
-    public void allowDelegateStatusCompleted(){
-        final TaskAssignmentSummary task = new TaskAssignmentSummary();
-        task.setStatus("Completed");
-
-        assertFalse(presenter.isDelegateAllowed(task));
-    }
-
-    @Test
-    public void allowDelegateActualOwner(){
-        final TaskAssignmentSummary task = new TaskAssignmentSummary();
-        task.setActualOwner(CURRENT_USER);
-
-        assertTrue(presenter.isDelegateAllowed(task));
-    }
-
-    @Test
-    public void allowDelegateActualOwnerNotCurrentUser(){
-        final TaskAssignmentSummary task = new TaskAssignmentSummary();
-        task.setActualOwner(OTHER_USER);
-
-        assertFalse(presenter.isDelegateAllowed(task));
-    }
-
-    @Test
-    public void allowDelegateCreatedBy(){
-        final TaskAssignmentSummary task = new TaskAssignmentSummary();
-        task.setCreatedBy(CURRENT_USER);
-
-        assertTrue(presenter.isDelegateAllowed(task));
-    }
-
-    @Test
-    public void allowDelegateCreatedByNotCurrentUser(){
-        final TaskAssignmentSummary task = new TaskAssignmentSummary();
-        task.setCreatedBy(OTHER_USER);
-
-        assertFalse(presenter.isDelegateAllowed(task));
-    }
-
-    @Test
-    public void allowDelegatePotentialOwner(){
-        final TaskAssignmentSummary task = new TaskAssignmentSummary();
-        task.setPotOwnersString(Arrays.asList(CURRENT_USER));
-
-        assertTrue(presenter.isDelegateAllowed(task));
-    }
-
-    @Test
-    public void allowDelegatePotentialOwnerNotCurrentUser(){
-        final TaskAssignmentSummary task = new TaskAssignmentSummary();
-        task.setPotOwnersString(Arrays.asList(OTHER_USER));
-
-        assertFalse(presenter.isDelegateAllowed(task));
-    }
-
-    @Test
-    public void allowDelegateBusinessAdmins(){
-        final TaskAssignmentSummary task = new TaskAssignmentSummary();
-        task.setBusinessAdmins(Arrays.asList(CURRENT_USER));
-
-        assertTrue(presenter.isDelegateAllowed(task));
-    }
-
-    @Test
-    public void allowDelegateBusinessAdminsNotCurrentUser(){
-        final TaskAssignmentSummary task = new TaskAssignmentSummary();
-        task.setBusinessAdmins(Arrays.asList(OTHER_USER));
-
-        assertFalse(presenter.isDelegateAllowed(task));
     }
 
 }
