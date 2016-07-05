@@ -139,28 +139,61 @@ public class KieServerIntegration {
         removeServerInstancesFromIndex(serverTemplateDeleted.getServerTemplateId());
     }
 
-    public void onServerInstanceDeleted(@Observes ServerInstanceDisconnected serverInstanceDisconnected) {
+    public void onServerInstanceDisconnected(@Observes ServerInstanceDisconnected serverInstanceDisconnected) {
         ServerInstanceKey serverInstanceKey = serverInstancesById.get(serverInstanceDisconnected.getServerInstanceId());
 
         if (serverInstanceKey != null) {
-            KieServicesClient client = serverTemplatesClients.get(serverInstanceKey.getServerTemplateId());
+            Iterator<Map.Entry<String,KieServicesClient>> iterator = serverTemplatesClients.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String,KieServicesClient> entry = iterator.next();
+                if (entry.getKey().startsWith(serverInstanceKey.getServerTemplateId())) {
+                    KieServicesClient client = entry.getValue();
+                    if (client != null) {
+                        LoadBalancer loadBalancer = ((AbstractKieServicesClientImpl) client).getLoadBalancer();
+                        loadBalancer.markAsFailed(serverInstanceKey.getUrl());
 
-            if (client != null) {
-                LoadBalancer loadBalancer = ((AbstractKieServicesClientImpl) client).getLoadBalancer();
+                        logger.debug("Server instance {} for server template {} removed from client thus won't be used for operations", serverInstanceKey.getUrl(), serverInstanceKey.getServerTemplateId());
+                    }
+
+                    logger.debug("KieServerClient load balancer updated for server template {}", entry.getKey());
+                }
+            }
+
+            serverInstancesById.remove(serverInstanceKey.getServerInstanceId());
+
+            // update admin client
+            KieServicesClient adminClient = adminClients.get(serverInstanceKey.getServerTemplateId());
+            if (adminClient != null) {
+                LoadBalancer loadBalancer = ((AbstractKieServicesClientImpl) adminClient).getLoadBalancer();
                 loadBalancer.markAsFailed(serverInstanceKey.getUrl());
 
                 logger.debug("Server instance {} for server template {} removed from client thus won't be used for operations", serverInstanceKey.getUrl(), serverInstanceKey.getServerTemplateId());
             }
-
-            serverInstancesById.remove(serverInstanceKey.getServerInstanceId());
         }
     }
 
-    public void onServerInstanceUpdated(@Observes ServerInstanceConnected serverInstanceConnected) {
+    public void onServerInstanceConnected(@Observes ServerInstanceConnected serverInstanceConnected) {
 
         ServerInstance serverInstance = serverInstanceConnected.getServerInstance();
-        KieServicesClient client = serverTemplatesClients.get(serverInstance.getServerTemplateId());
 
+        Iterator<Map.Entry<String,KieServicesClient>> iterator = serverTemplatesClients.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String,KieServicesClient> entry = iterator.next();
+            if (entry.getKey().startsWith(serverInstance.getServerTemplateId())) {
+                KieServicesClient client = entry.getValue();
+                // update regular clients
+                updateOrBuildClient(client, serverInstance);
+
+                logger.debug("KieServerClient load balancer updated for server template {}", entry.getKey());
+            }
+        }
+
+        KieServicesClient adminClient = adminClients.get(serverInstance.getServerTemplateId());
+        // update admin clients
+        updateOrBuildClient(adminClient, serverInstance);
+    }
+
+    protected void updateOrBuildClient(KieServicesClient client, ServerInstance serverInstance) {
         if (client != null) {
             LoadBalancer loadBalancer = ((AbstractKieServicesClientImpl) client).getLoadBalancer();
             loadBalancer.activate(serverInstance.getUrl());

@@ -44,7 +44,7 @@ public class DataSetDefsBootstrap {
     protected void registerDataSetDefinitions() {
         DataSetDef processInstancesDef = DataSetDefFactory.newSQLDataSetDef()
                 .uuid(PROCESS_INSTANCE_DATASET)
-                .name("Process Instances")
+                .name("FILTERED_PROCESS-Process Instances")
                 .dataSource(JBPM_DATA_SOURCE)
                 .dbSQL("select " +
                             "log.processInstanceId, " +

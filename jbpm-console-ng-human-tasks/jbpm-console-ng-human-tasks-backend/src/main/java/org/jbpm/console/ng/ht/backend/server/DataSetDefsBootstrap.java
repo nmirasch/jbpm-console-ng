@@ -85,7 +85,7 @@ public class DataSetDefsBootstrap {
 
         DataSetDef humanTasksWithUserDef = DataSetDefFactory.newSQLDataSetDef()
                 .uuid(HUMAN_TASKS_WITH_USER_DATASET)
-                .name("Human tasks and users")
+                .name("FILTERED_PO_TASK-Human tasks and users")
                 .dataSource(JBPM_DATA_SOURCE)
                 .dbSQL( "select " +
                             "t.activationTime, " +
@@ -133,7 +133,7 @@ public class DataSetDefsBootstrap {
 
         DataSetDef humanTaskWithAdminDef = DataSetDefFactory.newSQLDataSetDef()
                 .uuid(HUMAN_TASKS_WITH_ADMIN_DATASET)
-                .name("Human tasks and admins")
+                .name("FILTERED_BA_TASK-Human tasks and admins")
                 .dataSource(JBPM_DATA_SOURCE)
                 .dbSQL("select " +
                             "t.activationTime, " +
@@ -174,7 +174,7 @@ public class DataSetDefsBootstrap {
                 .number(COLUMN_PROCESS_INSTANCE_ID)
                 .number(COLUMN_PROCESS_SESSION_ID)
                 .label(COLUMN_STATUS)
-                .label(COLUMN_TASK_ID)     //declaring as label(even though it's numeric) because needs apply groupby and  Group by number not supported
+                .label(COLUMN_TASK_ID)
                 .number(COLUMN_WORK_ITEM_ID)
                 .label(COLUMN_ORGANIZATIONAL_ENTITY)
                 .buildDef();

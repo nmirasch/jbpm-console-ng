@@ -73,21 +73,23 @@ public class KieServerDataSetManager {
                 LOGGER.info("Registering data set definitions on connected server instance '{}'", serverInstanceId);
                 final QueryServicesClient queryClient = kieServerIntegration.getAdminServerClient(serverTemplateId).getServicesClient(QueryServicesClient.class);
 
-                final Set<QueryDefinition> queryDefinitions = dataSetDefs.stream().map(
-                        dataSetDef ->
-                                QueryDefinition.builder()
-                                        .name(dataSetDef.getUUID())
-                                        .expression(((SQLDataSetDef) dataSetDef).getDbSQL())
-                                        .source(((SQLDataSetDef) dataSetDef).getDataSource())
-                                        .target("CUSTOM")
-                                        .build()
-                ).collect(Collectors.toSet());
+                final Set<QueryDefinition> queryDefinitions = dataSetDefs.stream()
+                                        .filter(dataSetDef -> dataSetDef.getProvider().getName().equals("REMOTE"))
+                                        .map(
+                                                dataSetDef ->
+                                                        QueryDefinition.builder()
+                                                                .name(dataSetDef.getUUID())
+                                                                .expression(((SQLDataSetDef) dataSetDef).getDbSQL())
+                                                                .source(((SQLDataSetDef) dataSetDef).getDataSource())
+                                                                .target(dataSetDef.getName().contains("-") ? dataSetDef.getName().substring(0, dataSetDef.getName().indexOf("-")) : "CUSTOM")
+                                                                .build()
+                                        ).collect(Collectors.toSet());
 
                 while (elapsed < waitLimit) {
                     try {
                         queryDefinitions.forEach(definition -> {
                             queryClient.replaceQuery(definition);
-                            LOGGER.info("Query definition {} successfully registered on kie server '{}'", definition.getName(), serverInstanceId);
+                            LOGGER.info("Query definition {} (type {}) successfully registered on kie server '{}'", definition.getName(), definition.getTarget(), serverInstanceId);
                         });
 
                         event.fire(new KieServerDataSetRegistered(serverInstanceId, serverTemplateId));
