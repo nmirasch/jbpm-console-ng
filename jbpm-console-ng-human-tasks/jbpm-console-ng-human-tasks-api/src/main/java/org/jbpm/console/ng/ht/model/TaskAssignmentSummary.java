@@ -30,6 +30,7 @@ public class TaskAssignmentSummary extends GenericSummary {
     private List<String> potOwnersString;
     private List<String> businessAdmins;
     private String status;
+    private boolean delegationAllowed;
 
     public TaskAssignmentSummary() {
 
@@ -57,6 +58,7 @@ public class TaskAssignmentSummary extends GenericSummary {
         this.createdBy = createdBy;
         this.businessAdmins = businessAdmins;
         this.status = status;
+        this.delegationAllowed = false;
     }
 
     public Long getTaskId() {
@@ -113,6 +115,14 @@ public class TaskAssignmentSummary extends GenericSummary {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public boolean isDelegationAllowed() {
+        return delegationAllowed;
+    }
+
+    public void setDelegationAllowed(boolean delegationAllowed) {
+        this.delegationAllowed = delegationAllowed;
     }
 
     @Override
