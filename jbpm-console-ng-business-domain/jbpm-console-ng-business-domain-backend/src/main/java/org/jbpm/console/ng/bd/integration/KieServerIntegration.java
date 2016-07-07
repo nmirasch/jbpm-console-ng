@@ -270,6 +270,7 @@ public class KieServerIntegration {
 
             configuration.setCapabilities(mappedCapabilities);
             configuration.setMarshallingFormat(MarshallingFormat.XSTREAM);
+            configuration.setLoadBalancer(LoadBalancer.getDefault(endpoints.toString()));
 
             KieServicesClient kieServicesClient = null;
 

@@ -18,6 +18,7 @@ package org.jbpm.console.ng.bd.integration;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 
@@ -42,6 +43,7 @@ import org.dashbuilder.dataset.sort.ColumnSort;
 import org.dashbuilder.dataset.sort.DataSetSort;
 import org.dashbuilder.dataset.sort.SortOrder;
 import org.jbpm.console.ng.ga.model.dataset.ConsoleDataSetLookup;
+import org.kie.remote.common.rest.KieRemoteHttpRequestException;
 import org.kie.server.api.model.definition.QueryFilterSpec;
 import org.kie.server.api.model.definition.QueryParam;
 import org.kie.server.client.QueryServicesClient;
@@ -145,16 +147,21 @@ public class KieServerDataSetProvider extends AbstractKieServerService implement
             filterSpec.setOrderBy(orderBy.toString());
             filterSpec.setAscending(sortOrder.equals(SortOrder.ASCENDING));
         }
-
-        final List<List> instances = queryClient.query(
-                dataSetLookup.getDataSetUUID(),
-                QueryServicesClient.QUERY_MAP_RAW,
-                filterSpec,
-                dataSetLookup.getRowOffset() / dataSetLookup.getNumberOfRows(),
-                dataSetLookup.getNumberOfRows(),
-                List.class
-        );
-
+        List<List> instances = null;
+        try {
+            instances = queryClient.query(
+                    dataSetLookup.getDataSetUUID(),
+                    QueryServicesClient.QUERY_MAP_RAW,
+                    filterSpec,
+                    dataSetLookup.getRowOffset() / dataSetLookup.getNumberOfRows(),
+                    dataSetLookup.getNumberOfRows(),
+                    List.class
+            );
+        } catch (KieRemoteHttpRequestException e) {
+            // in case on any exception return empty data set and log error
+            LOGGER.warn("Encountered {} while fetching query for {}", e.getMessage(), dataSetLookup.getDataSetUUID());
+            instances = Collections.emptyList();
+        }
         LOGGER.debug("Query client returned {} row(s)", instances.size());
 
         return buildDataSet(def, instances, extraColumns);
