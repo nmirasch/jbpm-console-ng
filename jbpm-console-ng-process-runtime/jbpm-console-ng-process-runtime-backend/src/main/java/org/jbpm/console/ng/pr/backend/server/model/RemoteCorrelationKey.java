@@ -32,7 +32,7 @@ public class RemoteCorrelationKey implements CorrelationKey, Serializable {
     private List<CorrelationProperty<?>> properties = new ArrayList<CorrelationProperty<?>>();
 
     public RemoteCorrelationKey(String value) {
-        this.properties.add(new RemoteCorrelationProperty(name));
+        this.properties.add(new RemoteCorrelationProperty(value));
     }
 
     @Override

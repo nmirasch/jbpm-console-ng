@@ -36,6 +36,7 @@ import org.kie.internal.identity.IdentityProvider;
 import org.kie.server.api.model.instance.TaskComment;
 import org.kie.server.api.model.instance.TaskEventInstance;
 import org.kie.server.api.model.instance.TaskInstance;
+import org.kie.server.client.KieServicesException;
 import org.kie.server.client.UserTaskServicesClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,10 +74,14 @@ public class RemoteTaskServiceImpl extends AbstractKieServerService implements T
     @Override
     public TaskSummary getTask(String serverTemplateId, String containerId, Long taskId) {
         UserTaskServicesClient client = getClient(serverTemplateId, UserTaskServicesClient.class);
+        try {
+            TaskInstance task = client.getTaskInstance(containerId, taskId);
 
-        TaskInstance task = client.getTaskInstance(containerId, taskId);
-
-        return build(task);
+            return build(task);
+        } catch (KieServicesException e) {
+            // task not found
+            return null;
+        }
     }
 
     @Override
@@ -179,18 +184,22 @@ public class RemoteTaskServiceImpl extends AbstractKieServerService implements T
     @Override
     public TaskAssignmentSummary getTaskAssignmentDetails(String serverTemplateId, String containerId, long taskId) {
         UserTaskServicesClient client = getClient(serverTemplateId, UserTaskServicesClient.class);
-
-        TaskInstance task = client.getTaskInstance(containerId, taskId, false, false, true);
-        TaskAssignmentSummary summary = new TaskAssignmentSummary();
-        summary.setTaskId(task.getId());
-        summary.setActualOwner(task.getActualOwner());
-        summary.setTaskName(task.getName());
-        summary.setPotOwnersString(task.getPotentialOwners());
-        summary.setCreatedBy(task.getCreatedBy());
-        summary.setBusinessAdmins(task.getBusinessAdmins());
-        summary.setStatus(task.getStatus());
-        summary.setDelegationAllowed(isDelegationAllowed(task));
-        return summary;
+        try {
+            TaskInstance task = client.getTaskInstance(containerId, taskId, false, false, true);
+            TaskAssignmentSummary summary = new TaskAssignmentSummary();
+            summary.setTaskId(task.getId());
+            summary.setActualOwner(task.getActualOwner());
+            summary.setTaskName(task.getName());
+            summary.setPotOwnersString(task.getPotentialOwners());
+            summary.setCreatedBy(task.getCreatedBy());
+            summary.setBusinessAdmins(task.getBusinessAdmins());
+            summary.setStatus(task.getStatus());
+            summary.setDelegationAllowed(isDelegationAllowed(task));
+            return summary;
+        } catch (KieServicesException e) {
+            // task not found
+            return null;
+        }
     }
 
     protected Boolean isDelegationAllowed(final TaskInstance task) {
