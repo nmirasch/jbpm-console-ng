@@ -295,12 +295,14 @@ public abstract class AbstractHumanTaskFormDisplayer implements HumanTaskFormDis
         return new RemoteCallback<Void>() {
             @Override
             public void callback(Void nothing) {
-//                taskService.call(new RemoteCallback<Boolean>() {
-//                    @Override
-//                    public void callback(Boolean response) {
-//                        close();
-//                    }
-//                }, getUnexpectedErrorCallback()).existInDatabase(taskId);
+                taskService.call(new RemoteCallback<TaskSummary>() {
+                    @Override
+                    public void callback(TaskSummary task) {
+                        if (task == null) {
+                            close();
+                        }
+                    }
+                }, getUnexpectedErrorCallback()).getTask(serverTemplateId, deploymentId, taskId);
                 taskRefreshed.fire(new TaskRefreshedEvent(serverTemplateId, deploymentId, taskId));
                 jsniHelper.notifySuccessMessage(opener, constants.TaskCompleted(taskId));
 
