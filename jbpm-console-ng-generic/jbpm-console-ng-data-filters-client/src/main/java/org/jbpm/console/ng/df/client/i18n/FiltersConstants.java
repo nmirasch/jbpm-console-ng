@@ -86,4 +86,8 @@ public interface FiltersConstants extends Messages {
 
     String Filter_parameters();
 
+    String ErrorExecutingServerRequest(String message);
+
+    String ErrorCurrentUserDoesNotHaveRoleKieServer();
+
 }

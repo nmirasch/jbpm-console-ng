@@ -304,4 +304,6 @@ public interface Constants extends Messages {
     String ProcessInstanceNeedsToBeActiveInOrderToBeAborted();
 
     String SelectServerTemplate();
+
+    String ErrorCurrentUserDoesNotHaveRoleKieServer();
 }
