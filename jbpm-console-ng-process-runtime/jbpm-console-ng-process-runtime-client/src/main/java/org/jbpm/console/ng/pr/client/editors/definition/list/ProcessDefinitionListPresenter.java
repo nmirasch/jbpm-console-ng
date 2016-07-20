@@ -29,6 +29,7 @@ import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.ErrorCallback;
 import org.jboss.errai.common.client.api.RemoteCallback;
 import org.jbpm.console.ng.ga.model.PortableQueryFilter;
+import org.jbpm.console.ng.ga.resources.ErrorCodesInMessages;
 import org.jbpm.console.ng.gc.client.list.base.AbstractListView.ListView;
 import org.jbpm.console.ng.gc.client.list.base.AbstractScreenListPresenter;
 import org.jbpm.console.ng.pr.client.i18n.Constants;
@@ -47,6 +48,7 @@ import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
 import org.uberfire.client.mvp.PlaceStatus;
 import org.uberfire.client.mvp.UberView;
+import org.uberfire.ext.widgets.common.client.common.popups.errors.ErrorPopup;
 import org.uberfire.ext.widgets.common.client.menu.RefreshMenuBuilder;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 import org.uberfire.paging.PageResponse;
@@ -161,7 +163,11 @@ public class ProcessDefinitionListPresenter extends AbstractScreenListPresenter<
             public boolean error( Message message,
                                   Throwable throwable ) {
                 view.hideBusyIndicator();
-                view.displayNotification(constants.ErrorRetrievingProcessDefinitions(throwable.getMessage()));
+                if(throwable.getMessage().contains(ErrorCodesInMessages.ERROR_CODE_403)){
+                    ErrorPopup.showMessage(constants.ErrorCurrentUserDoesNotHaveRoleKieServer());
+                } else {
+                    ErrorPopup.showMessage(constants.ErrorRetrievingProcessDefinitions(throwable.getMessage()));
+                }
                 GWT.log( throwable.toString() );
                 return true;
             }

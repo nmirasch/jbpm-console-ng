@@ -26,7 +26,10 @@ import org.dashbuilder.dataset.sort.SortOrder;
 import org.dashbuilder.displayer.client.DataSetHandler;
 import org.dashbuilder.displayer.client.DataSetHandlerImpl;
 import org.jbpm.console.ng.df.client.filter.FilterSettings;
+import org.jbpm.console.ng.df.client.i18n.FiltersConstants;
 import org.jbpm.console.ng.ga.model.dataset.ConsoleDataSetLookup;
+import org.jbpm.console.ng.ga.resources.ErrorCodesInMessages;
+import org.uberfire.ext.widgets.common.client.common.popups.errors.ErrorPopup;
 
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -86,6 +89,12 @@ public class DataSetQueryHelper<T> {
 
                         @Override
                         public boolean onError(final ClientRuntimeError error) {
+                            if(error.getMessage().contains(ErrorCodesInMessages.ERROR_CODE_403)){
+                                ErrorPopup.showMessage(FiltersConstants.INSTANCE.ErrorCurrentUserDoesNotHaveRoleKieServer());
+                            } else {
+
+                                ErrorPopup.showMessage(FiltersConstants.INSTANCE.ErrorExecutingServerRequest( error.getMessage()));
+                            }
                             callback.onError(error);
                             return false;
                         }
