@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE ui:UiBinder SYSTEM "http://dl.google.com/gwt/DTD/xhtml.ent">
+<ui:UiBinder xmlns:ui="urn:ui:com.google.gwt.uibinder"
+             xmlns:g="urn:import:com.google.gwt.user.client.ui"
+             xmlns:b="urn:import:org.gwtbootstrap3.client.ui"
+>
+
+  <ui:with field="i18n" type="org.jbpm.console.ng.cm.client.resources.i18n.Constants"/>
+
+  <g:HTMLPanel>
+    <b:Form type="HORIZONTAL">
+      <b:FieldSet>
+        <!--<b:FormGroup ui:field="deploymentIdControlGroup">-->
+          <!--<b:FormLabel text="{i18n.DeploymentId}" showRequiredIndicator="true" addStyleNames="col-md-3"/>-->
+          <!--<b:Column size="MD_9">-->
+            <!--<b:TextBox ui:field="deploymentIdText"/>-->
+            <!--<b:HelpBlock ui:field="deploymentIdHelpLabel"/>-->
+          <!--</b:Column>-->
+        <!--</b:FormGroup>-->
+        <b:FormGroup ui:field="caseNameControlGroup">
+          <b:FormLabel text="{i18n.Case_Name}" showRequiredIndicator="true" addStyleNames="col-md-3"/>
+          <b:Column size="MD_9">
+            <b:TextBox ui:field="caseNameText"/>
+            <b:HelpBlock ui:field="caseNameHelpLabel"/>
+          </b:Column>
+        </b:FormGroup>
+        <!--<b:FormGroup>-->
+          <!--<b:FormLabel text="{i18n.Case_Template}" addStyleNames="col-md-3"/>-->
+          <!--<b:Column size="MD_9">-->
+            <!--<b:ListBox ui:field="caseTemplatesListBox"/>-->
+          <!--</b:Column>-->
+        <!--</b:FormGroup>-->
+        <b:FormGroup ui:field="errorMessagesGroup">
+          <b:HelpBlock ui:field="errorMessages"/>
+        </b:FormGroup>
+      </b:FieldSet>
+    </b:Form>
+  </g:HTMLPanel>
+
+</ui:UiBinder>

@@ -1,0 +1,63 @@
+.stages a {
+    padding: 12px 12px 10px 25px;
+    margin:0 5px 0 5px;
+    background: #efefef;
+    position: relative;
+    display: inline-block;
+    color: #333;
+    text-decoration: none;
+}
+
+.stages a:before {
+    width: 0px;
+    height: 0px;
+    border-top: 20px inset transparent;
+    border-bottom: 20px inset transparent;
+    border-left: 20px solid #fff;
+    position: absolute;
+    content: "";
+    top: 0;
+    left: 0;
+}
+
+.stages a:after {
+    width: 0px;
+    height: 0px;
+    border-top: 20px inset transparent;
+    border-bottom: 20px inset transparent;
+    border-left: 20px solid #efefef;
+    position: absolute;
+    content: "";
+    top: 0;
+    right: -20px;
+    z-index: 2;
+}
+
+.stages a:first-child:before {
+    border: none;
+}
+
+.stages a:last-child:after {
+    border: none;
+}
+
+.stages a:first-child {
+    -moz-border-radius: 4px 0 0 4px;
+    -webkit-border-radius: 4px 0 0 4px;
+    border-radius: 4px 0 0 4px;
+}
+
+.stages a:last-child {
+    -moz-border-radius: 0 4px 4px 0;
+    -webkit-border-radius: 0 4px 4px 0;
+    border-radius: 0 4px 4px 0;
+}
+
+.stages .stageCompleted {
+    background: #007ACC;
+    color: #fff;
+}
+
+.stages .stageCompleted:after {
+    border-left-color: #007ACC;
+}
