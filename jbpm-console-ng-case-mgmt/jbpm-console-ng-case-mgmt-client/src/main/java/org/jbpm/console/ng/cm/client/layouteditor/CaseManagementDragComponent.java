@@ -26,15 +26,12 @@ import javax.inject.Inject;
 
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Sets;
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.ui.IsWidget;
 import org.dashbuilder.displayer.DisplayerSettings;
 import org.dashbuilder.displayer.DisplayerType;
 import org.dashbuilder.displayer.client.Displayer;
 import org.dashbuilder.displayer.client.PerspectiveCoordinator;
 import org.gwtbootstrap3.client.ui.Modal;
-import org.gwtbootstrap3.client.ui.TextBox;
-import org.gwtbootstrap3.client.ui.html.Text;
 import org.jbpm.console.ng.cm.client.actions.CaseActionsPresenter;
 import org.jbpm.console.ng.cm.client.activity.CaseActivitiesPresenter;
 import org.jbpm.console.ng.cm.client.comments.CaseCommentsPresenter;
@@ -120,20 +117,18 @@ public class CaseManagementDragComponent implements PerspectiveEditorDragCompone
     }
 
     @Override
-    public IsWidget getDragWidget() {
-        final TextBox textBox = GWT.create(TextBox.class);
-        textBox.setPlaceholder("jBPM Component");
-        textBox.setReadOnly(true);
-        return textBox;
+    public String getDragComponentTitle() {
+        return "jBPM Component";
     }
 
     @Override
-    public IsWidget getPreviewWidget(RenderingContext renderingContext) {
-        return new Text("Preview not available");
+    public IsWidget getPreviewWidget(final RenderingContext renderingContext) {
+//        return new Text("Preview not available");
+        return getShowWidget(renderingContext);
     }
 
     @Override
-    public IsWidget getShowWidget(RenderingContext renderingContext) {
+    public IsWidget getShowWidget(final RenderingContext renderingContext) {
 //        final CaseManagementViewComponent view = beanManager.lookupBean(CaseManagementViewComponent.class).newInstance();
         viewComponent.init(renderingContext.getComponent().getProperties());
         return viewComponent;

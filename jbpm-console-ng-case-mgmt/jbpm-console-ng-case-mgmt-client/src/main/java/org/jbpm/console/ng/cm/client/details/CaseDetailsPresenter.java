@@ -28,6 +28,7 @@ import org.jbpm.console.ng.cm.client.resources.i18n.Constants;
 import org.jbpm.console.ng.cm.model.CaseSummary;
 import org.jbpm.console.ng.cm.model.events.CaseRefreshedEvent;
 import org.jbpm.console.ng.cm.model.events.CaseSelectedEvent;
+import org.jbpm.console.ng.cm.model.events.CaseUpdatedEvent;
 import org.jbpm.console.ng.cm.service.CaseInstanceService;
 import org.uberfire.client.annotations.DefaultPosition;
 import org.uberfire.client.annotations.WorkbenchMenu;
@@ -36,7 +37,6 @@ import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
 import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.client.mvp.UberView;
-import org.uberfire.client.workbench.events.ChangeTitleWidgetEvent;
 import org.uberfire.ext.widgets.common.client.callbacks.DefaultErrorCallback;
 import org.uberfire.ext.widgets.common.client.menu.RefreshMenuBuilder;
 import org.uberfire.lifecycle.OnStartup;
@@ -51,9 +51,12 @@ import org.uberfire.workbench.model.menu.Menus;
 public class CaseDetailsPresenter implements RefreshMenuBuilder.SupportsRefresh {
 
     public static final String SCREEN_ID = "Case Details Screen";
-    @Inject
-    CaseDetailsView view;
+
     private Constants constants = Constants.INSTANCE;
+
+    @Inject
+    private CaseDetailsView view;
+
     @Inject
     private PlaceManager placeManager;
 
@@ -63,12 +66,7 @@ public class CaseDetailsPresenter implements RefreshMenuBuilder.SupportsRefresh 
     @Inject
     private Event<CaseSelectedEvent> caseSelected;
 
-    @Inject
-    private Event<ChangeTitleWidgetEvent> changeTitleWidgetEvent;
-
     private String currentCaseId = "";
-
-    private PlaceRequest place;
 
     @PostConstruct
     public void init() {
@@ -77,9 +75,6 @@ public class CaseDetailsPresenter implements RefreshMenuBuilder.SupportsRefresh 
 
     @OnStartup
     public void onStartup(final PlaceRequest place) {
-        this.place = place;
-        GWT.log("params1: " + place.getParameters());
-        GWT.log("params2: " + place.getParameterNames());
         currentCaseId = place.getParameter("caseId", null);
         refreshCase();
     }
@@ -99,7 +94,7 @@ public class CaseDetailsPresenter implements RefreshMenuBuilder.SupportsRefresh 
         return CompassPosition.WEST;
     }
 
-    public void refreshCase() {
+    protected void refreshCase() {
         view.setCaseId("");
         view.setCaseStatus("");
         view.setCaseDescription("");
@@ -107,7 +102,6 @@ public class CaseDetailsPresenter implements RefreshMenuBuilder.SupportsRefresh 
             return;
         }
         casesService.call((CaseSummary summary) -> {
-            changeTitleWidgetEvent.fire(new ChangeTitleWidgetEvent(this.place, summary.getCaseId() + " - " + summary.getDescription()));
             view.setCaseId(summary.getCaseId());
             view.setCaseStatus(summary.getStatus().name());
             view.setCaseDescription(summary.getDescription());
@@ -120,6 +114,12 @@ public class CaseDetailsPresenter implements RefreshMenuBuilder.SupportsRefresh 
     }
 
     public void onCaseRefreshedEvent(@Observes final CaseRefreshedEvent event) {
+        if (currentCaseId == event.getCaseId()) {
+            refreshCase();
+        }
+    }
+
+    public void onCaseUpdateEvent(@Observes final CaseUpdatedEvent event){
         if (currentCaseId == event.getCaseId()) {
             refreshCase();
         }

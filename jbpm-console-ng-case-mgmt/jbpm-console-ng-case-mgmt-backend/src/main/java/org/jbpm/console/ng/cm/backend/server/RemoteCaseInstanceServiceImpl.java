@@ -18,18 +18,22 @@ package org.jbpm.console.ng.cm.backend.server;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Event;
+import javax.inject.Inject;
 
 import org.jboss.errai.bus.server.annotations.Service;
 import org.jbpm.console.ng.bd.integration.AbstractKieServerService;
 import org.jbpm.console.ng.cm.model.CaseMilestoneSummary;
 import org.jbpm.console.ng.cm.model.CaseStatus;
 import org.jbpm.console.ng.cm.model.CaseSummary;
+import org.jbpm.console.ng.cm.model.events.CaseUpdatedEvent;
 import org.jbpm.console.ng.cm.service.CaseInstanceService;
 //import org.kie.server.api.model.cases.CaseMilestone;
 //import org.kie.server.client.CaseServicesClient;
@@ -39,6 +43,7 @@ import org.jbpm.console.ng.cm.service.CaseInstanceService;
 public class RemoteCaseInstanceServiceImpl extends AbstractKieServerService implements CaseInstanceService {
 
     private Map<String, CaseSummary> cases = new HashMap<>();
+    private Map<String, List<String>> comments = new HashMap<>();
     private AtomicLong counter = new AtomicLong();
 
     @Override
@@ -102,15 +107,38 @@ public class RemoteCaseInstanceServiceImpl extends AbstractKieServerService impl
     }
 
     @Override
-    public void activateCaseInstance(String serverTemplateId, String containerId, String caseId) {
+    public void activateCaseInstance(final String serverTemplateId,
+                                     final String containerId,
+                                     final String caseId) {
         updateCaseStatus(caseId, CaseStatus.ACTIVE);
     }
 
-    private void updateCaseStatus(final String caseId, final CaseStatus status){
+    private void updateCaseStatus(final String caseId, final CaseStatus status) {
         CaseSummary summary = cases.get(caseId);
-        if(summary!=null){
+        if (summary != null) {
             summary.setStatus(status);
         }
     }
 
+    @Override
+    public void addComment(final String serverTemplateId,
+                           final String containerId,
+                           final String caseId,
+                           final String comment,
+                           final String user) {
+        List<String> caseComments = this.comments.get(caseId);
+        if (caseComments == null) {
+            caseComments = new ArrayList<>();
+            this.comments.put(caseId, caseComments);
+        }
+        caseComments.add(comment);
+    }
+
+    @Override
+    public List<String> getComments(final String serverTemplateId,
+                                    final String containerId,
+                                    final String caseId) {
+        final List<String> comments = this.comments.get(caseId);
+        return comments == null ? Collections.emptyList() : comments;
+    }
 }

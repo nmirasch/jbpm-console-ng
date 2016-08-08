@@ -22,8 +22,6 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.user.client.ui.IsWidget;
 import org.jboss.errai.bus.client.api.base.DefaultErrorCallback;
 import org.jboss.errai.common.client.api.Caller;
 import org.jbpm.console.ng.cm.client.resources.i18n.Constants;
@@ -33,6 +31,7 @@ import org.uberfire.client.annotations.DefaultPosition;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
+import org.uberfire.client.mvp.UberView;
 import org.uberfire.lifecycle.OnStartup;
 import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.workbench.model.CompassPosition;
@@ -56,17 +55,14 @@ public class CaseMilestonesPresenter {
 
     @PostConstruct
     public void init() {
-        GWT.log("PostConstruct");
-//        view.init(this);
+        view.init(this);
     }
 
     @OnStartup
     public void onStartup(final PlaceRequest place) {
         containerId = place.getParameter("containerId", "");
         serverTemplateId = place.getParameter("serverTemplateId", "");
-        GWT.log("containerId: " + containerId);
-        GWT.log("serverTemplateId: " + serverTemplateId);
-//        view.clearAllMilestones();
+        view.clearAllMilestones();
         caseService.call((List<CaseMilestoneSummary> milestones) -> {
             for (CaseMilestoneSummary milestone : milestones) {
                 if (milestone.isAchieved()) {
@@ -79,8 +75,7 @@ public class CaseMilestonesPresenter {
     }
 
     @WorkbenchPartView
-//    public UberView<CaseStagesPresenter> getView() {
-    public IsWidget getView() {
+    public UberView<CaseMilestonesPresenter> getView() {
         return view;
     }
 
@@ -94,10 +89,7 @@ public class CaseMilestonesPresenter {
         return CompassPosition.WEST;
     }
 
-    //    public interface View extends UberView<CaseStagesPresenter> {
-    public interface View extends IsWidget {
-
-        void init(CaseMilestonesPresenter presenter);
+    public interface View extends UberView<CaseMilestonesPresenter> {
 
         void clearAllMilestones();
 

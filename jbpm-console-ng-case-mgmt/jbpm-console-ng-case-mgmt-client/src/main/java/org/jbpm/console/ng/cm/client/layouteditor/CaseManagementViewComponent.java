@@ -39,9 +39,12 @@ public class CaseManagementViewComponent extends Composite {
     public static final String PARAM_PLACE_ID = "placeId";
     public static final String PARAM_CASE_ID_COLUMN = "caseIdColumn";
     public static final String PARAM_DISPLAYER = "displayerUUID";
+
     @Inject
     PerspectiveCoordinator perspectiveCoordinator;
+
     private FlowPanel panel = GWT.create(FlowPanel.class);
+
     @Inject
     private PlaceManager placeManager;
 
@@ -54,23 +57,21 @@ public class CaseManagementViewComponent extends Composite {
         final String displayerUUID = properties.get(PARAM_DISPLAYER);
         final String caseIdColumn = properties.get(PARAM_CASE_ID_COLUMN);
         final String place = properties.get(PARAM_PLACE_ID);
-        this.addAttachHandler(e -> {
-            final List<Displayer> displayers = perspectiveCoordinator.getDisplayerList();
-            for (Displayer displayer : displayers) {
-                if (displayerUUID.equals(displayer.getDisplayerSettings().getUUID())) {
-                    final TableDisplayer tableDisplayer = (TableDisplayer) displayer;
-                    tableDisplayer.addOnCellSelectedCommand(() -> {
-                        panel.clear();
-                        final DataSet ds = tableDisplayer.getDataSetHandler().getLastDataSet();
-                        final String caseId = ds.getValueAt(tableDisplayer.getSelectedCellRow(), caseIdColumn).toString();
-                        final Map<String, String> p = new HashMap<>(properties);
-                        p.put("caseId", caseId);
-//                        tableDisplayer.getView().asWidget().addStyleName("hidden");
-                        placeManager.goTo(new DefaultPlaceRequest(place, p), panel);
-                    });
-                }
+        final List<Displayer> displayers = perspectiveCoordinator.getDisplayerList();
+        for (Displayer displayer : displayers) {
+            if (displayerUUID.equals(displayer.getDisplayerSettings().getUUID())) {
+                final TableDisplayer tableDisplayer = (TableDisplayer) displayer;
+                tableDisplayer.addOnCellSelectedCommand(() -> {
+                    panel.clear();
+                    final DataSet ds = tableDisplayer.getDataSetHandler().getLastDataSet();
+                    final String caseId = ds.getValueAt(tableDisplayer.getSelectedCellRow(), caseIdColumn).toString();
+                    final Map<String, String> p = new HashMap<>(properties);
+                    p.put("caseId", caseId);
+                    placeManager.goTo(new DefaultPlaceRequest(place, p), panel);
+                });
+                return;
             }
-        });
+        }
     }
 
 }

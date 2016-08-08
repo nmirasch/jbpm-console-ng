@@ -15,41 +15,48 @@
  */
 package org.jbpm.console.ng.cm.client.detailsmulti;
 
+import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Event;
-import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import org.jboss.errai.common.client.api.Caller;
+import org.jbpm.console.ng.cm.client.actions.CaseActionsPresenter;
+import org.jbpm.console.ng.cm.client.activity.CaseActivitiesPresenter;
+import org.jbpm.console.ng.cm.client.comments.CaseCommentsPresenter;
+import org.jbpm.console.ng.cm.client.details.CaseDetailsPresenter;
+import org.jbpm.console.ng.cm.client.file.CaseFilesPresenter;
+import org.jbpm.console.ng.cm.client.milestones.CaseMilestonesPresenter;
 import org.jbpm.console.ng.cm.client.resources.i18n.Constants;
-import org.jbpm.console.ng.cm.model.events.CaseSelectedEvent;
-import org.uberfire.client.annotations.DefaultPosition;
-import org.uberfire.client.annotations.WorkbenchMenu;
+import org.jbpm.console.ng.cm.client.roles.CaseRolesPresenter;
+import org.jbpm.console.ng.cm.client.stages.CaseStagesPresenter;
+import org.jbpm.console.ng.cm.model.CaseSummary;
+import org.jbpm.console.ng.cm.model.events.CaseUpdatedEvent;
+import org.jbpm.console.ng.cm.service.CaseInstanceService;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
 import org.uberfire.client.mvp.UberView;
-import org.uberfire.client.workbench.events.ChangeTitleWidgetEvent;
-import org.uberfire.ext.widgets.common.client.menu.RefreshMenuBuilder;
+import org.uberfire.ext.widgets.common.client.callbacks.DefaultErrorCallback;
+import org.uberfire.lifecycle.OnOpen;
 import org.uberfire.lifecycle.OnStartup;
 import org.uberfire.mvp.PlaceRequest;
-import org.uberfire.workbench.model.CompassPosition;
-import org.uberfire.workbench.model.Position;
-import org.uberfire.workbench.model.menu.MenuFactory;
-import org.uberfire.workbench.model.menu.Menus;
 
 @Dependent
-@WorkbenchScreen(identifier = "Case Details Multi", preferredWidth = 500)
-public class CaseDetailsMultiPresenter implements RefreshMenuBuilder.SupportsRefresh {
+@WorkbenchScreen(identifier = CaseDetailsMultiPresenter.SCREEN_ID, preferredWidth = 500)
+public class CaseDetailsMultiPresenter {
+
+    public static final String SCREEN_ID = "Case Details Overview";
 
     @Inject
-    private Event<ChangeTitleWidgetEvent> changeTitleWidgetEvent;
-
-    @Inject
-    private Event<CaseSelectedEvent> caseSelected;
+    private Caller<CaseInstanceService> casesService;
 
     @Inject
     private CaseDetailsMultiView view;
+
+    @Inject
+    private Event<CaseUpdatedEvent> caseUpdatedEvent;
 
     private PlaceRequest place;
 
@@ -65,11 +72,6 @@ public class CaseDetailsMultiPresenter implements RefreshMenuBuilder.SupportsRef
         return view;
     }
 
-    @DefaultPosition
-    public Position getPosition() {
-        return CompassPosition.EAST;
-    }
-
     @WorkbenchPartTitle
     public String getTitle() {
         return Constants.INSTANCE.Case_Details();
@@ -78,26 +80,70 @@ public class CaseDetailsMultiPresenter implements RefreshMenuBuilder.SupportsRef
     @OnStartup
     public void onStartup(final PlaceRequest place) {
         this.place = place;
+        currentCaseId = place.getParameter("caseId", null);
+        refreshCase();
     }
 
-    public void onCaseSelectedEvent(@Observes final CaseSelectedEvent event) {
-        currentCaseId = event.getCaseId();
-
-        changeTitleWidgetEvent.fire(new ChangeTitleWidgetEvent(this.place, currentCaseId));
+    @OnOpen
+    public void onOpen() {
+        view.addCaseDetails(CaseDetailsPresenter.SCREEN_ID, place.getParameters());
+        view.addCaseActions(CaseActionsPresenter.SCREEN_ID, place.getParameters());
+        view.addCaseStages(CaseStagesPresenter.SCREEN_ID, place.getParameters());
+        view.addCaseComments(CaseCommentsPresenter.SCREEN_ID, place.getParameters());
+        view.addCaseFiles(CaseFilesPresenter.SCREEN_ID, place.getParameters());
+        view.addCaseRoles(CaseRolesPresenter.SCREEN_ID, place.getParameters());
+        view.addCaseMilestones(CaseMilestonesPresenter.SCREEN_ID, place.getParameters());
+        view.addCaseActivities(CaseActivitiesPresenter.SCREEN_ID, place.getParameters());
     }
 
-    @WorkbenchMenu
-    public Menus buildMenu() {
-        return MenuFactory
-                .newTopLevelCustomMenu(new RefreshMenuBuilder(this)).endMenu()
-                .build();
+    protected void refreshCase() {
+        view.setCaseTitle("");
+        view.setCaseDescription("");
+        if (currentCaseId == null) {
+            return;
+        }
+        casesService.call((CaseSummary summary) -> {
+            view.setCaseTitle(summary.getDescription());
+            view.setCaseDescription(summary.getCaseId());
+        }, new DefaultErrorCallback()).getCaseInstance(null, null, currentCaseId);
     }
 
-    @Override
-    public void onRefresh() {
-        caseSelected.fire(new CaseSelectedEvent(currentCaseId));
+    protected void terminateCase() {
+        casesService.call((Void aVoid) -> {
+            caseUpdatedEvent.fire(new CaseUpdatedEvent(currentCaseId));
+            refreshCase();
+        }, new DefaultErrorCallback()).terminateCaseInstance(null, null, currentCaseId);
+    }
+
+    protected void completeCase() {
+        casesService.call((Void aVoid) -> {
+            caseUpdatedEvent.fire(new CaseUpdatedEvent(currentCaseId));
+            refreshCase();
+        }, new DefaultErrorCallback()).completeCaseInstance(null, null, currentCaseId);
     }
 
     public interface CaseDetailsMultiView extends UberView<CaseDetailsMultiPresenter> {
+
+        void setCaseTitle(String title);
+
+        void setCaseDescription(String description);
+
+        void addCaseDetails(String placeId, Map<String, String> properties);
+
+        void addCaseStages(String placeId, Map<String, String> properties);
+
+        void addCaseActions(String placeId, Map<String, String> properties);
+
+        void addCaseComments(String placeId, Map<String, String> properties);
+
+        void addCaseFiles(String placeId, Map<String, String> properties);
+
+        void addCaseRoles(String placeId, Map<String, String> properties);
+
+        void addCaseMilestones(String placeId, Map<String, String> properties);
+
+        void addCaseActivities(String placeId, Map<String, String> properties);
+
     }
+
 }

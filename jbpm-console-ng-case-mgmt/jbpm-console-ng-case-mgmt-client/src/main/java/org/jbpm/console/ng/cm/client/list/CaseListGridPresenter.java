@@ -22,15 +22,14 @@ import java.util.Map;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.view.client.AsyncDataProvider;
 import com.google.gwt.view.client.HasData;
 import com.google.gwt.view.client.Range;
 import org.jboss.errai.common.client.api.Caller;
-import org.jbpm.console.ng.cm.client.resources.i18n.Constants;
 import org.jbpm.console.ng.cm.client.perspectives.CaseDetailsPerspective;
 import org.jbpm.console.ng.cm.client.quicknewcase.QuickNewCasePopup;
+import org.jbpm.console.ng.cm.client.resources.i18n.Constants;
 import org.jbpm.console.ng.cm.model.CaseSummary;
 import org.jbpm.console.ng.cm.service.CaseInstanceService;
 import org.jbpm.console.ng.ga.model.PortableQueryFilter;
@@ -85,26 +84,26 @@ public class CaseListGridPresenter extends AbstractScreenListPresenter<CaseSumma
     @Override
     public void getData(Range visibleRange) {
         final ColumnSortList columnSortList = view.getListGrid().getColumnSortList();
-        if ( currentFilter == null ) {
-            currentFilter = new PortableQueryFilter( visibleRange.getStart(),
+        if (currentFilter == null) {
+            currentFilter = new PortableQueryFilter(visibleRange.getStart(),
                     visibleRange.getLength(),
                     false, "",
-                    columnSortList.size() > 0 ? columnSortList.get( 0 )
+                    columnSortList.size() > 0 ? columnSortList.get(0)
                             .getColumn().getDataStoreName() : "",
-                    columnSortList.size() == 0 || columnSortList.get( 0 ).isAscending() );
+                    columnSortList.size() == 0 || columnSortList.get(0).isAscending());
         }
         // If we are refreshing after a search action, we need to go back to offset 0
-        if ( currentFilter.getParams() == null || currentFilter.getParams().isEmpty()
-                || currentFilter.getParams().get( "textSearch" ) == null || currentFilter.getParams().get( "textSearch" ).equals( "" ) ) {
-            currentFilter.setOffset( visibleRange.getStart() );
-            currentFilter.setCount( visibleRange.getLength() );
+        if (currentFilter.getParams() == null || currentFilter.getParams().isEmpty()
+                || currentFilter.getParams().get("textSearch") == null || currentFilter.getParams().get("textSearch").equals("")) {
+            currentFilter.setOffset(visibleRange.getStart());
+            currentFilter.setCount(visibleRange.getLength());
         } else {
-            currentFilter.setOffset( 0 );
-            currentFilter.setCount( view.getListGrid().getPageSize() );
+            currentFilter.setOffset(0);
+            currentFilter.setCount(view.getListGrid().getPageSize());
         }
 
-        currentFilter.setOrderBy( columnSortList.size() > 0 ? columnSortList.get( 0 )
-                .getColumn().getDataStoreName() : "" );
+        currentFilter.setOrderBy(columnSortList.size() > 0 ? columnSortList.get(0)
+                .getColumn().getDataStoreName() : "");
         currentFilter.setIsAscending(columnSortList.size() == 0 || columnSortList.get(0).isAscending());
 
         casesService.call((List<CaseSummary> cases) -> {
@@ -140,7 +139,7 @@ public class CaseListGridPresenter extends AbstractScreenListPresenter<CaseSumma
                 .newTopLevelMenu(constants.New_Case_Instance())
                 .respondsWith(() -> {
 //                    if (selectedServerTemplate != null && !selectedServerTemplate.isEmpty()) {
-                        newCasePopup.show(selectedServerTemplate);
+                    newCasePopup.show(selectedServerTemplate);
 //                    } else {
 //                        view.displayNotification(constants.Select_Server_Template());
 //                    }
@@ -155,37 +154,35 @@ public class CaseListGridPresenter extends AbstractScreenListPresenter<CaseSumma
                 .build();
     }
 
-    protected void caseInstanceSelected(final String caseId){
+    protected void caseInstanceSelected(final String caseId) {
         final Map<String, String> parameters = new HashMap<>();
         parameters.put("caseId", caseId);
         final DefaultPlaceRequest caseDetails = new DefaultPlaceRequest(CaseDetailsPerspective.PERSPECTIVE_ID, parameters);
-        GWT.log("status: " + placeManager.getStatus(CaseDetailsPerspective.PERSPECTIVE_ID));
-//        placeManager.closePlace(CaseDetailsPerspective.PERSPECTIVE_ID);
         placeManager.goTo(caseDetails);
     }
 
-    protected void closeCaseInstance(final String caseId){
+    protected void closeCaseInstance(final String caseId) {
         casesService.call(
                 e -> refreshGrid(),
                 new DefaultErrorCallback()
         ).closeCaseInstance(selectedServerTemplate, null, caseId);
     }
 
-    protected void completeCaseInstance(final String caseId){
+    protected void completeCaseInstance(final String caseId) {
         casesService.call(
                 e -> refreshGrid(),
                 new DefaultErrorCallback()
         ).completeCaseInstance(selectedServerTemplate, null, caseId);
     }
 
-    protected void terminateCaseInstance(final String caseId){
+    protected void terminateCaseInstance(final String caseId) {
         casesService.call(
                 e -> refreshGrid(),
                 new DefaultErrorCallback()
         ).terminateCaseInstance(selectedServerTemplate, null, caseId);
     }
 
-    protected void activateCaseInstance(final String caseId){
+    protected void activateCaseInstance(final String caseId) {
         casesService.call(
                 e -> refreshGrid(),
                 new DefaultErrorCallback()

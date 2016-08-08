@@ -89,4 +89,6 @@ public interface Constants extends Messages {
 
     String Activate();
 
+    String Comments();
+
 }

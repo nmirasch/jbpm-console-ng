@@ -15,57 +15,147 @@
  */
 package org.jbpm.console.ng.cm.client.detailsmulti;
 
+import java.util.Map;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.RequiresResize;
-import com.google.gwt.user.client.ui.ScrollPanel;
-import com.google.gwt.user.client.ui.TabLayoutPanel;
-import com.google.gwt.user.client.ui.Widget;
-import org.jbpm.console.ng.cm.client.details.CaseDetailsPresenter;
-import org.jbpm.console.ng.cm.client.resources.i18n.Constants;
-
+import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.HasWidgets;
+import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.html.Span;
+import org.jboss.errai.ui.shared.api.annotations.DataField;
+import org.jboss.errai.ui.shared.api.annotations.EventHandler;
+import org.jboss.errai.ui.shared.api.annotations.Templated;
+import org.uberfire.client.mvp.PlaceManager;
+import org.uberfire.mvp.impl.DefaultPlaceRequest;
 
 @Dependent
-public class CaseDetailsMultiViewImpl extends Composite implements CaseDetailsMultiPresenter.CaseDetailsMultiView, RequiresResize {
-
-    private static Binder uiBinder = GWT.create(Binder.class);
-
-    private ScrollPanel caseDetailsScrollPanel = GWT.create(ScrollPanel.class);
-
-    private TabLayoutPanel tabsContainer;
+@Templated(stylesheet = "CaseDetailsMultiViewImpl.css")
+public class CaseDetailsMultiViewImpl extends Composite implements CaseDetailsMultiPresenter.CaseDetailsMultiView {
 
     @Inject
-    private CaseDetailsPresenter caseDetailsPresenter;
+    @DataField("case-details-content")
+    FlowPanel caseDetails;
 
-    public CaseDetailsMultiViewImpl() {
-        initWidget(uiBinder.createAndBindUi(this));
-    }
+    @Inject
+    @DataField("side-bar-left")
+    FlowPanel sideBarLeft;
+
+    @Inject
+    @DataField("side-bar-right")
+    FlowPanel sideBarRight;
+
+    @Inject
+    @DataField("case-stages")
+    FlowPanel caseStages;
+
+    @Inject
+    @DataField("case-comments")
+    FlowPanel caseComments;
+
+    @Inject
+    @DataField("case-files")
+    FlowPanel caseFiles;
+
+    @Inject
+    @DataField("case-roles")
+    FlowPanel caseRoles;
+
+    @Inject
+    @DataField("case-milestones")
+    FlowPanel caseMilestones;
+
+    @Inject
+    @DataField("case-title")
+    Span caseTitle;
+
+    @Inject
+    @DataField("case-description")
+    Span caseDescription;
+
+    @Inject
+    @DataField("case-terminate")
+    Button terminateCase;
+
+    @Inject
+    @DataField("case-complete")
+    Button completeCase;
+
+    @Inject
+    PlaceManager placeManager;
+
+    private CaseDetailsMultiPresenter presenter;
 
     @Override
     public void init(final CaseDetailsMultiPresenter presenter) {
-    }
-
-    public void initTabs() {
-        tabsContainer.add(caseDetailsScrollPanel, Constants.INSTANCE.Details());
-
-        caseDetailsScrollPanel.add(caseDetailsPresenter.getView());
-
-        tabsContainer.addSelectionHandler(e -> caseDetailsPresenter.refreshCase());
+        this.presenter = presenter;
     }
 
     @Override
-    public void onResize() {
-//        Scheduler.get().scheduleDeferred(() -> {
-//            tabsContainer.setHeight(CaseDetailsMultiViewImpl.this.getParent().getOffsetHeight() - 30 + "px");
-//            caseDetailsScrollPanel.setHeight(CaseDetailsMultiViewImpl.this.getParent().getOffsetHeight() - 30 + "px");
-//        });
+    public void addCaseDetails(final String placeId, final Map<String, String> properties) {
+        addWidget(placeId, properties, caseDetails);
     }
 
-    interface Binder extends UiBinder<Widget, CaseDetailsMultiViewImpl> {
+    @Override
+    public void addCaseActions(final String placeId, final Map<String, String> properties) {
+        addWidget(placeId, properties, sideBarLeft);
     }
 
+    @Override
+    public void addCaseStages(final String placeId, final Map<String, String> properties) {
+        addWidget(placeId, properties, caseStages);
+    }
+
+    @Override
+    public void addCaseComments(String placeId, Map<String, String> properties) {
+        addWidget(placeId, properties, caseComments);
+    }
+
+    @Override
+    public void addCaseFiles(String placeId, Map<String, String> properties) {
+        addWidget(placeId, properties, caseFiles);
+    }
+
+    @Override
+    public void addCaseRoles(String placeId, Map<String, String> properties) {
+        addWidget(placeId, properties, caseRoles);
+    }
+
+    @Override
+    public void addCaseMilestones(String placeId, Map<String, String> properties) {
+        addWidget(placeId, properties, caseMilestones);
+    }
+
+    @Override
+    public void addCaseActivities(String placeId, Map<String, String> properties) {
+        addWidget(placeId, properties, sideBarRight);
+    }
+
+    private void addWidget(final String placeId, final Map<String, String> properties, final HasWidgets widget) {
+        placeManager.goTo(new DefaultPlaceRequest(placeId, properties), widget);
+    }
+
+    @Override
+    public void setCaseTitle(final String title) {
+        caseTitle.setText(title);
+    }
+
+    @Override
+    public void setCaseDescription(final String description) {
+        caseDescription.setText(description);
+    }
+
+    @EventHandler("case-terminate")
+    @SuppressWarnings("unsued")
+    protected void onTerminateClick(final ClickEvent event) {
+        presenter.terminateCase();
+    }
+
+    @EventHandler("case-complete")
+    @SuppressWarnings("unsued")
+    protected void onCompleteClick(final ClickEvent event) {
+        presenter.completeCase();
+    }
 }

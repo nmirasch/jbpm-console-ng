@@ -1,0 +1,120 @@
+<!--
+  ~ Copyright 2016 Red Hat, Inc. and/or its affiliates.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~       http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<div class="container-fluid full-height">
+    <div class="row full-height">
+        <div class="col-md-2 sidebar-pf sidebar-pf-left full-height sidebar-actions" data-field="side-bar-left"></div>
+        <div class="col-md-8 full-height">
+            <div class="container-fluid" style="padding-left: 0;padding-right: 0;">
+                <div class="row">
+                    <div class="col-md-9">
+                        <h2>
+                            <span data-field="case-title">Container A</span>
+                            <small>
+                                <span data-field="case-description"></span>
+                            </small>
+                        </h2>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="btn-group btn-block" data-toggle="buttons" style="margin-top: 15px;">
+                            <button type="button" class="col-md-6 btn btn-default" data-field="case-terminate" data-i18n-key="Start">Terminate</button>
+                            <button type="button" class="col-md-6 btn btn-default" data-field="case-complete" data-i18n-key="Stop">Complete</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <button class="btn btn-link pull-right" type="button" id="refresh-container">
+                            <i class="fa fa-refresh"></i>&nbsp;&nbsp;<span data-i18n-key="Refresh">Refresh</span>
+                        </button>
+                        <div class="tabbable uf-tabbar-panel">
+                            <ul class="nav nav-tabs uf-tabbar-panel-nav-tabs nav-tabs-pf">
+                                <li class="uf-dropdown-tab-list-item active" id="details-tab">
+                                    <a href="javascript:;" data-toggle="tab" data-target="#details-pane" data-i18n-key="Status">Case Details</a>
+                                </li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="details-pane">
+                                    <div class="row" style="padding-top: 20px; ">
+                                        <div data-field="case-details-content"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div data-field="case-stages"></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="tabbable uf-tabbar-panel">
+                            <ul class="nav nav-tabs uf-tabbar-panel-nav-tabs nav-tabs-pf">
+                                <li class="uf-dropdown-tab-list-item active" id="comments-tab">
+                                    <a href="javascript:;" data-toggle="tab" data-target="#comments-pane" data-i18n-key="Status">Comments</a>
+                                </li>
+                                <li class="uf-dropdown-tab-list-item" id="files-tab">
+                                    <a href="javascript:;" data-toggle="tab" data-target="#files-pane" data-i18n-key="Status">Files</a>
+                                </li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="comments-pane">
+                                    <div class="row" style="padding-top: 20px; ">
+                                        <div class="col-md-12" data-field="case-comments"></div>
+                                    </div>
+                                </div>
+
+                                <div class="tab-pane" id="files-pane">
+                                    <div class="row" style="margin-top: 20px;">
+                                        <div class="col-md-12" id="case-files"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="tabbable uf-tabbar-panel">
+                            <ul class="nav nav-tabs uf-tabbar-panel-nav-tabs nav-tabs-pf">
+                                <li class="uf-dropdown-tab-list-item active" id="roles-tab">
+                                    <a href="javascript:;" data-toggle="tab" data-target="#roles-pane" data-i18n-key="Status">Roles</a>
+                                </li>
+                                <li class="uf-dropdown-tab-list-item" id="milestones-tab">
+                                    <a href="javascript:;" data-toggle="tab" data-target="#milestones-pane" data-i18n-key="Status">Milestones</a>
+                                </li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="roles-pane">
+                                    <div class="row" style="padding-top: 20px; ">
+                                        <div class="col-md-12" data-field="case-roles"></div>
+                                    </div>
+                                </div>
+
+                                <div class="tab-pane" id="milestones-pane">
+                                    <div class="row" style="margin-top: 20px;">
+                                        <div class="col-md-12" id="case-milestones"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 sidebar-pf sidebar-pf-right full-height" data-field="side-bar-right"></div>
+    </div>
+</div>

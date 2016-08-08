@@ -40,4 +40,8 @@ public interface CaseInstanceService {
 
     void activateCaseInstance(String serverTemplateId, String containerId, String caseId);
 
+    void addComment(String serverTemplateId, String containerId, String caseId, String comment, String user);
+
+    List<String> getComments(String serverTemplateId, String containerId, String caseId);
+
 }

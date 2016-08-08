@@ -19,20 +19,7 @@ package org.jbpm.console.ng.cm.client.milestones;
 import java.util.Date;
 import javax.enterprise.context.Dependent;
 
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.dom.client.Style;
 import com.google.gwt.user.client.ui.Composite;
-import org.gwtbootstrap3.client.ui.Heading;
-import org.gwtbootstrap3.client.ui.Icon;
-import org.gwtbootstrap3.client.ui.Label;
-import org.gwtbootstrap3.client.ui.LinkedGroupItemText;
-import org.gwtbootstrap3.client.ui.ListGroup;
-import org.gwtbootstrap3.client.ui.ListGroupItem;
-import org.gwtbootstrap3.client.ui.constants.HeadingSize;
-import org.gwtbootstrap3.client.ui.constants.IconType;
-import org.gwtbootstrap3.client.ui.constants.LabelType;
-import org.gwtbootstrap3.client.ui.constants.Pull;
-import org.gwtbootstrap3.client.ui.html.Text;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
 
 @Dependent
@@ -43,13 +30,11 @@ public class CaseMilestonesViewImpl extends Composite implements CaseMilestonesP
 //    private ListGroup listgroup = GWT.create(ListGroup.class);
 
     public CaseMilestonesViewImpl() {
-        GWT.log("new view");
 //        initWidget(listgroup);
     }
 
     @Override
     public void init(final CaseMilestonesPresenter presenter) {
-        GWT.log("init");
 //        final ListGroupItem item1 = GWT.create(ListGroupItem.class);
 //        item1.setText("milestone 1");
 //        listgroup.add(item1);
