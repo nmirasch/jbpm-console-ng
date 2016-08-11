@@ -53,12 +53,17 @@ public class CaseManagementViewComponent extends Composite {
         initWidget(panel);
     }
 
-    public void init(final Map<String, String> properties) {
+    public void initPreviewWidget(final Map<String, String> properties) {
+        final String place = properties.get(PARAM_PLACE_ID);
+        placeManager.goTo(new DefaultPlaceRequest(place, properties), panel);
+    }
+
+    public void initWidget(final Map<String, String> properties) {
         final String displayerUUID = properties.get(PARAM_DISPLAYER);
         final String caseIdColumn = properties.get(PARAM_CASE_ID_COLUMN);
         final String place = properties.get(PARAM_PLACE_ID);
-        final List<Displayer> displayers = perspectiveCoordinator.getDisplayerList();
-        for (Displayer displayer : displayers) {
+        final List<Displayer> displayerList = perspectiveCoordinator.getDisplayerList();
+        for (Displayer displayer : displayerList) {
             if (displayerUUID.equals(displayer.getDisplayerSettings().getUUID())) {
                 final TableDisplayer tableDisplayer = (TableDisplayer) displayer;
                 tableDisplayer.addOnCellSelectedCommand(() -> {

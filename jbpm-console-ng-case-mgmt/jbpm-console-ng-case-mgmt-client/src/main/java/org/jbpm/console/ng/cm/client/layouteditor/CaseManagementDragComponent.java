@@ -32,6 +32,7 @@ import org.dashbuilder.displayer.DisplayerType;
 import org.dashbuilder.displayer.client.Displayer;
 import org.dashbuilder.displayer.client.PerspectiveCoordinator;
 import org.gwtbootstrap3.client.ui.Modal;
+import org.jboss.errai.ioc.client.container.SyncBeanManager;
 import org.jbpm.console.ng.cm.client.actions.CaseActionsPresenter;
 import org.jbpm.console.ng.cm.client.activity.CaseActivitiesPresenter;
 import org.jbpm.console.ng.cm.client.comments.CaseCommentsPresenter;
@@ -59,8 +60,8 @@ public class CaseManagementDragComponent implements PerspectiveEditorDragCompone
     @Inject
     CaseManagementViewComponent viewComponent;
 
-//    @Inject
-//    SyncBeanManager beanManager;
+    @Inject
+    SyncBeanManager beanManager;
 
     @Override
     public Modal getConfigurationModal(final ModalConfigurationContext context) {
@@ -123,14 +124,15 @@ public class CaseManagementDragComponent implements PerspectiveEditorDragCompone
 
     @Override
     public IsWidget getPreviewWidget(final RenderingContext renderingContext) {
-//        return new Text("Preview not available");
-        return getShowWidget(renderingContext);
+        final CaseManagementViewComponent view = beanManager.lookupBean(CaseManagementViewComponent.class).newInstance();
+        view.initPreviewWidget(renderingContext.getComponent().getProperties());
+        return view;
     }
 
     @Override
     public IsWidget getShowWidget(final RenderingContext renderingContext) {
-//        final CaseManagementViewComponent view = beanManager.lookupBean(CaseManagementViewComponent.class).newInstance();
-        viewComponent.init(renderingContext.getComponent().getProperties());
-        return viewComponent;
+        final CaseManagementViewComponent view = beanManager.lookupBean(CaseManagementViewComponent.class).newInstance();
+        view.initWidget(renderingContext.getComponent().getProperties());
+        return view;
     }
 }
