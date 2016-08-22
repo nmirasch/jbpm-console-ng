@@ -25,18 +25,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
 
 import org.jboss.errai.bus.server.annotations.Service;
 import org.jbpm.console.ng.bd.integration.AbstractKieServerService;
 import org.jbpm.console.ng.cm.model.CaseMilestoneSummary;
 import org.jbpm.console.ng.cm.model.CaseStatus;
 import org.jbpm.console.ng.cm.model.CaseSummary;
-import org.jbpm.console.ng.cm.model.events.CaseUpdatedEvent;
 import org.jbpm.console.ng.cm.service.CaseInstanceService;
-//import org.kie.server.api.model.cases.CaseMilestone;
-//import org.kie.server.client.CaseServicesClient;
 
 @Service
 @ApplicationScoped

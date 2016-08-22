@@ -28,7 +28,7 @@ import org.uberfire.workbench.model.impl.PartDefinitionImpl;
 import org.uberfire.workbench.model.impl.PerspectiveDefinitionImpl;
 
 @ApplicationScoped
-@WorkbenchPerspective(identifier = CaseListPerspective.PERSPECTIVE_ID)
+@WorkbenchPerspective(identifier = CaseListPerspective.PERSPECTIVE_ID, isDefault = true)
 public class CaseListPerspective extends AbstractPerspective {
 
     public static final String PERSPECTIVE_ID = "Cases";

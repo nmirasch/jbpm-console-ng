@@ -21,7 +21,6 @@ import javax.enterprise.event.Event;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
-import com.google.gwt.core.client.GWT;
 import org.jboss.errai.common.client.api.Caller;
 import org.jbpm.console.ng.cm.client.perspectives.CaseListPerspective;
 import org.jbpm.console.ng.cm.client.resources.i18n.Constants;

@@ -28,6 +28,7 @@ import org.jbpm.console.ng.cm.client.comments.CaseCommentsPresenter;
 import org.jbpm.console.ng.cm.client.details.CaseDetailsPresenter;
 import org.jbpm.console.ng.cm.client.file.CaseFilesPresenter;
 import org.jbpm.console.ng.cm.client.milestones.CaseMilestonesPresenter;
+import org.jbpm.console.ng.cm.client.perspectives.CaseListPerspective;
 import org.jbpm.console.ng.cm.client.resources.i18n.Constants;
 import org.jbpm.console.ng.cm.client.roles.CaseRolesPresenter;
 import org.jbpm.console.ng.cm.client.stages.CaseStagesPresenter;
@@ -37,6 +38,7 @@ import org.jbpm.console.ng.cm.service.CaseInstanceService;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
+import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.client.mvp.UberView;
 import org.uberfire.ext.widgets.common.client.callbacks.DefaultErrorCallback;
 import org.uberfire.lifecycle.OnOpen;
@@ -61,6 +63,9 @@ public class CaseDetailsMultiPresenter {
     private PlaceRequest place;
 
     private String currentCaseId = "";
+
+    @Inject
+    PlaceManager placeManager;
 
     @PostConstruct
     public void init() {
@@ -120,6 +125,10 @@ public class CaseDetailsMultiPresenter {
             caseUpdatedEvent.fire(new CaseUpdatedEvent(currentCaseId));
             refreshCase();
         }, new DefaultErrorCallback()).completeCaseInstance(null, null, currentCaseId);
+    }
+
+    protected void backToList(){
+        placeManager.goTo(CaseListPerspective.PERSPECTIVE_ID);
     }
 
     public interface CaseDetailsMultiView extends UberView<CaseDetailsMultiPresenter> {

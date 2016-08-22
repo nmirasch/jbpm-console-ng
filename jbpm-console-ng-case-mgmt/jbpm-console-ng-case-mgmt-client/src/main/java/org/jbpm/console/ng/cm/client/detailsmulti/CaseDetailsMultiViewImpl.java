@@ -16,6 +16,7 @@
 package org.jbpm.console.ng.cm.client.detailsmulti;
 
 import java.util.Map;
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
@@ -24,6 +25,7 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HasWidgets;
 import org.gwtbootstrap3.client.ui.Button;
+import org.gwtbootstrap3.client.ui.constants.ButtonType;
 import org.gwtbootstrap3.client.ui.html.Span;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
@@ -84,9 +86,18 @@ public class CaseDetailsMultiViewImpl extends Composite implements CaseDetailsMu
     Button completeCase;
 
     @Inject
+    @DataField("backToList")
+    Button backToList;
+
+    @Inject
     PlaceManager placeManager;
 
     private CaseDetailsMultiPresenter presenter;
+
+    @PostConstruct
+    protected void init(){
+        backToList.setType(ButtonType.LINK);
+    }
 
     @Override
     public void init(final CaseDetailsMultiPresenter presenter) {
@@ -158,4 +169,11 @@ public class CaseDetailsMultiViewImpl extends Composite implements CaseDetailsMu
     protected void onCompleteClick(final ClickEvent event) {
         presenter.completeCase();
     }
+
+    @EventHandler("backToList")
+    @SuppressWarnings("unsued")
+    protected void onBackToListClick(final ClickEvent event) {
+        presenter.backToList();
+    }
+
 }
