@@ -51,7 +51,11 @@ public class NumberParameterEditor extends Composite {
         if (value != null) input.setValue(value.toString());
         input.addValueChangeHandler(new ValueChangeHandler<String>() {
             public void onValueChange(ValueChangeEvent<String> event) {
-                listener.valueChanged(new Double(event.getValue()));
+                if(event!=null && event.getValue()!=null && !event.getValue().isEmpty()){
+                    listener.valueChanged(new Double(event.getValue()));
+                }else {
+                    listener.valueChanged(0);
+                }
             }
         });
     }
