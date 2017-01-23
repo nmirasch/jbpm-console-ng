@@ -47,14 +47,6 @@ public class CaseOverviewViewImpl implements CaseOverviewPresenter.CaseOverviewV
     FlowPanel caseDetails;
 
     @Inject
-    @DataField("side-bar-left")
-    FlowPanel sideBarLeft;
-
-    @Inject
-    @DataField("side-bar-right")
-    FlowPanel sideBarRight;
-
-    @Inject
     @DataField("case-stages")
     FlowPanel caseStages;
 
@@ -115,7 +107,7 @@ public class CaseOverviewViewImpl implements CaseOverviewPresenter.CaseOverviewV
 
     @Override
     public void addCaseActions(final String placeId, final Map<String, String> properties) {
-        addWidget(placeId, properties, sideBarLeft);
+        //addWidget(placeId, properties, sideBarLeft);
     }
 
     @Override
@@ -145,7 +137,7 @@ public class CaseOverviewViewImpl implements CaseOverviewPresenter.CaseOverviewV
 
     @Override
     public void addCaseActivities(String placeId, Map<String, String> properties) {
-        addWidget(placeId, properties, sideBarRight);
+        //addWidget(placeId, properties, sideBarRight);
     }
 
     private void addWidget(final String placeId, final Map<String, String> properties, final HasWidgets widget) {
