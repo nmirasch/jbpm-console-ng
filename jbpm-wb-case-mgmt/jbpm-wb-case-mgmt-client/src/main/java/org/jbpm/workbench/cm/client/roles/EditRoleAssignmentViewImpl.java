@@ -16,7 +16,6 @@
 
 package org.jbpm.workbench.cm.client.roles;
 
-import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -33,16 +32,16 @@ import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.jbpm.workbench.cm.client.util.FormGroup;
 import org.jbpm.workbench.cm.client.util.FormLabel;
 import org.jbpm.workbench.cm.client.util.Modal;
-import org.jbpm.workbench.cm.client.util.Select;
 import org.jbpm.workbench.cm.client.util.ValidationState;
 import org.uberfire.mvp.Command;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+
 import static org.jbpm.workbench.cm.client.resources.i18n.Constants.*;
 
 @Dependent
 @Templated
-public class NewRoleAssignmentViewImpl implements CaseRolesPresenter.NewRoleAssignmentView {
+public class EditRoleAssignmentViewImpl implements CaseRolesPresenter.EditRoleAssignmentView {
 
     @Inject
     @DataField("role-name-group")
@@ -53,8 +52,8 @@ public class NewRoleAssignmentViewImpl implements CaseRolesPresenter.NewRoleAssi
     Span roleNameHelp;
 
     @Inject
-    @DataField("role-name-select")
-    Select roleNameList;
+    @DataField("role-name-text")
+    Span roleNameText;
 
     @Inject
     @DataField("role-name-label")
@@ -104,17 +103,19 @@ public class NewRoleAssignmentViewImpl implements CaseRolesPresenter.NewRoleAssi
     }
 
     @Override
-    public void show( final Set<String> roles, final Command okCommand) {
+    public void show(String roleName, String users, String groups, Command okCommand) {
         clearErrorMessages();
         clearValues();
-
-        roles.forEach(r -> roleNameList.addOption(r));
-        roleNameList.refresh();
+        roleNameText.setTextContent(roleName);
+        userNameInput.setValue(users);
+        groupNameInput.setValue(groups);
 
         this.okCommand = okCommand;
 
         modal.show();
     }
+
+
 
     @Override
     public void hide() {
@@ -125,9 +126,7 @@ public class NewRoleAssignmentViewImpl implements CaseRolesPresenter.NewRoleAssi
         boolean validForm=true;
         clearErrorMessages();
 
-        final boolean roleNameEmpty = isNullOrEmpty(roleNameList.getValue());
-        if (roleNameEmpty) {
-            roleNameList.getElement().focus();
+        if (isNullOrEmpty(roleNameText.getTextContent())) {
             roleNameHelp.setTextContent(translationService.format(PLEASE_SELECT_ROLE));
             roleNameGroup.setValidationState(ValidationState.ERROR);
             validForm=false;
@@ -151,9 +150,7 @@ public class NewRoleAssignmentViewImpl implements CaseRolesPresenter.NewRoleAssi
     }
 
     private void clearValues() {
-        roleNameList.setValue("");
-        roleNameList.removeAllOptions();
-        roleNameList.refresh();
+        roleNameText.setTextContent("");
         userNameInput.setValue("");
         groupNameInput.setValue("");
     }
@@ -167,18 +164,13 @@ public class NewRoleAssignmentViewImpl implements CaseRolesPresenter.NewRoleAssi
     }
 
     @Override
-    public String getRoleName() {
-        return roleNameList.getValue();
-    }
-
-    @Override
-    public String getUserName() {
+    public String getUsersNames() {
         return userNameInput.getValue();
     }
 
 
     @Override
-    public String getGroupName() {
+    public String getGroupsNames() {
         return groupNameInput.getValue();
     }
 

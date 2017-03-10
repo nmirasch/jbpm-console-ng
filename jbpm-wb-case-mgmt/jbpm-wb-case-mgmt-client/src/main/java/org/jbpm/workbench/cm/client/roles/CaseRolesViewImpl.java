@@ -18,28 +18,35 @@ package org.jbpm.workbench.cm.client.roles;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
-import org.jboss.errai.common.client.dom.Button;
 import org.jboss.errai.common.client.dom.Div;
 import org.jboss.errai.common.client.dom.Event;
 import org.jboss.errai.common.client.dom.HTMLElement;
 import org.jboss.errai.common.client.dom.Span;
 import org.jboss.errai.ioc.client.api.ManagedInstance;
+
+import org.jboss.errai.ui.client.local.spi.TranslationService;
 import org.jboss.errai.ui.shared.api.annotations.DataField;
 import org.jboss.errai.ui.shared.api.annotations.EventHandler;
 import org.jboss.errai.ui.shared.api.annotations.ForEvent;
 import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.jbpm.workbench.cm.client.pagination.PaginationViewImpl;
+import org.jbpm.workbench.cm.client.util.CaseRolesAssignmentFilterBy;
+import org.jbpm.workbench.cm.client.util.Select;
 import org.uberfire.mvp.Command;
 
+import static java.util.stream.Collectors.toMap;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.Arrays.stream;
 import static org.jboss.errai.common.client.dom.DOMUtil.*;
 
 @Dependent
 @Templated
 public class CaseRolesViewImpl implements CaseRolesPresenter.CaseRolesView,PaginationViewImpl.PageList {
-    public static int PAGE_SIZE = 4;
+    public static int PAGE_SIZE = 3;
 
     @Inject
     @DataField("roles")
@@ -54,8 +61,8 @@ public class CaseRolesViewImpl implements CaseRolesPresenter.CaseRolesView,Pagin
     private Div roles;
 
     @Inject
-    @DataField("user-add")
-    private Button userAddButton;
+    @DataField("filter-select")
+    private Select filterSelect;
 
     @Inject
     @DataField("scrollbox")
@@ -67,14 +74,27 @@ public class CaseRolesViewImpl implements CaseRolesPresenter.CaseRolesView,Pagin
 
     List allElementsList = new ArrayList();
 
-    private Command userAddCommand;
+    private Command filterCommand;
 
     @Inject
     private ManagedInstance<CaseRoleItemView> provider;
 
+    @Inject
+    private TranslationService translationService;
+
     @Override
     public void init(final CaseRolesPresenter presenter) {
+    }
 
+    @PostConstruct
+    public void init() {
+        stream(CaseRolesAssignmentFilterBy.values())
+                .collect(toMap(s -> s.getLabel(),
+                        s -> translationService.format(s.getLabel())))
+                .entrySet()
+                .forEach(s -> filterSelect.addOption(s.getValue(), s.getKey()));
+
+       filterSelect.refresh();
     }
 
     @Override
@@ -84,35 +104,39 @@ public class CaseRolesViewImpl implements CaseRolesPresenter.CaseRolesView,Pagin
     }
 
     @Override
-    public void enableNewRoleAssignments() {
-        removeCSSClass(userAddButton, "hidden");
+    public void setFilterCommand(Command command){
+        this.filterCommand = command;
     }
 
-    @Override
-    public void disableNewRoleAssignments() {
-        addCSSClass(userAddButton, "hidden");
-    }
-
-    @Override
-    public void setUserAddCommand(final Command command) {
-        this.userAddCommand = command;
-    }
-
-    @Override
-    public void addUser(final String userName, final String roleName, final CaseRolesPresenter.CaseRoleAction... actions) {
-        addRoleView(userName, roleName, "pficon-user", actions);
-    }
-
-    @Override
-    public void addGroup(final String groupName, final String roleName, final CaseRolesPresenter.CaseRoleAction... actions) {
-        addRoleView(groupName, roleName, "pficon-users", actions);
-    }
-
-    private void  addRoleView(final String name, final String roleName, final String iconType, final CaseRolesPresenter.CaseRoleAction... actions) {
+    public void addAssignment(String roleName, String user){
         final CaseRoleItemView roleItemView = provider.get();
         roleItemView.setRoleName(roleName);
-        roleItemView.setName(name);
-        roleItemView.setIconType(iconType);
+        roleItemView.setRoleUsers(user);
+        allElementsList.add(roleItemView);
+    }
+
+    public String getFilterValue (){
+        if(isNullOrEmpty(filterSelect.getValue())){
+            return "All";
+        }
+        return filterSelect.getValue();
+    }
+
+    public void addAssignment(String roleName, List<CaseRolesPresenter.CaseAssignmentItem> users, List <CaseRolesPresenter.CaseAssignmentItem> groups,
+                  CaseRolesPresenter.CaseRoleAction... actions){
+        final CaseRoleItemView roleItemView = provider.get();
+        roleItemView.setRoleName(roleName);
+        if( users.size() == 0 && groups.size() == 0){
+            roleItemView.displayUnassigned();
+        } else {
+            for (CaseRolesPresenter.CaseAssignmentItem user : users) {
+                roleItemView.addUser(user);
+            }
+            for (CaseRolesPresenter.CaseAssignmentItem group : groups) {
+                roleItemView.addGroup(group);
+            }
+        }
+
         for (CaseRolesPresenter.CaseRoleAction action : actions) {
             roleItemView.addAction(action);
         }
@@ -130,10 +154,10 @@ public class CaseRolesViewImpl implements CaseRolesPresenter.CaseRolesView,Pagin
         removeAllChildren(roles);
         int visibleItemsSize = visibleItems.size();
         if(visibleItemsSize>0){
-            visibleItems.stream().forEach(e -> ((CaseRoleItemView)e).setLastElementStyle(false));
+            visibleItems.forEach(e -> ((CaseRoleItemView)e).setLastElementStyle(false));
             ((CaseRoleItemView)visibleItems.get(visibleItemsSize-1)).setLastElementStyle(true);
         }
-        visibleItems.stream().forEach(e -> roles.appendChild(((CaseRoleItemView)e).getElement()) );
+        visibleItems.forEach(e -> roles.appendChild(((CaseRoleItemView)e).getElement()) );
     }
 
     @Override
@@ -141,11 +165,9 @@ public class CaseRolesViewImpl implements CaseRolesPresenter.CaseRolesView,Pagin
         return scrollbox;
     }
 
-    @EventHandler("user-add")
-    public void onUserAddClick(@ForEvent("click") Event e) {
-        if (userAddCommand != null) {
-            userAddCommand.execute();
-        }
+    @EventHandler("filter-select")
+    public void onRolesAssignmentFilterChange(@ForEvent("change") Event e) {
+        filterCommand.execute();
     }
 
     @Override

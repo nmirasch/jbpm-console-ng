@@ -20,12 +20,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.jbpm.workbench.cm.model.CaseActionSummary;
 import org.jbpm.workbench.cm.model.CaseCommentSummary;
 import org.jbpm.workbench.cm.model.CaseDefinitionSummary;
 import org.jbpm.workbench.cm.model.CaseInstanceSummary;
 import org.jbpm.workbench.cm.model.CaseMilestoneSummary;
+import org.jbpm.workbench.cm.model.CaseRoleAssignmentSummary;
 import org.jbpm.workbench.cm.util.Actions;
 import org.jbpm.workbench.cm.util.CaseActionStatus;
 import org.jbpm.workbench.cm.util.CaseInstanceSearchRequest;
@@ -40,6 +42,7 @@ import org.kie.server.api.model.cases.CaseDefinition;
 import org.kie.server.api.model.cases.CaseFile;
 import org.kie.server.api.model.cases.CaseInstance;
 import org.kie.server.api.model.cases.CaseMilestone;
+import org.kie.server.api.model.cases.CaseRoleAssignment;
 import org.kie.server.api.model.cases.CaseStage;
 import org.kie.server.api.model.instance.NodeInstance;
 import org.kie.server.api.model.instance.TaskInstance;
@@ -222,6 +225,64 @@ public class RemoteCaseManagementServiceImplTest {
 
         final CaseInstanceSummary cis = testedService.getCaseInstance(serverTemplateId, ci.getContainerId(), ci.getCaseId());
         assertCaseInstance(ci, cis);
+    }
+
+
+    @Test
+    public void removePreviousUserAndGroups() {
+        String roleName = "testRole";
+        String previousUserAssignment = "testUser";
+        String previousGroupAssignment = "testGroup";
+        CaseInstance caseInstance = createTestInstance(caseId);
+        caseInstance.setRoleAssignments(Arrays.asList(CaseRoleAssignment.builder()
+                .name(roleName)
+                .users(Arrays.asList(previousUserAssignment))
+                .groups(Arrays.asList(previousGroupAssignment))
+                .build()));
+        when(clientMock.getCaseInstance(containerId, caseId, true, true, true, true))
+                .thenReturn(caseInstance);
+
+        testedService.saveAssignment(serverTemplateId,containerId,caseId,roleName,"","");
+        verify(clientMock).removeUserFromRole(containerId,caseId,roleName,previousUserAssignment);
+        verify(clientMock).removeGroupFromRole(containerId,caseId,roleName,previousGroupAssignment);
+        verify(clientMock, never()).assignUserToRole(anyString(),anyString(),anyString(), anyString());
+        verify(clientMock, never()).assignGroupToRole(anyString(),anyString(),anyString(), anyString());
+    }
+
+    @Test
+    public void saveUserAndGroups() {
+        String user1 ="u1";
+        String user2 ="u2";
+        String group1 ="g1";
+        String group2 ="g2";
+        String newUsers = Arrays.asList(user1,user2).stream().map(Object::toString).collect(Collectors.joining(", "));
+        String newGroups = Arrays.asList(group1,group2).stream().map(Object::toString).collect(Collectors.joining(", "));
+
+        String roleName = "testRole";
+        String previousUserAssignment = "testUser";
+        String previousGroupAssignment = "testGroup";
+        CaseInstance caseInstance = createTestInstance(caseId);
+        caseInstance.setRoleAssignments(Arrays.asList(CaseRoleAssignment.builder()
+                .name(roleName)
+                .users(Arrays.asList(previousUserAssignment))
+                .groups(Arrays.asList(previousGroupAssignment))
+                .build()));
+        when(clientMock.getCaseInstance(containerId, caseId, true, true, true, true))
+                .thenReturn(caseInstance);
+
+        testedService.saveAssignment(serverTemplateId,containerId,caseId,roleName,newUsers,newGroups);
+        verify(clientMock).removeUserFromRole(containerId,caseId,roleName,previousUserAssignment);
+        verify(clientMock).removeGroupFromRole(containerId,caseId,roleName,previousGroupAssignment);
+
+        verify(clientMock).removeUserFromRole(containerId,caseId,roleName,previousUserAssignment);
+        verify(clientMock).assignUserToRole(containerId,caseId,roleName, user1);
+        verify(clientMock).assignUserToRole(containerId,caseId,roleName, user2);
+        verify(clientMock, times(2)).assignUserToRole(anyString(),anyString(),anyString(), anyString());
+
+        verify(clientMock).removeGroupFromRole(containerId,caseId,roleName,previousGroupAssignment);
+        verify(clientMock).assignGroupToRole(containerId,caseId,roleName, group1);
+        verify(clientMock).assignGroupToRole(containerId,caseId,roleName, group2);
+        verify(clientMock, times(2)).assignGroupToRole(anyString(),anyString(),anyString(), anyString());
     }
 
     @Test

@@ -10,16 +10,34 @@
         </div>
     </div>
     <div class="kie-list-group-item-content">
-        <div class="list-view-pf-left">
-            <span class="pficon" data-field="icon-type"></span>
-        </div>
         <div class="list-view-pf-body">
             <div class="list-view-pf-description">
                 <div class="list-group-item-heading">
-                    <span data-field="name"></span>
-                </div>
-                <div class="list-group-item-text">
                     <span data-field="role-name"></span>
+                </div>
+                <div class="kie-full-width" >
+                    <div data-field="div-unassigned" class="hidden">
+                        <span data-i18n-key="Unassigned"></span>
+                    </div>
+                    <div data-field="div-users" class="hidden pficon pficon-user kie-full-width">
+                        <div class="kie-roles-item-line" data-field="users-line">
+                            <ul class="list-inline" data-field="role-users"></ul>
+                        </div>
+                        <div class="kie-more-info" data-field="more-users-link"><button class="btn btn-link fa fa-sort-desc" type="button" id="more-users">
+                        </button></div>
+                        <div class="kie-more-info hidden" data-field="less-users-link"><button class="btn btn-link fa fa-sort-asc" type="button" id="less-users">
+                        </button></div>
+                    </div>
+                    <div data-field="div-groups" class="hidden pficon pficon-users kie-full-width" style="display: inherit">
+                        <div class="kie-roles-item-line" data-field="groups-line">
+                            <ul class="list-inline" data-field="role-groups"></ul>
+                        </div>
+                        <div class="kie-more-info" data-field="more-groups-link"><button class="btn btn-link fa fa-sort-desc" type="button" id="more-groups">
+                        </button></div>
+                        <div class="kie-more-info hidden" data-field="less-groups-link"><button class="btn btn-link fa fa-sort-asc" type="button" id="less-groups">
+
+                        </button></div>
+                    </div>
                 </div>
             </div>
         </div>

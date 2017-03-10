@@ -45,6 +45,15 @@ public interface Constants {
     String PLEASE_SELECT_ROLE = "PleaseSelectRole";
 
     @TranslationKey(defaultValue = "")
+    String DELETE_ASSIGNMENT = "DeleteAssignment";
+
+    @TranslationKey(defaultValue = "")
+    String DELETE_THE_ASSIGNMENT_FOR_ROLE = "DeleteTheAssignmentForRole";
+
+    @TranslationKey(defaultValue = "")
+    String ASSIGN = "Assign";
+
+    @TranslationKey(defaultValue = "")
     String CASE_OVERVIEW = "CaseOverview";
 
     @TranslationKey(defaultValue = "")
@@ -52,9 +61,6 @@ public interface Constants {
 
     @TranslationKey(defaultValue = "")
     String ROLES = "Roles";
-
-    @TranslationKey(defaultValue = "")
-    String REMOVE = "Remove";
 
     @TranslationKey(defaultValue = "")
     String PLEASE_INTRO_USER_OR_GROUP_TO_CREATE_ASSIGNMENT = "PleaseIntroUserOrGroupToCreateAssignment";

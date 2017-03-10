@@ -31,6 +31,7 @@ import org.jbpm.workbench.cm.model.CaseCommentSummary;
 import org.jbpm.workbench.cm.model.CaseDefinitionSummary;
 import org.jbpm.workbench.cm.model.CaseInstanceSummary;
 import org.jbpm.workbench.cm.model.CaseMilestoneSummary;
+import org.jbpm.workbench.cm.model.CaseRoleAssignmentSummary;
 import org.jbpm.workbench.cm.model.ProcessDefinitionSummary;
 import org.jbpm.workbench.cm.service.CaseManagementService;
 import org.jbpm.workbench.cm.util.Actions;
@@ -133,9 +134,39 @@ public class RemoteCaseManagementServiceImpl implements CaseManagementService {
     }
 
     @Override
-    public void assignGroupAndUserToRole(final String serverTemplateId, final String containerId, final String caseId, final String roleName, final String user, final String group) {
-        client.assignGroupToRole(containerId, caseId, roleName, group);
-        client.assignUserToRole(containerId, caseId, roleName, user);
+    public void saveAssignment(final String serverTemplateId, final String containerId, final String caseId,
+                               final String roleName, final String users, final String groups) {
+        CaseRoleAssignmentSummary ras = getCaseInstance(serverTemplateId, containerId, caseId).getRoleAssignments()
+                .stream()
+                .filter(ra -> roleName.equals(ra.getName()))
+                .findFirst().orElse(null);
+        List<String> usersList = getListFromString(users);
+        List<String> groupsList = getListFromString(groups);
+        if (ras != null) {
+            if (ras.getUsers() != null && ras.getUsers().size() > 0) {
+                List<String> usersToRemove = new ArrayList();
+                usersToRemove.addAll(ras.getUsers());
+                usersToRemove.forEach(u -> removeUserFromRole(serverTemplateId, containerId, caseId, roleName, u));
+
+            }
+            if (ras.getGroups() != null && ras.getGroups().size() > 0) {
+                List<String> groupsToRemove = new ArrayList();
+                groupsToRemove.addAll(ras.getGroups());
+                groupsToRemove.forEach(g -> removeGroupFromRole(serverTemplateId, containerId, caseId, roleName, g));
+            }
+        }
+
+        usersList.forEach(u -> assignUserToRole(serverTemplateId, containerId, caseId, roleName, u));
+        groupsList.forEach(g -> assignGroupToRole(serverTemplateId, containerId, caseId, roleName, g));
+
+    }
+
+    private List<String> getListFromString(String stringList) {
+        if (stringList != null && stringList.trim().length() > 1) {
+            return Arrays.asList(stringList.split(",")).stream().map(s -> s.trim()).collect(toList());
+        } else {
+            return new ArrayList<String>();
+        }
     }
 
     @Override
@@ -173,15 +204,15 @@ public class RemoteCaseManagementServiceImpl implements CaseManagementService {
     }
 
     @Override
-    public List<CaseMilestoneSummary> getCaseMilestones(final String containerId, final String caseId , final CaseMilestoneSearchRequest request) {
-        final List<CaseMilestone> caseMilestones = client.getMilestones(containerId,caseId, false, 0, PAGE_SIZE_UNLIMITED);
+    public List<CaseMilestoneSummary> getCaseMilestones(final String containerId, final String caseId, final CaseMilestoneSearchRequest request) {
+        final List<CaseMilestone> caseMilestones = client.getMilestones(containerId, caseId, false, 0, PAGE_SIZE_UNLIMITED);
         final Comparator<CaseMilestoneSummary> comparator = getCaseMilestoneSummaryComparator(request);
         return caseMilestones.stream().map(new CaseMilestoneMapper()).sorted(comparator).collect(toList());
     }
 
     protected Comparator<CaseMilestoneSummary> getCaseMilestoneSummaryComparator(final CaseMilestoneSearchRequest request) {
-        Comparator<CaseMilestoneSummary> comparatorByName =comparing(CaseMilestoneSummary::getName);
-        return comparing(CaseMilestoneSummary::getStatus).thenComparing(request.getSortByAsc() ? comparatorByName: comparatorByName.reversed());
+        Comparator<CaseMilestoneSummary> comparatorByName = comparing(CaseMilestoneSummary::getName);
+        return comparing(CaseMilestoneSummary::getStatus).thenComparing(request.getSortByAsc() ? comparatorByName : comparatorByName.reversed());
     }
 
     @Override
@@ -270,8 +301,8 @@ public class RemoteCaseManagementServiceImpl implements CaseManagementService {
     }
 
     @Override
-    public List<ProcessDefinitionSummary> getProcessDefinitions(String containerId){
-        final List<ProcessDefinition> processDefinitions = client.findProcessesByContainerId(containerId,0,PAGE_SIZE_UNLIMITED);
+    public List<ProcessDefinitionSummary> getProcessDefinitions(String containerId) {
+        final List<ProcessDefinition> processDefinitions = client.findProcessesByContainerId(containerId, 0, PAGE_SIZE_UNLIMITED);
         return processDefinitions.stream().map(new ProcessDefinitionMapper()).collect(toList());
     }
 }

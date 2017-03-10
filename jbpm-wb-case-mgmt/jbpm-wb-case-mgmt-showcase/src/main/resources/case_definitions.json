@@ -4,7 +4,10 @@
     "name": "Example Case for Development",
     "containerId": "example",
     "roles": {
-      "participant" : -1
+      "participant" : 1,
+      "Billing Role" : 2,
+      "Approve Role" : 1,
+      "Review Role" : -1
     }
   }
 ]
