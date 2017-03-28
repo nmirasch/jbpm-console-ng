@@ -22,6 +22,7 @@ import javax.inject.Inject;
 
 import org.jboss.errai.common.client.api.IsElement;
 import org.jboss.errai.common.client.dom.Anchor;
+//import org.jboss.errai.common.client.dom.Button;
 import org.jboss.errai.common.client.dom.HTMLElement;
 
 @Dependent
@@ -48,8 +49,11 @@ public class Popover implements IsElement {
         return anchor;
     }
 
-    private native void init(final HTMLElement e) /*-{
-        $wnd.jQuery(e).popover();
+    public native void init(final HTMLElement e ) /*-{
+        $wnd.jQuery(e).popover({
+            container: 'body',
+            trigger:'focus'
+        });
     }-*/;
 
 }

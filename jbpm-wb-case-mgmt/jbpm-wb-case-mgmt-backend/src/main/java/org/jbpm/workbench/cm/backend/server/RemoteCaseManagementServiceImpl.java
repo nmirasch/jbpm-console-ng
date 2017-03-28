@@ -141,9 +141,23 @@ public class RemoteCaseManagementServiceImpl implements CaseManagementService {
     }
 
     @Override
-    public void assignGroupAndUserToRole(final String serverTemplateId, final String containerId, final String caseId, final String roleName, final String user, final String group) {
-        client.assignGroupToRole(containerId, caseId, roleName, group);
-        client.assignUserToRole(containerId, caseId, roleName, user);
+    public void assignToRole(final String serverTemplateId, final String containerId, final String caseId,
+                             final String roleName, final List<String> usersAssignments, final List<String> groupsAssignments,
+                             final List<String> oldUserAssignments, final List<String> oldGroupsAssignments) {
+
+        List<String> usersToRemove = new ArrayList<String>(oldUserAssignments);
+        usersToRemove.removeAll(usersAssignments);
+        usersToRemove.forEach(user -> removeUserFromRole(serverTemplateId, containerId, caseId, roleName, user));
+
+        usersAssignments.removeAll(oldUserAssignments);
+        usersAssignments.stream().distinct().forEach(user -> assignUserToRole(serverTemplateId, containerId, caseId, roleName, user));
+
+        List<String> groupsToRemove = new ArrayList<String>(oldGroupsAssignments);
+        groupsToRemove.removeAll(groupsAssignments);
+        groupsToRemove.forEach(group -> removeGroupFromRole(serverTemplateId, containerId, caseId, roleName, group));
+
+        groupsAssignments.removeAll(oldGroupsAssignments);
+        groupsAssignments.stream().distinct().forEach(group -> assignGroupToRole(serverTemplateId, containerId, caseId, roleName, group));
     }
 
     @Override
@@ -181,15 +195,15 @@ public class RemoteCaseManagementServiceImpl implements CaseManagementService {
     }
 
     @Override
-    public List<CaseMilestoneSummary> getCaseMilestones(final String containerId, final String caseId , final CaseMilestoneSearchRequest request) {
-        final List<CaseMilestone> caseMilestones = client.getMilestones(containerId,caseId, false, 0, PAGE_SIZE_UNLIMITED);
+    public List<CaseMilestoneSummary> getCaseMilestones(final String containerId, final String caseId, final CaseMilestoneSearchRequest request) {
+        final List<CaseMilestone> caseMilestones = client.getMilestones(containerId, caseId, false, 0, PAGE_SIZE_UNLIMITED);
         final Comparator<CaseMilestoneSummary> comparator = getCaseMilestoneSummaryComparator(request);
         return caseMilestones.stream().map(new CaseMilestoneMapper()).sorted(comparator).collect(toList());
     }
 
     protected Comparator<CaseMilestoneSummary> getCaseMilestoneSummaryComparator(final CaseMilestoneSearchRequest request) {
-        Comparator<CaseMilestoneSummary> comparatorByName =comparing(CaseMilestoneSummary::getName);
-        return comparing(CaseMilestoneSummary::getStatus).thenComparing(request.getSortByAsc() ? comparatorByName: comparatorByName.reversed());
+        Comparator<CaseMilestoneSummary> comparatorByName = comparing(CaseMilestoneSummary::getName);
+        return comparing(CaseMilestoneSummary::getStatus).thenComparing(request.getSortByAsc() ? comparatorByName : comparatorByName.reversed());
     }
 
     @Override
@@ -278,8 +292,8 @@ public class RemoteCaseManagementServiceImpl implements CaseManagementService {
     }
 
     @Override
-    public List<ProcessDefinitionSummary> getProcessDefinitions(String containerId){
-        final List<ProcessDefinition> processDefinitions = client.findProcessesByContainerId(containerId,0,PAGE_SIZE_UNLIMITED);
+    public List<ProcessDefinitionSummary> getProcessDefinitions(String containerId) {
+        final List<ProcessDefinition> processDefinitions = client.findProcessesByContainerId(containerId, 0, PAGE_SIZE_UNLIMITED);
         return processDefinitions.stream().map(new ProcessDefinitionMapper()).collect(toList());
     }
 }
