@@ -51,7 +51,7 @@ import static org.jboss.errai.common.client.dom.DOMUtil.*;
 @Templated
 public class CaseRolesViewImpl  extends AbstractView<CaseRolesPresenter>
         implements CaseRolesPresenter.CaseRolesView, PaginationViewImpl. PageList {
-    public static int PAGE_SIZE = 3;
+    public static int PAGE_SIZE = 2;
 
     @Inject
     @DataField("roles")
@@ -147,7 +147,7 @@ public class CaseRolesViewImpl  extends AbstractView<CaseRolesPresenter>
         int maxWidth =scrollbox.getBoundingClientRect().getWidth().intValue() - 70;
         roleAssignmentListLoadEvent.fire(new CaseRoleAssignmentListLoadEvent(maxWidth));
         int rolesListSize = visibleItems.size();
-        if(rolesListSize > 0){
+        if(rolesListSize > 1){
             roleAssignments.getComponent(rolesListSize-1).setLastElementStyle();
         }
     }
