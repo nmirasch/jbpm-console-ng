@@ -17,6 +17,7 @@
 package org.jbpm.workbench.cm.client.comments;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -37,13 +38,18 @@ import static org.jbpm.workbench.cm.client.resources.i18n.Constants.*;
 @Dependent
 @WorkbenchScreen(identifier = CaseCommentsPresenter.SCREEN_ID)
 public class CaseCommentsPresenter extends AbstractCaseInstancePresenter<CaseCommentsPresenter.CaseCommentsView> {
-
+    public static final int COMMENTS_PAGE_SIZE = 4;
     public static final String SCREEN_ID = "Case Comments";
 
     @Inject
     User identity;
 
     boolean sortAsc = false;
+
+    int currentPage = 0;
+
+    List<CaseCommentSummary> allElements = new ArrayList<>();
+
 
     @WorkbenchPartTitle
     public String getTittle() {
@@ -52,6 +58,7 @@ public class CaseCommentsPresenter extends AbstractCaseInstancePresenter<CaseCom
 
     @Override
     protected void clearCaseInstance() {
+        allElements = new ArrayList<CaseCommentSummary>();
     }
 
     @Override
@@ -61,15 +68,23 @@ public class CaseCommentsPresenter extends AbstractCaseInstancePresenter<CaseCom
 
     public void refreshComments() {
         view.clearCommentInputForm();
+        allElements = new ArrayList<CaseCommentSummary>();
+        currentPage = 0;
+        addComments(currentPage);
+    }
+
+    public void addComments(int currentPage) {
         caseService.call(
                 (List<CaseCommentSummary> comments) -> {
-                    view.setCaseCommentList(comments.stream()
+                    allElements.addAll(comments);
+                    view.setCaseCommentList(allElements.stream()
                             .sorted((sortAsc ?
                                     comparing(CaseCommentSummary::getAddedAt) :
                                     comparing(CaseCommentSummary::getAddedAt).reversed()))
                             .collect(toList()));
+
                 }
-        ).getComments(serverTemplateId, containerId, caseId);
+        ).getComments(serverTemplateId, containerId, caseId, currentPage, COMMENTS_PAGE_SIZE);
     }
 
     public void sortComments(final boolean sortAsc) {
@@ -80,9 +95,14 @@ public class CaseCommentsPresenter extends AbstractCaseInstancePresenter<CaseCom
     protected void addCaseComment(String caseCommentText) {
         caseService.call(
                 (Void) -> {
-                    view.resetPagination();
+                    sortComments(true);
                 }
         ).addComment(serverTemplateId, containerId, caseId, identity.getIdentifier(), caseCommentText);
+    }
+
+    protected void loadNextCommentsPage(){
+        currentPage ++;
+        addComments(currentPage);
     }
 
     protected void updateCaseComment(final CaseCommentSummary caseCommentSummary, String caseCommentNewText) {
@@ -103,8 +123,6 @@ public class CaseCommentsPresenter extends AbstractCaseInstancePresenter<CaseCom
         void clearCommentInputForm();
 
         void setCaseCommentList(List<CaseCommentSummary> caseCommentList);
-
-        void resetPagination();
 
     }
 

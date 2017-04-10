@@ -153,8 +153,15 @@ public class MockCaseManagementService extends RemoteCaseManagementServiceImpl {
     }
 
     @Override
-    public List<CaseCommentSummary> getComments(final String serverTemplateId, final String containerId, final String caseId) {
-        return ofNullable(caseCommentMap.get(caseId)).orElse(emptyList());
+    public List<CaseCommentSummary> getComments(final String serverTemplateId, final String containerId, final String caseId, Integer page, Integer pageSize) {
+        List<CaseCommentSummary> allComments = ofNullable(caseCommentMap.get(caseId)).orElse(emptyList());
+        int fromIndex =  page * pageSize ;
+        int toIndex = (pageSize * (page+1) <= allComments.size() ? (pageSize*(page+1)) : allComments.size());
+        if(toIndex-fromIndex>0) {
+            return new ArrayList<CaseCommentSummary>(allComments.subList(fromIndex, toIndex));
+        } else {
+            return emptyList();
+        }
     }
 
     @Override

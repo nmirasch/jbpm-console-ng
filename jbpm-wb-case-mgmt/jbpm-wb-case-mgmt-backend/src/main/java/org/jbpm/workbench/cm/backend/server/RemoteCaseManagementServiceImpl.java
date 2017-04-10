@@ -157,8 +157,8 @@ public class RemoteCaseManagementServiceImpl implements CaseManagementService {
     }
 
     @Override
-    public List<CaseCommentSummary> getComments(final String serverTemplateId, final String containerId, final String caseId) {
-        final List<CaseComment> caseComments = client.getComments(containerId, caseId, 0, PAGE_SIZE_UNLIMITED);
+    public List<CaseCommentSummary> getComments(final String serverTemplateId, final String containerId, final String caseId, Integer page, Integer pageSize) {
+        final List<CaseComment> caseComments = client.getComments(containerId, caseId, page, pageSize);
         return caseComments.stream().map(new CaseCommentMapper()).collect(toList());
     }
 

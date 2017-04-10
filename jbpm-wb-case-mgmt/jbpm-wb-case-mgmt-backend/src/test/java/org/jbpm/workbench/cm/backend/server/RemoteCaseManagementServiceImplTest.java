@@ -244,7 +244,7 @@ public class RemoteCaseManagementServiceImplTest {
         final CaseComment caseComment = createTestComment();
         when(clientMock.getComments(containerId, caseId, 0, PAGE_SIZE_UNLIMITED)).thenReturn(singletonList(caseComment));
 
-        final List<CaseCommentSummary> comments = testedService.getComments(serverTemplateId, containerId, caseId);
+        final List<CaseCommentSummary> comments = testedService.getComments(serverTemplateId, containerId, caseId,0,PAGE_SIZE_UNLIMITED);
         assertNotNull(comments);
         assertEquals(1, comments.size());
         assertCaseComment(caseComment, comments.get(0));
@@ -254,9 +254,23 @@ public class RemoteCaseManagementServiceImplTest {
     public void testGetComments_emptyList() {
         when(clientMock.getComments(containerId, caseId, 0, 0)).thenReturn(emptyList());
 
-        final List<CaseCommentSummary> comments = testedService.getComments(serverTemplateId, containerId, caseId);
+        final List<CaseCommentSummary> comments = testedService.getComments(serverTemplateId, containerId, caseId,0,PAGE_SIZE_UNLIMITED);
         assertNotNull(comments);
         assertTrue(comments.isEmpty());
+    }
+
+    @Test
+    public void testGetComments_Pagination() {
+        int currentPage = 1;
+        int page_size = 10;
+        final CaseComment caseComment = createTestComment();
+        when(clientMock.getComments(containerId, caseId, currentPage, page_size)).thenReturn(singletonList(caseComment));
+
+        final List<CaseCommentSummary> comments = testedService.getComments(serverTemplateId, containerId, caseId, currentPage, page_size);
+        verify(clientMock).getComments(eq(containerId),eq(caseId),eq(currentPage),eq(page_size));
+        assertNotNull(comments);
+        assertEquals(1, comments.size());
+        assertCaseComment(caseComment, comments.get(0));
     }
 
     @Test

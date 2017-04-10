@@ -47,7 +47,7 @@ public interface CaseManagementService {
 
     void destroyCaseInstance(String serverTemplateId, String containerId, String caseId);
 
-    List<CaseCommentSummary> getComments(String serverTemplateId, String containerId, String caseId);
+    List<CaseCommentSummary> getComments(String serverTemplateId, String containerId, String caseId, Integer page, Integer pageSize);
 
     void addComment(String serverTemplateId, String containerId, String caseId, String author, String text);
 

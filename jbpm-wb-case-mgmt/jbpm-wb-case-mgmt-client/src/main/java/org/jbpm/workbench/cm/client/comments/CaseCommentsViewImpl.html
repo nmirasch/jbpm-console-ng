@@ -44,8 +44,13 @@
                 </div>
 
                 <!-- list of comments -->
-                <div class="kie-scrollbox kie-scrollbox--comments" data-field="scrollbox">
+                <div class="kie-scrollbox kie-scrollbox--comments" >
                     <div class=" list-group kie-list-view--embedded" data-field="comments-list" ></div>
+                    <div class="pull-right">
+                        <a data-field="view-more-comments" >
+                            <span data-i18n-key="LoadMoreComments"></span>
+                        </a>
+                    </div>
                     <div class="card-pf-body kie-card-body--embedded" data-field="empty-list-item">
                         <div href="" class="card-pf-link-with-icon"><span class="pficon pficon-info"></span>
                             <span data-i18n-key="NoCommentsFound"></span>
