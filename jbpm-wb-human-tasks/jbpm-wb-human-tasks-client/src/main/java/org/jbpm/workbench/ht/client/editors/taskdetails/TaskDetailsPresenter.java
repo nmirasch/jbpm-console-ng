@@ -53,12 +53,14 @@ public class TaskDetailsPresenter {
 
     private String currentContainerId;
 
+    private TaskSummary currentTaskSummary;
+
     @Inject
     public TaskDetailsPresenter(
             TaskDetailsView view,
-            Event<TaskRefreshedEvent> taskRefreshed) {
+            Caller<TaskService> taskService) {
         this.view = view;
-        this.taskRefreshed = taskRefreshed;
+        this.taskService = taskService;
     }
 
     @PostConstruct
@@ -92,31 +94,40 @@ public class TaskDetailsPresenter {
         }
     }
 
-    public void refreshTask() {
+    protected TaskSummary getCurrentTaskSummary() {
+        return currentTaskSummary;
+    }
 
-        taskService.call(new RemoteCallback<TaskSummary>() {
-            @Override
-            public void callback(TaskSummary details) {
-                if (details == null) {
-                    setReadOnlyTaskDetail();
-                    return;
-                }
-                if (details.getStatus().equals(TASK_STATUS_COMPLETED)) {
-                    setReadOnlyTaskDetail();
-                }
-                view.setTaskDescription(details.getDescription());
-                final Long date = UTCDateBox.date2utc(details.getExpirationTime());
-                if (date != null) {
-                    view.setDueDate(date);
-                    view.setDueDateTime(date);
-                }
-                view.setUser(details.getActualOwner());
-                view.setTaskStatus(details.getStatus());
-                view.setTaskPriority(String.valueOf(details.getPriority()));
+    public void refreshTask() {
+        taskService.call((TaskSummary details) -> {
+            if (details != null) {
+                currentTaskSummary = details;
             }
+            setTaskDetails(currentTaskSummary);
         }).getTask(currentServerTemplateId,
                    currentContainerId,
                    currentTaskId);
+
+    }
+
+    protected void setTaskDetails(TaskSummary details) {
+        if (details == null) {
+            setReadOnlyTaskDetail();
+            return;
+        }
+        if (details.getStatus().equals(TASK_STATUS_COMPLETED)) {
+            setReadOnlyTaskDetail();
+        }
+
+        view.setTaskDescription(details.getDescription());
+        final Long date = UTCDateBox.date2utc(details.getExpirationTime());
+        if (date != null) {
+            view.setDueDate(date);
+            view.setDueDateTime(date);
+        }
+        view.setUser(details.getActualOwner());
+        view.setTaskStatus(details.getStatus());
+        view.setTaskPriority(String.valueOf(details.getPriority()));
     }
 
     public void setReadOnlyTaskDetail() {
@@ -131,6 +142,16 @@ public class TaskDetailsPresenter {
         this.currentTaskId = event.getTaskId();
         this.currentServerTemplateId = event.getServerTemplateId();
         this.currentContainerId = event.getContainerId();
+        this.currentTaskSummary =
+                TaskSummary.builder()
+                        .id(event.getTaskId())
+                        .name(event.getTaskName())
+                        .description(event.getDescription())
+                        .expirationTime(event.getExpirationTime())
+                        .actualOwner(event.getActualOwner())
+                        .priority(event.getPriority())
+                        .status(event.getStatus())
+                        .build();
         refreshTask();
     }
 

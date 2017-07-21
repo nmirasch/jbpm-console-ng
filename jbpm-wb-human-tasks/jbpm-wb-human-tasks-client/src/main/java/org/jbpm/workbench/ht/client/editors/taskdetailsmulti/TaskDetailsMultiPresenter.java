@@ -146,17 +146,18 @@ public class TaskDetailsMultiPresenter implements RefreshMenuBuilder.SupportsRef
         containerId = event.getContainerId();
         processId = event.getTaskName();
 
-        taskFormPresenter.getTaskFormView().getDisplayerView().setOnCloseCommand(new Command() {
-            @Override
-            public void execute() {
-                closeDetails();
-            }
-        });
-        taskFormDisplayProvider.setup(new HumanTaskDisplayerConfig(new TaskKey(serverTemplateId,
-                                                                               containerId,
-                                                                               taskId)),
-                                      taskFormPresenter.getTaskFormView().getDisplayerView());
-
+        if (!event.isForLog()) {
+            taskFormPresenter.getTaskFormView().getDisplayerView().setOnCloseCommand(new Command() {
+                @Override
+                public void execute() {
+                    closeDetails();
+                }
+            });
+            taskFormDisplayProvider.setup(new HumanTaskDisplayerConfig(new TaskKey(serverTemplateId,
+                                                                                   containerId,
+                                                                                   taskId)),
+                                          taskFormPresenter.getTaskFormView().getDisplayerView());
+        }
         setIsForLog(event.isForLog());
         setIsForAdmin(event.isForAdmin());
 

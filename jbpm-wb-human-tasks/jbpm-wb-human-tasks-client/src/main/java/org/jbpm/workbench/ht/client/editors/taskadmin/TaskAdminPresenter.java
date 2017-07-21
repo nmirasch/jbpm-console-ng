@@ -59,6 +59,17 @@ public class TaskAdminPresenter {
     @Inject
     private Event<TaskRefreshedEvent> taskRefreshed;
 
+    @Inject
+    public TaskAdminPresenter(
+            TaskAdminPresenter.TaskAdminView view,
+            Caller<TaskService> taskService,
+            Event<TaskRefreshedEvent> taskRefreshed
+    ) {
+        this.view = view;
+        this.taskService = taskService;
+        this.taskRefreshed = taskRefreshed;
+    }
+
     @PostConstruct
     public void init() {
         view.init(this);
@@ -135,10 +146,12 @@ public class TaskAdminPresenter {
     }
 
     public void onTaskSelectionEvent(@Observes final TaskSelectionEvent event) {
-        this.currentTaskId = event.getTaskId();
-        serverTemplateId = event.getServerTemplateId();
-        containerId = event.getContainerId();
-        refreshTaskPotentialOwners();
+        if (!event.isForLog()) {
+            this.currentTaskId = event.getTaskId();
+            serverTemplateId = event.getServerTemplateId();
+            containerId = event.getContainerId();
+            refreshTaskPotentialOwners();
+        }
     }
 
     public void onTaskRefreshedEvent(@Observes TaskRefreshedEvent event) {

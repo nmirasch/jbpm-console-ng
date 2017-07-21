@@ -190,4 +190,48 @@ public class TaskAssignmentsPresenterTest {
         inOrder.verify(viewMock).enableDelegateButton(true);
         inOrder.verify(viewMock).enableUserOrGroupInput(true);
     }
+
+    @Test
+    public void taskSelectionEventIsForLogTask() {
+        String serverTemplateId = "serverTemplateId";
+        String containerId = "containerId";
+        Long taskId = 1L;
+        boolean isForLog = true;
+        TaskSelectionEvent event = new TaskSelectionEvent(serverTemplateId,
+                                                          containerId,
+                                                          taskId,
+                                                          "task",
+                                                          true,
+                                                          isForLog);
+        TaskAssignmentSummary ts = new TaskAssignmentSummary();
+        ts.setPotOwnersString(Arrays.asList("owner1",
+                                            "owner2"));
+        when(taskService.getTaskAssignmentDetails(eq(serverTemplateId),
+                                                  eq(containerId),
+                                                  eq(taskId))).thenReturn(ts);
+
+        presenter.onTaskSelectionEvent(event);
+
+        verifyNoMoreInteractions(taskService);
+    }
+
+    @Test
+    public void taskSelectionEventNotIsForLogTask() {
+        String serverTemplateId = "serverTemplateId";
+        String containerId = "containerId";
+        Long taskId = 1L;
+        boolean isForLog = false;
+        TaskSelectionEvent event = new TaskSelectionEvent(serverTemplateId,
+                                                          containerId,
+                                                          taskId,
+                                                          "task",
+                                                          true,
+                                                          isForLog);
+
+        presenter.onTaskSelectionEvent(event);
+
+        verify(taskService).getTaskAssignmentDetails(serverTemplateId,
+                                                     containerId,
+                                                     taskId);
+    }
 }

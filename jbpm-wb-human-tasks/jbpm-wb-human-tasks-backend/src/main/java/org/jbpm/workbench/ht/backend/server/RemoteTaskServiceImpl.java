@@ -255,10 +255,14 @@ public class RemoteTaskServiceImpl extends AbstractKieServerService implements T
         UserTaskServicesClient client = getClient(serverTemplateId,
                                                   UserTaskServicesClient.class);
 
-        List<TaskComment> comments = client.getTaskCommentsByTaskId(containerId,
-                                                                    taskId);
-
-        return comments.stream().map(c -> build(c)).collect(toList());
+        try {
+            List<TaskComment> comments = client.getTaskCommentsByTaskId(containerId,
+                                                                        taskId);
+            return comments.stream().map(c -> build(c)).collect(toList());
+        } catch (KieServicesException e) {
+            // task not found
+        }
+        return emptyList();
     }
 
     @Override

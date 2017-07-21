@@ -16,7 +16,7 @@
 package org.jbpm.workbench.ht.client.editors.taskprocesscontext;
 
 import java.util.Collections;
-import javax.enterprise.event.Event;
+import java.util.Date;
 
 import com.google.common.collect.Sets;
 import org.jboss.errai.security.shared.api.identity.User;
@@ -24,10 +24,7 @@ import org.jbpm.workbench.common.client.PerspectiveIds;
 import org.jbpm.workbench.ht.model.TaskSummary;
 import org.jbpm.workbench.ht.model.events.TaskSelectionEvent;
 import org.jbpm.workbench.ht.service.TaskService;
-import org.jbpm.workbench.pr.events.ProcessInstancesWithDetailsRequestEvent;
-import org.jbpm.workbench.pr.model.ProcessInstanceKey;
-import org.jbpm.workbench.pr.model.ProcessInstanceSummary;
-import org.jbpm.workbench.pr.service.ProcessRuntimeDataService;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,6 +37,7 @@ import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.mocks.CallerMock;
 import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.security.Resource;
+import org.uberfire.security.ResourceRef;
 import org.uberfire.security.authz.AuthorizationManager;
 
 import static org.junit.Assert.*;
@@ -58,12 +56,6 @@ public class TaskProcessContextPresenterTest {
 
     TaskSummary taskNoProcess = TaskSummary.builder().id(TASK_ID_NO_PROCESS).name("task without process").build();
     TaskSummary taskWithProcess = TaskSummary.builder().id(TASK_ID_WITH_PROC).name("task with process").processId("TEST_PROCESS_ID").processInstanceId(123L).build();
-
-    @Mock
-    ProcessRuntimeDataService dataServiceEntryPoint;
-
-    @Mock
-    Event<ProcessInstancesWithDetailsRequestEvent> procNavigationMock;
 
     @Mock
     private TaskProcessContextPresenter.TaskProcessContextView viewMock;
@@ -95,15 +87,10 @@ public class TaskProcessContextPresenterTest {
         CallerMock<TaskService> taskQueryServiceMock
                 = new CallerMock<TaskService>(tqs);
 
-        // DataService caller mock
-        CallerMock<ProcessRuntimeDataService> dataServiceCallerMock = new CallerMock<ProcessRuntimeDataService>(dataServiceEntryPoint);
-
         presenter = new TaskProcessContextPresenter(
                 viewMock,
                 placeManager,
                 taskQueryServiceMock,
-                dataServiceCallerMock,
-                procNavigationMock,
                 activityManager,
                 authorizationManager,
                 identity);
@@ -137,31 +124,38 @@ public class TaskProcessContextPresenterTest {
 
     @Test
     public void testGoToProcessInstanceDetails() {
-        final ProcessInstanceSummary summary = new ProcessInstanceSummary();
-        summary.setDeploymentId("deploymentId");
-        summary.setProcessInstanceId(-1l);
-        summary.setProcessId("processId");
-        summary.setProcessName("processName");
-        summary.setState(1);
-        when(dataServiceEntryPoint.getProcessInstance(anyString(),
-                                                      any(ProcessInstanceKey.class))).thenReturn(summary);
+        Long processInstanceId = Long.valueOf(2);
+        TaskSelectionEvent testTaskSelectionEvent =
+                new TaskSelectionEvent("serverTemplateId",
+                                       "containerId",
+                                       Long.valueOf(1),
+                                       "taskName",
+                                       true,
+                                       true,
+                                       "description",
+                                       new Date(),
+                                       "Ready",
+                                       "actualOwner",
+                                       3,
+                                       processInstanceId,
+                                       "processId");
 
+        when(authorizationManager.authorize(any(ResourceRef.class),
+                                            eq(identity))).thenReturn(true,
+                                                                      false);
+        presenter.onTaskSelectionEvent(testTaskSelectionEvent);
         presenter.goToProcessInstanceDetails();
 
-        verify(placeManager).goTo(PerspectiveIds.PROCESS_INSTANCES);
-        final ArgumentCaptor<ProcessInstancesWithDetailsRequestEvent> eventCaptor = ArgumentCaptor.forClass(ProcessInstancesWithDetailsRequestEvent.class);
-        verify(procNavigationMock).fire(eventCaptor.capture());
-        final ProcessInstancesWithDetailsRequestEvent event = eventCaptor.getValue();
-        assertEquals(summary.getDeploymentId(),
-                     event.getDeploymentId());
-        assertEquals(summary.getProcessInstanceId(),
-                     event.getProcessInstanceId());
-        assertEquals(summary.getProcessId(),
-                     event.getProcessDefId());
-        assertEquals(summary.getProcessName(),
-                     event.getProcessDefName());
-        assertEquals(summary.getState(),
-                     event.getProcessInstanceStatus());
+        final ArgumentCaptor<PlaceRequest> captor = ArgumentCaptor.forClass(PlaceRequest.class);
+        verify(placeManager).goTo(captor.capture());
+        assertEquals(1,
+                     captor.getAllValues().size());
+
+        assertEquals(PerspectiveIds.PROCESS_INSTANCES,
+                     captor.getAllValues().get(0).getIdentifier());
+        assertEquals(processInstanceId.toString(),
+                     captor.getAllValues().get(0).getParameter(PerspectiveIds.SEARCH_PARAMETER_PROCESS_INSTANCE_ID,
+                                                               ""));
     }
 
     @Test
