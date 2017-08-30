@@ -129,13 +129,13 @@ public class ProcessDocumentListViewImpl extends AbstractListView<DocumentSummar
 
     @Override
     public void initColumns(ExtendedPagedTable extendedPagedTable) {
-        Column documentId = initDocumentIdColumn();
+        Column documentName = initDocumentNameColumn();
         Column lastModifiedColumn = initDocumentLastModifiedColumn();
         Column sizeColumn = initDocumentSizeColumn();
         actionsColumn = initActionsColumn();
 
         List<ColumnMeta<DocumentSummary>> columnMetas = new ArrayList<ColumnMeta<DocumentSummary>>();
-        columnMetas.add(new ColumnMeta<DocumentSummary>(documentId,
+        columnMetas.add(new ColumnMeta<DocumentSummary>(documentName,
                                                         constants.Name()));
         columnMetas.add(new ColumnMeta<DocumentSummary>(lastModifiedColumn,
                                                         constants.Last_Modification()));
@@ -146,13 +146,13 @@ public class ProcessDocumentListViewImpl extends AbstractListView<DocumentSummar
         extendedPagedTable.addColumns(columnMetas);
     }
 
-    private Column initDocumentIdColumn() {
+    private Column initDocumentNameColumn() {
         // Id
         Column<DocumentSummary, String> documentId = new Column<DocumentSummary, String>(new TextCell()) {
 
             @Override
             public String getValue(DocumentSummary object) {
-                return object.getDocumentId();
+                return object.getName();
             }
         };
         documentId.setSortable(true);
@@ -196,21 +196,6 @@ public class ProcessDocumentListViewImpl extends AbstractListView<DocumentSummar
         int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
         return NumberFormat.getDecimalFormat().format(size / Math.pow(1024,
                                                                       digitGroups)) + " " + units[digitGroups];
-    }
-
-    public Column initDocumentLinkColumn() {
-
-        // Type.
-        Column<DocumentSummary, String> pathColumn = new Column<DocumentSummary, String>(new TextCell()) {
-
-            @Override
-            public String getValue(DocumentSummary object) {
-                return String.valueOf(object.getDocumentSize());
-            }
-        };
-        pathColumn.setSortable(true);
-        pathColumn.setDataStoreName(COL_ID_PATH);
-        return pathColumn;
     }
 
     private Column initActionsColumn() {

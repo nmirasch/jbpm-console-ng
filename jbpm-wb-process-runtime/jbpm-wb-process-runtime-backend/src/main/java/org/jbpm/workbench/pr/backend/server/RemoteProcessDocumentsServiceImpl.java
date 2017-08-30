@@ -73,7 +73,7 @@ public class RemoteProcessDocumentsServiceImpl extends AbstractKieServerService 
         return response;
     }
 
-    private List<DocumentSummary> getDocuments(QueryFilter filter) throws NumberFormatException {
+    protected List<DocumentSummary> getDocuments(QueryFilter filter) throws NumberFormatException {
 
         String serverTemplateId = (String) filter.getParams().get("serverTemplateId");
 
@@ -84,7 +84,7 @@ public class RemoteProcessDocumentsServiceImpl extends AbstractKieServerService 
             if ("org.jbpm.document.Document".equals(pv.getType()) &&
                     pv.getNewValue() != null && !pv.getNewValue().isEmpty()) {
                 String[] values = pv.getNewValue().split(Document.PROPERTIES_SEPARATOR);
-                if (values.length == 4) {
+                if (values.length == 5) {
                     Date lastModified = null;
                     try {
                         lastModified = sdf.parse(values[2]);
@@ -92,11 +92,12 @@ public class RemoteProcessDocumentsServiceImpl extends AbstractKieServerService 
                         logger.error("Can not parse last modified date!",
                                      ex);
                     }
-                    documents.add(new DocumentSummary(values[0],
+                    documents.add(new DocumentSummary(values[4],
+                                                      values[0],
                                                       lastModified,
                                                       Long.valueOf(values[1]),
                                                       getDocumentLink(serverTemplateId,
-                                                                      values[3])));
+                                                                      values[4])));
                 }
             }
         }

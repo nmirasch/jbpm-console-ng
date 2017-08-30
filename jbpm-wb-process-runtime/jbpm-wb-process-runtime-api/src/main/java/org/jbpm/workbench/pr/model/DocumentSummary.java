@@ -32,11 +32,12 @@ public class DocumentSummary extends GenericSummary<String> {
     }
 
     public DocumentSummary(String documentId,
+                           String name,
                            Date documentLastModified,
                            Long documentSize,
                            String documentLink) {
         this.id = documentId;
-        this.name = documentId;
+        this.name = name;
         this.documentId = documentId;
         this.documentLastModified = documentLastModified;
         this.documentSize = documentSize;
