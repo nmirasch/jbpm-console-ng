@@ -122,6 +122,7 @@ public class ShowcaseEntryPoint extends DefaultWorkbenchEntryPoint {
     protected List<? extends MenuItem> getDeploymentViews() {
         return Arrays.asList(
                 MenuFactory.newSimpleItem(constants.Execution_Servers()).place(new DefaultPlaceRequest(SERVER_MANAGEMENT)).endMenu().build().getItems().get(0),
+                MenuFactory.newSimpleItem(constants.Jobs()+"_FS").perspective(JOBS+ "_FS").endMenu().build().getItems().get(0),
                 MenuFactory.newSimpleItem(constants.Jobs()).perspective(JOBS).endMenu().build().getItems().get(0)
         );
     }

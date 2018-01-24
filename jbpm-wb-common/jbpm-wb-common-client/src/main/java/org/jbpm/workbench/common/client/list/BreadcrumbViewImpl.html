@@ -1,0 +1,57 @@
+<div data-field="breadcrumb-container">
+    <div class="row">
+        <!-- breadcrumb -->
+        <div class="col-xs-9 col-sm-10">
+            <ol class="breadcrumb" data-field="breadcrumb-path">
+                <li>
+                    <button class="btn-link" type="button" id="home">
+                        <span data-i18n-key="Home">Home</span>
+                    </button>
+                </li>
+                <li class="active">
+                    <strong><span/>Active one</strong>
+                </li>
+            </ol>
+        </div>
+    </div>
+    <!-- toolbar -->
+    <div class="row vertical-align row-eq-height kie-case-view-header">
+        <!-- Title  -->
+        <div class="col-xs-12 col-sm-5 kie-case-view-header__lhs">
+            <span class="kie-case-view-header__title" data-field="breadcrumb-title">title</span>
+        </div>
+
+        <!-- right hand side -->
+        <div class="col-xs-12 col-sm-9  ">
+            <div class="row kie-case-view-header__rhs">
+                <!-- refresh button -->
+                <div class="form-group">
+                    <div class="col-xs-3 col-sm-2 text-right">
+                        <span id="refreshCaseList" data-toggle="tooltip" data-placement="left">
+                          <i class="fa fa-refresh"></i><button class="btn btn-link" type="button" id="refresh"><span data-i18n-key="Refresh"></span></button>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- actions -->
+                <div class="form-group">
+                    <div class="col-xs-12 col-sm-3 col-md-2 kie-case-view-header__actions ">
+                          <span class="btn-group">
+                              <button type="button" class="btn btn-primary hidden" data-field="primary-action" id="primary-action"></button>
+
+
+                              <!-- kebab menu -->
+                              <div class="dropdown btn-group  dropdown-kebab-pf open hidden" data-field="actions-dropdown">
+                                      <button class="btn btn-link dropdown-toggle" type="button" id="dropdownKebab"
+                                              data-toggle="dropdown" data-field="actions-button" aria-haspopup="true" aria-expanded="true">
+                                        <span class="fa fa-ellipsis-v"></span>
+                                      </button>
+                                  <ul class="dropdown-menu " aria-labelledby="dropdownKebab" data-field="actions-items"></ul>
+                              </div>
+                         </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -75,6 +75,8 @@ import static org.jbpm.workbench.es.model.RequestDataSetConstants.*;
 @WorkbenchScreen(identifier = PerspectiveIds.JOB_LIST_SCREEN)
 public class RequestListPresenter extends AbstractMultiGridPresenter<RequestSummary, RequestListPresenter.RequestListView> {
 
+    public static String JOB_DETAIL_SCREEN_ID = PerspectiveIds.JOB_DETAILS_SCREEN;
+
     private Constants constants = Constants.INSTANCE;
 
     @Inject
@@ -87,10 +89,10 @@ public class RequestListPresenter extends AbstractMultiGridPresenter<RequestSumm
     private NewJobPresenter newJobPresenter;
 
     @Inject
-    private ErrorPopupPresenter errorPopup;
+    protected ErrorPopupPresenter errorPopup;
 
     @Inject
-    private Event<JobSelectedEvent> jobSelectedEvent;
+    protected Event<JobSelectedEvent> jobSelectedEvent;
 
     public RequestListPresenter() {
         super();
@@ -233,21 +235,25 @@ public class RequestListPresenter extends AbstractMultiGridPresenter<RequestSumm
                           requestId);
     }
 
+    public Command getAddNewJobCommand() {
+        return new Command() {
+            @Override
+            public void execute() {
+                final String selectedServerTemplate = getSelectedServerTemplate();
+                if (selectedServerTemplate == null || selectedServerTemplate.trim().isEmpty()) {
+                    view.displayNotification(constants.SelectServerTemplate());
+                } else {
+                    newJobPresenter.openNewJobDialog(selectedServerTemplate);
+                }
+            }
+        };
+    }
+
     @WorkbenchMenu
     public Menus getMenus() {
         return MenuFactory
                 .newTopLevelMenu(constants.New_Job())
-                .respondsWith(new Command() {
-                    @Override
-                    public void execute() {
-                        final String selectedServerTemplate = getSelectedServerTemplate();
-                        if (selectedServerTemplate == null || selectedServerTemplate.trim().isEmpty()) {
-                            view.displayNotification(constants.SelectServerTemplate());
-                        } else {
-                            newJobPresenter.openNewJobDialog(selectedServerTemplate);
-                        }
-                    }
-                })
+                .respondsWith(getAddNewJobCommand())
                 .endMenu()
                 .newTopLevelCustomMenu(serverTemplateSelectorMenuBuilder)
                 .endMenu()
@@ -260,10 +266,12 @@ public class RequestListPresenter extends AbstractMultiGridPresenter<RequestSumm
     public void selectJob(final RequestSummary job,
                           final Boolean close) {
 
+        String detailsPerspectiveId = place.getParameter(JOB_DETAIL_SCREEN_ID,
+                                                         PerspectiveIds.JOB_DETAILS_SCREEN);
         if (job.getStatus() != null) {
-            PlaceStatus status = placeManager.getStatus(new DefaultPlaceRequest(PerspectiveIds.JOB_DETAILS_SCREEN));
+            PlaceStatus status = placeManager.getStatus(new DefaultPlaceRequest(detailsPerspectiveId));
             if (status == PlaceStatus.CLOSE) {
-                placeManager.goTo(PerspectiveIds.JOB_DETAILS_SCREEN);
+                placeManager.goTo(detailsPerspectiveId);
                 jobSelectedEvent.fire(new JobSelectedEvent(getSelectedServerTemplate(),
                                                            job.getDeploymentId(),
                                                            job.getJobId()));
@@ -272,7 +280,7 @@ public class RequestListPresenter extends AbstractMultiGridPresenter<RequestSumm
                                                            job.getDeploymentId(),
                                                            job.getJobId()));
             } else if (status == PlaceStatus.OPEN && close) {
-                placeManager.closePlace(PerspectiveIds.JOB_DETAILS_SCREEN);
+                placeManager.closePlace(detailsPerspectiveId);
             }
         }
     }
