@@ -19,9 +19,9 @@ import java.util.Optional;
 
 import org.jboss.errai.security.shared.api.identity.User;
 import org.jbpm.workbench.common.client.PerspectiveIds;
+import org.jbpm.workbench.common.client.menu.ServerTemplateSelectorMenuBuilder;
 import org.jbpm.workbench.common.client.resources.i18n.Constants;
 import org.jbpm.workbench.common.events.ServerTemplateSelected;
-import org.jbpm.workbench.common.client.menu.ServerTemplateSelectorMenuBuilder;
 import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.client.workbench.events.ClosePlaceEvent;
 import org.uberfire.ext.widgets.common.client.breadcrumbs.UberfireBreadcrumbs;
@@ -43,6 +43,8 @@ public abstract class AbstractScreenListPresenter<T> extends AbstractListPresent
 
     private String detailScreenId;
 
+    private String perspectiveId;
+
     @Inject
     protected PlaceManager placeManager;
 
@@ -62,7 +64,9 @@ public abstract class AbstractScreenListPresenter<T> extends AbstractListPresent
     }
 
     public void onDetailScreenClosed(@Observes ClosePlaceEvent closed) {
-        if (detailScreenId.equals(closed.getPlace().getIdentifier())) {
+        if (closed.getPlace() != null
+                && detailScreenId != null
+                && detailScreenId.equals(closed.getPlace().getIdentifier())) {
             createListBreadcrumb();
         }
     }
@@ -75,6 +79,12 @@ public abstract class AbstractScreenListPresenter<T> extends AbstractListPresent
     @OnStartup
     public void onStartup(final PlaceRequest place) {
         this.place = place;
+        breadcrumbs.addToolbar(perspectiveId,
+                               serverTemplateSelectorMenuBuilder.getView().getElement());
+    }
+
+    public void setPerspectiveId(String perspectiveId) {
+        this.perspectiveId = perspectiveId;
     }
 
     @Inject
@@ -97,7 +107,7 @@ public abstract class AbstractScreenListPresenter<T> extends AbstractListPresent
 
     public void setSelectedServerTemplate(final String selectedServerTemplate) {
         final String newServerTemplate = Optional.ofNullable(selectedServerTemplate).orElse("").trim();
-        if (this.selectedServerTemplate.equals(newServerTemplate) == false) {
+        if (!this.selectedServerTemplate.equals(newServerTemplate)) {
             this.selectedServerTemplate = newServerTemplate;
             refreshGrid();
         }
@@ -106,7 +116,6 @@ public abstract class AbstractScreenListPresenter<T> extends AbstractListPresent
     public abstract void createListBreadcrumb();
 
     public void setupListBreadcrumb(PlaceManager placeManager,
-                                    String perspectiveId,
                                     String listLabel) {
         breadcrumbs.clearBreadcrumbs(perspectiveId);
 
@@ -119,7 +128,6 @@ public abstract class AbstractScreenListPresenter<T> extends AbstractListPresent
     }
 
     public void setupDetailBreadcrumb(PlaceManager placeManager,
-                                      String perspectiveId,
                                       String listLabel,
                                       String detailLabel,
                                       String detailScreenId) {

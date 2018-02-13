@@ -26,6 +26,8 @@ import org.jbpm.workbench.ht.model.TaskSummary;
 import org.uberfire.client.annotations.WorkbenchMenu;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchScreen;
+import org.uberfire.lifecycle.OnStartup;
+import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.workbench.model.menu.Menus;
 
 import static org.jbpm.workbench.common.client.util.TaskUtils.*;
@@ -51,17 +53,21 @@ public class TaskAdminListPresenter extends AbstractTaskListPresenter<TaskAdminL
         addProcessNameFilter(HUMAN_TASKS_WITH_ADMIN_DATASET);
     }
 
+    @OnStartup
+    public void onStartup(final PlaceRequest place) {
+        setPerspectiveId(PerspectiveIds.TASKS_ADMIN);
+        super.onStartup(place);
+    }
+
     @Override
     public void createListBreadcrumb() {
         setupListBreadcrumb(placeManager,
-                            PerspectiveIds.TASKS_ADMIN,
                             constants.Tasks_Admin());
     }
 
     @Override
     public void setupDetailBreadcrumb(String detailLabel) {
         setupDetailBreadcrumb(placeManager,
-                              PerspectiveIds.TASKS_ADMIN,
                               constants.Tasks_Admin(),
                               detailLabel,
                               PerspectiveIds.TASK_DETAILS_SCREEN);

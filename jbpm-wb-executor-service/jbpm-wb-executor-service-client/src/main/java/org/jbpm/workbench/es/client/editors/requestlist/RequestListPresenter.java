@@ -62,7 +62,9 @@ import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.client.mvp.PlaceStatus;
 import org.uberfire.client.workbench.widgets.common.ErrorPopupPresenter;
 import org.uberfire.ext.widgets.common.client.menu.RefreshMenuBuilder;
+import org.uberfire.lifecycle.OnStartup;
 import org.uberfire.mvp.Command;
+import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 import org.uberfire.workbench.model.menu.MenuFactory;
 import org.uberfire.workbench.model.menu.Menus;
@@ -122,16 +124,20 @@ public class RequestListPresenter extends AbstractMultiGridPresenter<RequestSumm
         return constants.Jobs();
     }
 
+    @OnStartup
+    public void onStartup(final PlaceRequest place) {
+        setPerspectiveId(PerspectiveIds.JOBS);
+        super.onStartup(place);
+    }
+
     @Override
     public void createListBreadcrumb() {
         setupListBreadcrumb(placeManager,
-                            PerspectiveIds.JOBS,
                             Constants.INSTANCE.Jobs());
     }
 
     public void setupDetailBreadcrumb(String detailLabel) {
         setupDetailBreadcrumb(placeManager,
-                              PerspectiveIds.JOBS,
                               Constants.INSTANCE.Jobs(),
                               detailLabel,
                               PerspectiveIds.JOB_DETAILS_SCREEN);
@@ -274,8 +280,6 @@ public class RequestListPresenter extends AbstractMultiGridPresenter<RequestSumm
         return MenuFactory
                 .newTopLevelMenu(constants.New_Job())
                 .respondsWith(newJobCommand)
-                .endMenu()
-                .newTopLevelCustomMenu(serverTemplateSelectorMenuBuilder)
                 .endMenu()
                 .newTopLevelCustomMenu(new RefreshMenuBuilder(this)).endMenu()
                 .newTopLevelCustomMenu(refreshSelectorMenuBuilder).endMenu()

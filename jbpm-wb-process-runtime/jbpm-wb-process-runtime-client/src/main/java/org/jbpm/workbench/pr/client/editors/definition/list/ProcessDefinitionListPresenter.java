@@ -49,6 +49,8 @@ import org.uberfire.client.mvp.PlaceStatus;
 import org.uberfire.client.mvp.UberView;
 import org.uberfire.ext.widgets.common.client.common.popups.errors.ErrorPopup;
 import org.uberfire.ext.widgets.common.client.menu.RefreshMenuBuilder;
+import org.uberfire.lifecycle.OnStartup;
+import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 import org.uberfire.workbench.model.menu.MenuFactory;
 import org.uberfire.workbench.model.menu.Menus;
@@ -93,16 +95,20 @@ public class ProcessDefinitionListPresenter extends AbstractScreenListPresenter<
         return view;
     }
 
+    @OnStartup
+    public void onStartup(final PlaceRequest place) {
+        setPerspectiveId(PerspectiveIds.PROCESS_DEFINITIONS);
+        super.onStartup(place);
+    }
+
     @Override
     public void createListBreadcrumb() {
         setupListBreadcrumb(placeManager,
-                            PerspectiveIds.PROCESS_DEFINITIONS,
                             Constants.INSTANCE.Process_Definitions());
     }
 
     public void setupDetailBreadcrumb(String detailLabel) {
         setupDetailBreadcrumb(placeManager,
-                              PerspectiveIds.PROCESS_DEFINITIONS,
                               Constants.INSTANCE.Process_Definitions(),
                               detailLabel,
                               PerspectiveIds.PROCESS_DEFINITION_DETAILS_SCREEN);
@@ -193,8 +199,6 @@ public class ProcessDefinitionListPresenter extends AbstractScreenListPresenter<
     @WorkbenchMenu
     public Menus buildMenu() {
         return MenuFactory
-                .newTopLevelCustomMenu(serverTemplateSelectorMenuBuilder)
-                .endMenu()
                 .newTopLevelCustomMenu(new RefreshMenuBuilder(this))
                 .endMenu()
                 .build();
@@ -240,7 +244,6 @@ public class ProcessDefinitionListPresenter extends AbstractScreenListPresenter<
         }
         placeManager.goTo(PerspectiveIds.PROCESS_INSTANCE_DETAILS_SCREEN);
         setupDetailBreadcrumb(placeManager,
-                              PerspectiveIds.PROCESS_DEFINITIONS,
                               Constants.INSTANCE.Process_Definitions(),
                               Constants.INSTANCE.ProcessInstanceBreadcrumb(newProcessInstance.getNewProcessInstanceId()),
                               PerspectiveIds.PROCESS_INSTANCE_DETAILS_SCREEN);

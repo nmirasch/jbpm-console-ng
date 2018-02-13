@@ -47,6 +47,8 @@ import org.uberfire.client.annotations.WorkbenchScreen;
 import org.uberfire.client.mvp.PlaceStatus;
 import org.uberfire.client.workbench.widgets.common.ErrorPopupPresenter;
 import org.uberfire.ext.widgets.common.client.menu.RefreshMenuBuilder;
+import org.uberfire.lifecycle.OnStartup;
+import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 import org.uberfire.workbench.model.menu.MenuFactory;
 import org.uberfire.workbench.model.menu.Menus;
@@ -71,15 +73,19 @@ public class ExecutionErrorListPresenter extends AbstractMultiGridPresenter<Exec
     @Inject
     private Event<ExecutionErrorSelectedEvent> executionErrorSelectedEvent;
 
+    @OnStartup
+    public void onStartup(final PlaceRequest place) {
+        setPerspectiveId(PerspectiveIds.EXECUTION_ERRORS);
+        super.onStartup(place);
+    }
+
     public void createListBreadcrumb() {
         setupListBreadcrumb(placeManager,
-                            PerspectiveIds.EXECUTION_ERRORS,
                             Constants.INSTANCE.ExecutionErrors());
     }
 
     public void setupDetailBreadcrumb(String detailLabel) {
         setupDetailBreadcrumb(placeManager,
-                              PerspectiveIds.EXECUTION_ERRORS,
                               Constants.INSTANCE.ExecutionErrors(),
                               detailLabel,
                               PerspectiveIds.EXECUTION_ERROR_DETAILS_SCREEN);
@@ -250,7 +256,6 @@ public class ExecutionErrorListPresenter extends AbstractMultiGridPresenter<Exec
     @WorkbenchMenu
     public Menus getMenus() {
         return MenuFactory
-                .newTopLevelCustomMenu(serverTemplateSelectorMenuBuilder).endMenu()
                 .newTopLevelCustomMenu(new RefreshMenuBuilder(this)).endMenu()
                 .newTopLevelCustomMenu(refreshSelectorMenuBuilder).endMenu()
                 .newTopLevelCustomMenu(new RestoreDefaultFiltersMenuBuilder(this)).endMenu()

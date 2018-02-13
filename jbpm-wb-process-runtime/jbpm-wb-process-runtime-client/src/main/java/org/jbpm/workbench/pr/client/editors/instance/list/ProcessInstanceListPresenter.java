@@ -66,6 +66,7 @@ import org.uberfire.client.workbench.events.BeforeClosePlaceEvent;
 import org.uberfire.client.workbench.widgets.common.ErrorPopupPresenter;
 import org.uberfire.ext.widgets.common.client.common.popups.errors.ErrorPopup;
 import org.uberfire.ext.widgets.common.client.menu.RefreshMenuBuilder;
+import org.uberfire.lifecycle.OnStartup;
 import org.uberfire.mvp.Command;
 import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
@@ -102,16 +103,20 @@ public class ProcessInstanceListPresenter extends AbstractMultiGridPresenter<Pro
     @Inject
     private Event<ProcessInstanceSelectionEvent> processInstanceSelected;
 
+    @OnStartup
+    public void onStartup(final PlaceRequest place) {
+        setPerspectiveId(PROCESS_INSTANCES);
+        super.onStartup(place);
+    }
+
     @Override
     public void createListBreadcrumb() {
         setupListBreadcrumb(placeManager,
-                            PROCESS_INSTANCES,
                             Constants.INSTANCE.Process_Instances());
     }
 
     public void setupDetailBreadcrumb(String detailLabel) {
         setupDetailBreadcrumb(placeManager,
-                              PROCESS_INSTANCES,
                               Constants.INSTANCE.Process_Instances(),
                               detailLabel,
                               PROCESS_INSTANCE_DETAILS_SCREEN);
@@ -435,7 +440,6 @@ public class ProcessInstanceListPresenter extends AbstractMultiGridPresenter<Pro
                     }
                 })
                 .endMenu()
-                .newTopLevelCustomMenu(serverTemplateSelectorMenuBuilder).endMenu()
                 .newTopLevelCustomMenu(new RefreshMenuBuilder(this)).endMenu()
                 .newTopLevelCustomMenu(refreshSelectorMenuBuilder).endMenu()
                 .newTopLevelCustomMenu(new RestoreDefaultFiltersMenuBuilder(this)).endMenu()
