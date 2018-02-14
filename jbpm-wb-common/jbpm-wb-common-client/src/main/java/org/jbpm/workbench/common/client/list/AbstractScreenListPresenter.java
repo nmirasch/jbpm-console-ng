@@ -43,8 +43,6 @@ public abstract class AbstractScreenListPresenter<T> extends AbstractListPresent
 
     private String detailScreenId;
 
-    private String perspectiveId;
-
     @Inject
     protected PlaceManager placeManager;
 
@@ -79,13 +77,11 @@ public abstract class AbstractScreenListPresenter<T> extends AbstractListPresent
     @OnStartup
     public void onStartup(final PlaceRequest place) {
         this.place = place;
-        breadcrumbs.addToolbar(perspectiveId,
+        breadcrumbs.addToolbar(getPerspectiveId(),
                                serverTemplateSelectorMenuBuilder.getView().getElement());
     }
 
-    public void setPerspectiveId(String perspectiveId) {
-        this.perspectiveId = perspectiveId;
-    }
+    public abstract String getPerspectiveId();
 
     @Inject
     public void setIdentity(final User identity) {
@@ -117,12 +113,12 @@ public abstract class AbstractScreenListPresenter<T> extends AbstractListPresent
 
     public void setupListBreadcrumb(PlaceManager placeManager,
                                     String listLabel) {
-        breadcrumbs.clearBreadcrumbs(perspectiveId);
+        breadcrumbs.clearBreadcrumbs(getPerspectiveId());
 
-        breadcrumbs.addBreadCrumb(perspectiveId,
+        breadcrumbs.addBreadCrumb(getPerspectiveId(),
                                   Constants.INSTANCE.Home(),
                                   () -> placeManager.goTo(PerspectiveIds.HOME));
-        breadcrumbs.addBreadCrumb(perspectiveId,
+        breadcrumbs.addBreadCrumb(getPerspectiveId(),
                                   listLabel,
                                   Commands.DO_NOTHING);
     }
@@ -131,14 +127,14 @@ public abstract class AbstractScreenListPresenter<T> extends AbstractListPresent
                                       String listLabel,
                                       String detailLabel,
                                       String detailScreenId) {
-        breadcrumbs.clearBreadcrumbs(perspectiveId);
-        breadcrumbs.addBreadCrumb(perspectiveId,
+        breadcrumbs.clearBreadcrumbs(getPerspectiveId());
+        breadcrumbs.addBreadCrumb(getPerspectiveId(),
                                   Constants.INSTANCE.Home(),
                                   () -> placeManager.goTo(PerspectiveIds.HOME));
-        breadcrumbs.addBreadCrumb(perspectiveId,
+        breadcrumbs.addBreadCrumb(getPerspectiveId(),
                                   listLabel,
                                   () -> closeDetails(detailScreenId));
-        breadcrumbs.addBreadCrumb(perspectiveId,
+        breadcrumbs.addBreadCrumb(getPerspectiveId(),
                                   detailLabel,
                                   Commands.DO_NOTHING);
         this.detailScreenId = detailScreenId;

@@ -118,7 +118,7 @@ public class ExecutionErrorListPresenterTest {
         when(extendedPagedTable.getColumnSortList()).thenReturn(null);
         when(dataSetQueryHelper.getCurrentTableSettings()).thenReturn(filterSettings);
         when(viewMock.getAdvancedSearchFilterSettings()).thenReturn(filterSettings);
-        when(serverTemplateSelectorMenuBuilder.getView()).thenReturn(mock(ServerTemplateSelectorMenuBuilder.ServerTemplateSelectorView.class));
+        when(serverTemplateSelectorMenuBuilder.getView()).thenReturn(mock(ServerTemplateSelectorMenuBuilder.ServerTemplateSelectorElementView.class));
 
         presenter.setExecutorService(callerMockExecutorService);
     }

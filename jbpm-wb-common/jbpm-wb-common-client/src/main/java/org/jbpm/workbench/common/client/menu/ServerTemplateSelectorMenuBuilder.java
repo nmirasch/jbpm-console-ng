@@ -45,7 +45,7 @@ public class ServerTemplateSelectorMenuBuilder implements MenuFactory.CustomMenu
     private ServerTemplateSelectorWidgetView widgetView;
 
     @Inject
-    private ServerTemplateSelectorView view;
+    private ServerTemplateSelectorElementView view;
 
     @Inject
     private Caller<SpecManagementService> specManagementService;
@@ -68,10 +68,9 @@ public class ServerTemplateSelectorMenuBuilder implements MenuFactory.CustomMenu
     }
 
     protected void loadServerTemplates() {
+        widgetView.removeAllServerTemplates();
+        view.removeAllServerTemplates();
         specManagementService.call((ServerTemplateList serverTemplates) -> {
-            widgetView.removeAllServerTemplates();
-            view.removeAllServerTemplates();
-
             final Set<String> ids = FluentIterable.from(serverTemplates.getServerTemplates())
                     .filter(s -> s.getServerInstanceKeys() != null && !s.getServerInstanceKeys().isEmpty())
                     .transform(s -> s.getId())
@@ -126,7 +125,7 @@ public class ServerTemplateSelectorMenuBuilder implements MenuFactory.CustomMenu
         };
     }
 
-    public ServerTemplateSelectorView getView() {
+    public ServerTemplateSelectorElementView getView() {
         return view;
     }
 
@@ -153,7 +152,7 @@ public class ServerTemplateSelectorMenuBuilder implements MenuFactory.CustomMenu
         return view.getSelectedServerTemplate();
     }
 
-    public interface ServerTemplateSelectorWidgetView extends IsWidget {
+    public interface ServerTemplateSelectorView {
 
         void selectServerTemplate(String serverTemplateId);
 
@@ -172,22 +171,11 @@ public class ServerTemplateSelectorMenuBuilder implements MenuFactory.CustomMenu
         void setServerTemplateChangeHandler(ParameterizedCommand<String> command);
     }
 
-    public interface ServerTemplateSelectorView extends UberElement<ServerTemplateSelectorMenuBuilder> {
+    public interface ServerTemplateSelectorWidgetView extends ServerTemplateSelectorView, IsWidget {
 
-        void selectServerTemplate(String serverTemplateId);
+    }
 
-        void updateSelectedValue(String serverTemplateId);
+    public interface ServerTemplateSelectorElementView extends ServerTemplateSelectorView, UberElement<ServerTemplateSelectorMenuBuilder> {
 
-        void setVisible(boolean visible);
-
-        void clearSelectedServerTemplate();
-
-        String getSelectedServerTemplate();
-
-        void addServerTemplate(String serverTemplateId);
-
-        void removeAllServerTemplates();
-
-        void setServerTemplateChangeHandler(ParameterizedCommand<String> command);
     }
 }

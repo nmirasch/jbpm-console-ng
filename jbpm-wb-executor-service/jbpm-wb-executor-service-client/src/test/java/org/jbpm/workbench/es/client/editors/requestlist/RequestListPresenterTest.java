@@ -114,7 +114,7 @@ public class RequestListPresenterTest {
         when(extendedPagedTable.getColumnSortList()).thenReturn(null);
         when(dataSetQueryHelper.getCurrentTableSettings()).thenReturn(filterSettings);
         when(viewMock.getAdvancedSearchFilterSettings()).thenReturn(filterSettings);
-        when(serverTemplateSelectorMenuBuilder.getView()).thenReturn(mock(ServerTemplateSelectorMenuBuilder.ServerTemplateSelectorView.class));
+        when(serverTemplateSelectorMenuBuilder.getView()).thenReturn(mock(ServerTemplateSelectorMenuBuilder.ServerTemplateSelectorElementView.class));
 
 
         presenter = new RequestListPresenter(viewMock,

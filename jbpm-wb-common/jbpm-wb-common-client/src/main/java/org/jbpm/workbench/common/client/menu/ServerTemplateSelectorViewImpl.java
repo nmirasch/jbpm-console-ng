@@ -31,11 +31,12 @@ import org.uberfire.mvp.ParameterizedCommand;
 
 import static org.jboss.errai.common.client.dom.DOMUtil.addCSSClass;
 import static org.jboss.errai.common.client.dom.DOMUtil.removeCSSClass;
+import static org.jboss.errai.common.client.dom.DOMUtil.removeAllChildren;
 import static org.jboss.errai.common.client.dom.Window.getDocument;
 
 @Dependent
 @Templated
-public class ServerTemplateSelectorViewImpl implements ServerTemplateSelectorMenuBuilder.ServerTemplateSelectorView {
+public class ServerTemplateSelectorViewImpl implements ServerTemplateSelectorMenuBuilder.ServerTemplateSelectorElementView {
 
     private Constants constants = Constants.INSTANCE;
 
@@ -59,10 +60,10 @@ public class ServerTemplateSelectorViewImpl implements ServerTemplateSelectorMen
 
     @Override
     public void selectServerTemplate(String serverTemplateId) {
-        NodeList childsList = serverTemplatesList.getChildNodes();
-        for (int i = 0; i < childsList.getLength(); i++) {
-            if (childsList.item(i).getLastChild().getTextContent().equals(serverTemplateId)) {
-                selectServerTemplate((HTMLElement) childsList.item(i),
+        NodeList childList = serverTemplatesList.getChildNodes();
+        for (int i = 0; i < childList.getLength(); i++) {
+            if (childList.item(i).getLastChild().getTextContent().equals(serverTemplateId)) {
+                selectServerTemplate((HTMLElement) childList.item(i),
                                      serverTemplateId,
                                      false);
                 break;
@@ -72,10 +73,10 @@ public class ServerTemplateSelectorViewImpl implements ServerTemplateSelectorMen
 
     @Override
     public void updateSelectedValue(String serverTemplateId) {
-        NodeList childsList = serverTemplatesList.getChildNodes();
-        for (int i = 0; i < childsList.getLength(); i++) {
-            if (childsList.item(i).getLastChild().getTextContent().equals(serverTemplateId)) {
-                selectServerTemplate((HTMLElement) childsList.item(i),
+        NodeList childList = serverTemplatesList.getChildNodes();
+        for (int i = 0; i < childList.getLength(); i++) {
+            if (childList.item(i).getLastChild().getTextContent().equals(serverTemplateId)) {
+                selectServerTemplate((HTMLElement) childList.item(i),
                                      serverTemplateId,
                                      true);
                 break;
@@ -98,19 +99,11 @@ public class ServerTemplateSelectorViewImpl implements ServerTemplateSelectorMen
     public void addServerTemplate(String serverTemplateId) {
         final HTMLElement li = getDocument().createElement("li");
         final HTMLElement a = getDocument().createElement("a");
-        final HTMLElement iconSpan = getDocument().createElement("span");
         final HTMLElement textSpan = getDocument().createElement("span");
         textSpan.setTextContent(serverTemplateId);
         a.setOnclick(e -> selectServerTemplate(li,
                                                serverTemplateId,
                                                false));
-        addCSSClass(iconSpan,
-                    "fa");
-        addCSSClass(iconSpan,
-                    "fa-server");
-        addCSSClass(iconSpan,
-                    "fa-fw");
-        a.appendChild(iconSpan);
         a.appendChild(textSpan);
         li.appendChild(a);
         serverTemplatesList.appendChild(li);
@@ -120,7 +113,7 @@ public class ServerTemplateSelectorViewImpl implements ServerTemplateSelectorMen
                                         String serverTemplateId,
                                         boolean updating) {
         final boolean serverChanged = serverTemplateId.equals(selectedServerTemplateText.getTextContent()) == false;
-        unselectAllServerTemplateNavLinks();
+        unSelectAllServerTemplateNavLinks();
         addCSSClass(liOption,
                     "active");
         if (serverChanged) {
@@ -147,10 +140,7 @@ public class ServerTemplateSelectorViewImpl implements ServerTemplateSelectorMen
 
     @Override
     public void removeAllServerTemplates() {
-        NodeList childsList = serverTemplatesList.getChildNodes();
-        for (int i = 0; i < childsList.getLength(); i++) {
-            serverTemplatesList.removeChild(childsList.item(i));
-        }
+        removeAllChildren(serverTemplatesList);
     }
 
     @Override
@@ -158,10 +148,10 @@ public class ServerTemplateSelectorViewImpl implements ServerTemplateSelectorMen
         this.changeCommand = command;
     }
 
-    private void unselectAllServerTemplateNavLinks() {
-        NodeList childsList = serverTemplatesList.getChildNodes();
-        for (int i = 0; i < childsList.getLength(); i++) {
-            removeCSSClass((HTMLElement) childsList.item(i),
+    private void unSelectAllServerTemplateNavLinks() {
+        NodeList childList = serverTemplatesList.getChildNodes();
+        for (int i = 0; i < childList.getLength(); i++) {
+            removeCSSClass((HTMLElement) childList.item(i),
                            "active");
         }
     }

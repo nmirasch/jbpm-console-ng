@@ -28,8 +28,6 @@ import org.jbpm.workbench.ht.model.TaskSummary;
 import org.uberfire.client.annotations.WorkbenchMenu;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchScreen;
-import org.uberfire.lifecycle.OnStartup;
-import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.workbench.model.menu.Menus;
 
 import static org.dashbuilder.dataset.filter.FilterFactory.*;
@@ -56,10 +54,9 @@ public class TaskListPresenter extends AbstractTaskListPresenter<TaskListViewImp
         addProcessNameFilter(HUMAN_TASKS_WITH_USER_DATASET);
     }
 
-    @OnStartup
-    public void onStartup(final PlaceRequest place) {
-        setPerspectiveId(PerspectiveIds.TASKS);
-        super.onStartup(place);
+    @Override
+    public String getPerspectiveId() {
+        return PerspectiveIds.TASKS;
     }
 
     @Override
