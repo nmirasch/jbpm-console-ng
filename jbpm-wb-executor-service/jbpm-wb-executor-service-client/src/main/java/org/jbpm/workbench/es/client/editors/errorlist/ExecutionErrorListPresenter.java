@@ -47,8 +47,6 @@ import org.uberfire.client.annotations.WorkbenchScreen;
 import org.uberfire.client.mvp.PlaceStatus;
 import org.uberfire.client.workbench.widgets.common.ErrorPopupPresenter;
 import org.uberfire.ext.widgets.common.client.menu.RefreshMenuBuilder;
-import org.uberfire.lifecycle.OnStartup;
-import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 import org.uberfire.workbench.model.menu.MenuFactory;
 import org.uberfire.workbench.model.menu.Menus;
@@ -73,10 +71,9 @@ public class ExecutionErrorListPresenter extends AbstractMultiGridPresenter<Exec
     @Inject
     private Event<ExecutionErrorSelectedEvent> executionErrorSelectedEvent;
 
-    @OnStartup
-    public void onStartup(final PlaceRequest place) {
-        setPerspectiveId(PerspectiveIds.EXECUTION_ERRORS);
-        super.onStartup(place);
+    @Override
+    public String getPerspectiveId() {
+        return PerspectiveIds.EXECUTION_ERRORS;
     }
 
     public void createListBreadcrumb() {
