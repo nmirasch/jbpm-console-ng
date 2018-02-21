@@ -30,7 +30,7 @@ import org.uberfire.ext.widgets.common.client.common.BusyPopup;
 @Templated
 public class ProcessDiagramWidgetView
         extends Composite
-        implements ProcessDiagramPopUpPresenter.View,
+        implements ProcessDiagramPresenter.View,
                    RequiresResize {
 
     @DataField("processDiagramDiv")
