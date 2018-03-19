@@ -274,10 +274,10 @@ public class ProcessDashboard extends AbstractDashboard {
     @WorkbenchMenu
     public Menus getMenus() {
         return MenuFactory
-                .newTopLevelCustomMenu(new PrimaryActionMenuBuilder("",
+                .newTopLevelCustomMenu(new PrimaryActionMenuBuilder(i18n.viewTable(),
                                                                     "fa-table",
                                                                     i18n.viewTable(),
-                                                                    "",
+                                                                    i18n.viewDashboard(),
                                                                     "fa-th",
                                                                     i18n.viewDashboard(),
                                                                     () -> {
