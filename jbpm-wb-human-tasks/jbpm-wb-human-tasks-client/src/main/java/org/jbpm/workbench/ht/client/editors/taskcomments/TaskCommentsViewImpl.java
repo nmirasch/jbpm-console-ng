@@ -37,6 +37,7 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.ColumnSortEvent.ListHandler;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.SimplePanel;
+import elemental2.dom.HTMLDivElement;
 import org.gwtbootstrap3.client.ui.Button;
 import org.gwtbootstrap3.client.ui.FormLabel;
 import org.gwtbootstrap3.client.ui.TextArea;
@@ -62,6 +63,10 @@ public class TaskCommentsViewImpl extends Composite implements TaskCommentsPrese
     protected static final String COL_COMMENT = "comment";
     protected static final String COL_ID_ACTIONS = "Actions";
     private static final int COMMENTS_PER_PAGE = 10;
+
+    @Inject
+    @DataField("addCommentDiv")
+    public HTMLDivElement addCommentDiv;
 
     @Inject
     @DataField
@@ -99,30 +104,57 @@ public class TaskCommentsViewImpl extends Composite implements TaskCommentsPrese
     }
 
     @Override
-    public void init(TaskCommentsPresenter presenter) {
-        this.presenter = presenter;
-        List<String> bannedColumns = new ArrayList<String>();
-        bannedColumns.add(COL_COMMENT);
-        bannedColumns.add(COL_ID_ACTIONS);
+    public void initCommentsTable(boolean readOnly) {
+        createCommentsListGrid(readOnly);
+        if (readOnly) {
+            addCommentDiv.classList.add("hidden");
+            ;
+        } else {
+            addCommentDiv.classList.remove("hidden");
+        }
+    }
 
+    public List<String> getInitColums(boolean readOnly) {
         List<String> initColumns = new ArrayList<String>();
         initColumns.add(COL_ADDEDBY);
         initColumns.add(COL_COMMENT);
         initColumns.add(COL_ADDEDAT);
-        initColumns.add(COL_ID_ACTIONS);
+        if (!readOnly) {
+            initColumns.add(COL_ID_ACTIONS);
+        }
+        return initColumns;
+    }
+
+    public List<String> getIBannedColums(boolean readOnly) {
+        List<String> bannedColumns = new ArrayList<String>();
+        bannedColumns.add(COL_COMMENT);
+        if (!readOnly) {
+            bannedColumns.add(COL_ID_ACTIONS);
+        }
+        return bannedColumns;
+    }
+
+    @Override
+    public void init(TaskCommentsPresenter presenter) {
+        this.presenter = presenter;
+        addCommentButton.setText(constants.Add_Comment());
+        newTaskCommentLabel.setText(constants.Comment());
+    }
+
+    private void createCommentsListGrid(boolean readOnly) {
 
         commentsListGrid.setGridPreferencesStore(new GridPreferencesStore(new GridGlobalPreferences("CommentsGrid",
-                                                                                                    initColumns,
-                                                                                                    bannedColumns)));
+                                                                                                    getInitColums(readOnly),
+                                                                                                    getIBannedColums(readOnly))));
         commentsListGrid.setEmptyTableCaption(constants.No_Comments_For_This_Task());
         // Attach a column sort handler to the ListDataProvider to sort the list.
         sortHandler = new ListHandler<CommentSummary>(presenter.getDataProvider().getList());
         commentsListGrid.addColumnSortHandler(sortHandler);
         initTableColumns();
+        if (!readOnly) {
+            addActionsColumn();
+        }
         presenter.addDataDisplay(commentsListGrid);
-
-        addCommentButton.setText(constants.Add_Comment());
-        newTaskCommentLabel.setText(constants.Comment());
     }
 
     @EventHandler("addCommentButton")
@@ -180,7 +212,9 @@ public class TaskCommentsViewImpl extends Composite implements TaskCommentsPrese
         commentTextColumn.setDataStoreName(COL_COMMENT);
         commentsListGrid.addColumn(commentTextColumn,
                                    constants.Comment());
+    }
 
+    private void addActionsColumn() {
         List<HasCell<CommentSummary, ?>> cells = new LinkedList<HasCell<CommentSummary, ?>>();
 
         cells.add(new DeleteCommentActionHasCell(constants.Delete(),
@@ -217,7 +251,6 @@ public class TaskCommentsViewImpl extends Composite implements TaskCommentsPrese
                 public void render(Cell.Context context,
                                    CommentSummary value,
                                    SafeHtmlBuilder sb) {
-
                     SafeHtmlBuilder mysb = new SafeHtmlBuilder();
                     mysb.appendHtmlConstant(new SimplePanel(new Button(constants.Delete()) {{
                         setSize(ButtonSize.SMALL);

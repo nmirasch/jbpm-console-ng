@@ -126,7 +126,8 @@ public class TaskCommentsPresenter {
     }
 
     public void onTaskSelectionEvent(@Observes final TaskSelectionEvent event) {
-        if (!event.isForLog()) {
+        if (currentTaskId == 0 || currentTaskId == event.getTaskId()) {
+            view.initCommentsTable(event.isForLog());
             currentTaskId = event.getTaskId();
             serverTemplateId = event.getServerTemplateId();
             containerId = event.getContainerId();
@@ -143,6 +144,8 @@ public class TaskCommentsPresenter {
     public interface TaskCommentsView extends UberView<TaskCommentsPresenter> {
 
         void clearCommentInput();
+
+        void initCommentsTable(boolean readOnly);
 
         void redrawDataGrid();
 
