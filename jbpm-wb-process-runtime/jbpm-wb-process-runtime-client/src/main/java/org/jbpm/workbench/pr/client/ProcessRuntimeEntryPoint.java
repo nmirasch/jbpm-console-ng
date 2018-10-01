@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 
-package org.jbpm.workbench.pr.client.util;
+package org.jbpm.workbench.pr.client;
 
-public class LogUtils {
+import javax.annotation.PostConstruct;
 
-    public enum LogOrder {
-        DESC,
-        ASC
+import org.jboss.errai.ioc.client.api.EntryPoint;
+import org.jboss.errai.ui.shared.api.annotations.Bundle;
+import org.uberfire.client.views.pfly.sys.PatternFlyBootstrapper;
+
+@EntryPoint
+@Bundle("resources/i18n/Constants.properties")
+public class ProcessRuntimeEntryPoint {
+
+    @PostConstruct
+    public void init() {
+        PatternFlyBootstrapper.ensurePatternFlyIsAvailable();
     }
 }
