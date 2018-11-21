@@ -23,7 +23,7 @@ import java.util.function.Function;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 import com.google.gwt.cell.client.CheckboxCell;
 import com.google.gwt.cell.client.NumberCell;
 import com.google.gwt.cell.client.TextCell;
@@ -132,9 +132,9 @@ public abstract class AbstractMultiGridView<T extends GenericSummary, V extends 
     }
 
     protected void controlBulkOperations(final ListTable<T> extendedPagedTable) {
-        enableWidgets(Iterables.getFirst(extendedPagedTable.getRightActionsToolbar(),
-                                         null),
-                      extendedPagedTable.hasSelectedItems());
+        enableWidgets(
+                Streams.stream(extendedPagedTable.getRightActionsToolbar()).findFirst().orElse(null),
+                extendedPagedTable.hasSelectedItems());
     }
 
     protected void enableWidgets(final Widget widget,
