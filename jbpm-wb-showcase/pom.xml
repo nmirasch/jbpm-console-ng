@@ -1606,6 +1606,13 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- Lienzo. -->
+    <dependency>
+      <groupId>org.kie</groupId>
+      <artifactId>lienzo-core</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
   </dependencies>
 
   <build>
